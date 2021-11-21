@@ -25,11 +25,13 @@ def login(usr, pwd):
 
     api_generate = generate_keys(frappe.session.user)
     user = frappe.get_doc('User', frappe.session.user)
-    allowed_modules = frappe.db.sql(""" select `tabMobile user Modules`.modules as modq from `tabMobile user Modules` join `tabMobile User` on `tabMobile user Modules`.parent = `tabMobile User`.name where `tabMobile User`.user = '{user}' """.format(user=usr),as_dict=1)
+    allowed_modules = frappe.db.sql(""" select `tabMobile user Modules`.modules as modq 
+    from `tabMobile user Modules` join `tabMobile User` on `tabMobile user Modules`.parent = `tabMobile User`.name 
+    where `tabMobile User`.user = '{user}' or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}'""".format(user=usr),as_dict=1)
     allowed_documents = frappe.db.sql(""" select `tabMobile User Documents`.modules as modq ,
                                         `tabMobile User Documents`.document_name as docq 
                                         from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
-                                        where `tabMobile User`.user = '{user}' """.format(user=usr),as_dict=1)
+                                        where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' """.format(user=usr),as_dict=1)
     modules={}
     documents={}
     for module in allowed_modules:

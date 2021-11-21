@@ -7,6 +7,8 @@
  "engine": "InnoDB",
  "field_order": [
   "user",
+  "username",
+  "mobile_no",
   "mobile_user_modules",
   "mobile_user_documents"
  ],
@@ -28,11 +30,25 @@
    "fieldtype": "Table",
    "label": "Mobile user Modules",
    "options": "Mobile user Modules"
+  },
+  {
+   "fetch_from": "user.username",
+   "fieldname": "username",
+   "fieldtype": "Data",
+   "label": "Username",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "user.mobile_no",
+   "fieldname": "mobile_no",
+   "fieldtype": "Data",
+   "label": "Mobile No",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-10-30 12:22:41.061085",
+ "modified": "2021-11-10 16:05:18.204841",
  "modified_by": "Administrator",
  "module": "Ecs Mobile",
  "name": "Mobile User",
