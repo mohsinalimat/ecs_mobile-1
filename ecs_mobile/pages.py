@@ -67,7 +67,22 @@ def lead(name):
                                 """.format(name=name), as_dict=1)
 
     led['attachments'] = attachments
-    
+
+    comments = frappe.db.sql(""" Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Lead"
+                                        and `tabComment`.reference_name = "{name}" 
+                                        and `tabComment`.comment_type = "Comment"
+                                    """.format(name=name), as_dict=1)
+
+    led['comments'] = comments
+
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Lead" and disabled = 0 """, as_dict=1)
+    led['print_formats'] = print_formats
+    pf_standard = {}
+    pf_standard['name'] = "Standard"
+    print_formats.append(pf_standard)
+
     quotation_count = frappe.db.count('Quotation', filters={'party_name': name})
     opportunity_count = frappe.db.count('Opportunity', filters={'party_name': name})
     #quotation_name = frappe.db.get_list('Quotation', filters={'party_name': name}, fields=['name'])
@@ -171,6 +186,21 @@ def opportunity(name):
 
     opp['attachments'] = attachments
 
+    comments = frappe.db.sql(""" Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Opportunity"
+                                        and `tabComment`.reference_name = "{name}" 
+                                        and `tabComment`.comment_type = "Comment"
+                                    """.format(name=name), as_dict=1)
+
+    opp['comments'] = comments
+
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Opportunity" and disabled = 0 """, as_dict=1)
+    opp['print_formats'] = print_formats
+    pf_standard = {}
+    pf_standard['name'] = "Standard"
+    print_formats.append(pf_standard)
+
     quotation_count = frappe.db.count('Quotation', filters={'opportunity': name})
     sup_quotation_count = frappe.db.count('Supplier Quotation', filters={'opportunity': name})
     #quotation_name = frappe.db.get_list('Quotation', filters={'opportunity': name}, fields=['name'])
@@ -194,7 +224,6 @@ def opportunity(name):
         connections.append(sup_qtn_connections)
 
     opp['conn'] = connections
-
 
     if doc_data:
         return opp
@@ -394,6 +423,21 @@ def quotation(name):
 
     qtn['attachments'] = attachments
 
+    comments = frappe.db.sql(""" Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Quotation"
+                                        and `tabComment`.reference_name = "{name}" 
+                                        and `tabComment`.comment_type = "Comment"
+                                    """.format(name=name), as_dict=1)
+
+    qtn['comments'] = comments
+
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Quotation" and disabled = 0 """, as_dict=1)
+    qtn['print_formats'] = print_formats
+    pf_standard = {}
+    pf_standard['name'] = "Standard"
+    print_formats.append(pf_standard)
+
     sales_order_name = frappe.db.get_list('Sales Order Item', filters={'prevdoc_docname': name}, fields=['parent'], group_by='parent')
     sales_order_count = len(sales_order_name)
 
@@ -476,6 +520,21 @@ def customer(name):
                                     """.format(name=name), as_dict=1)
 
     cust['attachments'] = attachments
+
+    comments = frappe.db.sql(""" Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Customer"
+                                        and `tabComment`.reference_name = "{name}" 
+                                        and `tabComment`.comment_type = "Comment"
+                                    """.format(name=name), as_dict=1)
+
+    cust['comments'] = comments
+
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Customer" and disabled = 0 """, as_dict=1)
+    cust['print_formats'] = print_formats
+    pf_standard = {}
+    pf_standard['name'] = "Standard"
+    print_formats.append(pf_standard)
 
     quotation_count = frappe.db.count('Quotation', filters={'party_name': name})
     opportunity_count = frappe.db.count('Opportunity', filters={'party_name': name})
@@ -732,14 +791,6 @@ def sales_order(name):
                                           'base_payment_amount',
                                       ])
 
-    attachments = frappe.db.sql(""" Select file_name, file_url,
-                                        Date_Format(creation,'%d/%m/%Y') as date_added
-                                        from `tabFile`  where `tabFile`.attached_to_doctype = "Sales Order"
-                                        and `tabFile`.attached_to_name = "{name}"
-                                    """.format(name=name), as_dict=1)
-
-    so['attachments'] = attachments
-
     if child_data_1 and doc_data:
         so['items'] = child_data_1
 
@@ -748,6 +799,30 @@ def sales_order(name):
 
     if child_data_3 and doc_data:
         so['payment_schedule'] = child_data_3
+
+    attachments = frappe.db.sql(""" Select file_name, file_url,
+                                        Date_Format(creation,'%d/%m/%Y') as date_added
+                                        from `tabFile`  where `tabFile`.attached_to_doctype = "Sales Order"
+                                        and `tabFile`.attached_to_name = "{name}"
+                                    """.format(name=name), as_dict=1)
+
+    so['attachments'] = attachments
+
+
+    comments = frappe.db.sql(""" Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Sales Order"
+                                        and `tabComment`.reference_name = "{name}" 
+                                        and `tabComment`.comment_type = "Comment"
+                                    """.format(name=name), as_dict=1)
+
+    so['comments'] = comments
+
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Sales Order" and disabled = 0 """, as_dict=1)
+    so['print_formats'] = print_formats
+    pf_standard = {}
+    pf_standard['name'] = "Standard"
+    print_formats.append(pf_standard)
 
     sales_invoice = frappe.db.get_list('Sales Invoice Item', filters={'sales_order': name}, fields=['parent'], group_by='parent')
     delivery_note = frappe.db.get_list('Delivery Note Item', filters={'against_sales_order': name}, fields=['parent'], group_by='parent')
@@ -1016,6 +1091,20 @@ def sales_invoice(name):
 
     sinv['attachments'] = attachments
 
+    comments = frappe.db.sql(""" Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Sales Invoice"
+                                        and `tabComment`.reference_name = "{name}" 
+                                        and `tabComment`.comment_type = "Comment"
+                                    """.format(name=name), as_dict=1)
+
+    sinv['comments'] = comments
+
+    print_formats = frappe.db.sql(""" Select name from `tabPrint Format` where doc_type = "Sales Invoice" and disabled = 0 """, as_dict=1)
+    sinv['print_formats'] = print_formats
+    pf_standard = {}
+    pf_standard['name'] = "Standard"
+    print_formats.append(pf_standard)
+
     sales_order = frappe.db.get_list('Sales Invoice Item', filters={'parent': name}, fields=['sales_order'], group_by='sales_order')
     delivery_note = frappe.db.get_list('Delivery Note Item', filters={'against_sales_invoice': name}, fields=['parent'], group_by='parent')
     payment_entry = frappe.db.get_list('Payment Entry Reference', filters={'reference_name': name}, fields=['parent'], group_by='parent')
@@ -1103,6 +1192,21 @@ def payment_entry(name):
 
     pe['attachments'] = attachments
 
+    comments = frappe.db.sql(""" Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Payment Entry"
+                                        and `tabComment`.reference_name = "{name}" 
+                                        and `tabComment`.comment_type = "Comment"
+                                    """.format(name=name), as_dict=1)
+
+    pe['comments'] = comments
+
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Payment Entry" and disabled = 0 """, as_dict=1)
+    pe['print_formats'] = print_formats
+    pf_standard = {}
+    pf_standard['name'] = "Standard"
+    print_formats.append(pf_standard)
+
     if doc_data:
         return pe
     else:
@@ -1171,13 +1275,6 @@ def item(name):
     if child_data2 and doc_data:
         item_['selling_price_lists_rate'] = child_data2
 
-    attachments = frappe.db.sql(""" Select file_name, file_url,
-                                        Date_Format(creation,'%d/%m/%Y') as date_added
-                                        from `tabFile`  where `tabFile`.attached_to_doctype = "Item"
-                                        and `tabFile`.attached_to_name = "{name}"
-                                    """.format(name=name), as_dict=1)
-
-    item_['attachments'] = attachments
 
     balances = frappe.db.sql(""" select  
                                      tabBin.warehouse as warehouse,
@@ -1211,6 +1308,29 @@ def item(name):
 
     if result and doc_data:
         item_['stock_balances'] = result
+
+    attachments = frappe.db.sql(""" Select file_name, file_url,
+                                        Date_Format(creation,'%d/%m/%Y') as date_added
+                                        from `tabFile`  where `tabFile`.attached_to_doctype = "Item"
+                                        and `tabFile`.attached_to_name = "{name}"
+                                    """.format(name=name), as_dict=1)
+
+    item_['attachments'] = attachments
+
+    comments = frappe.db.sql(""" Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Item"
+                                        and `tabComment`.reference_name = "{name}" 
+                                        and `tabComment`.comment_type = "Comment"
+                                    """.format(name=name), as_dict=1)
+
+    item_['comments'] = comments
+
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Item" and disabled = 0 """, as_dict=1)
+    item_['print_formats'] = print_formats
+    pf_standard = {}
+    pf_standard['name'] = "Standard"
+    print_formats.append(pf_standard)
 
     quotation = frappe.db.get_list('Quotation Item', filters={'item_code': name}, fields=['item_code'], group_by='parent')
     sales_order = frappe.db.get_list('Sales Order Item', filters={'item_code': name}, fields=['item_code'], group_by='parent')
@@ -1376,6 +1496,21 @@ def stock_entry(name):
                                     """.format(name=name), as_dict=1)
 
     se['attachments'] = attachments
+
+    comments = frappe.db.sql(""" Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Stock Entry"
+                                        and `tabComment`.reference_name = "{name}" 
+                                        and `tabComment`.comment_type = "Comment"
+                                    """.format(name=name), as_dict=1)
+
+    se['comments'] = comments
+
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Stock Entry" and disabled = 0 """, as_dict=1)
+    se['print_formats'] = print_formats
+    pf_standard = {}
+    pf_standard['name'] = "Standard"
+    print_formats.append(pf_standard)
 
     if doc_data:
         return se
@@ -1554,14 +1689,6 @@ def delivery_note(name):
                                       ],
                                       )
 
-    attachments = frappe.db.sql(""" Select file_name, file_url, 
-                                        Date_Format(creation,'%d/%m/%Y') as date_added
-                                        from `tabFile`  where `tabFile`.attached_to_doctype = "Delivery Note"
-                                        and `tabFile`.attached_to_name = "{name}"
-                                    """.format(name=name), as_dict=1)
-
-    dn['attachments'] = attachments
-
     if child_data_1 and doc_data:
         dn['items'] = child_data_1
 
@@ -1570,6 +1697,29 @@ def delivery_note(name):
 
     if child_data_3 and doc_data:
         dn['payment_schedule'] = child_data_3
+
+    attachments = frappe.db.sql(""" Select file_name, file_url, 
+                                        Date_Format(creation,'%d/%m/%Y') as date_added
+                                        from `tabFile`  where `tabFile`.attached_to_doctype = "Delivery Note"
+                                        and `tabFile`.attached_to_name = "{name}"
+                                    """.format(name=name), as_dict=1)
+
+    dn['attachments'] = attachments
+
+    comments = frappe.db.sql(""" Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Delivery Note"
+                                        and `tabComment`.reference_name = "{name}" 
+                                        and `tabComment`.comment_type = "Comment"
+                                    """.format(name=name), as_dict=1)
+
+    dn['comments'] = comments
+
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Delivery Note" and disabled = 0 """, as_dict=1)
+    dn['print_formats'] = print_formats
+    pf_standard = {}
+    pf_standard['name'] = "Standard"
+    print_formats.append(pf_standard)
 
     if doc_data:
         return dn
@@ -1605,6 +1755,8 @@ def filtered_address(name):
                 'city': x.city,
                 'phone': x.phone
             }
+
+
             result.append(data)
 
     if addresses:

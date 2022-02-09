@@ -20,12 +20,14 @@
    "options": "User"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "mobile_user_documents",
    "fieldtype": "Table",
    "label": "Mobile User Documents",
    "options": "Mobile User Documents"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "mobile_user_modules",
    "fieldtype": "Table",
    "label": "Mobile user Modules",
@@ -48,7 +50,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-11-10 16:05:18.204841",
+ "modified": "2022-02-01 10:57:18.022700",
  "modified_by": "Administrator",
  "module": "Ecs Mobile",
  "name": "Mobile User",

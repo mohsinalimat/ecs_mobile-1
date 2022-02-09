@@ -266,6 +266,23 @@ def purchase_receipt(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 @frappe.whitelist(allow_guest=True)
+def comment(**kwargs):
+    comment =frappe.get_doc(kwargs['data'])
+
+    comment.insert()
+    comment_name = comment.name
+    frappe.db.commit()
+    if (comment_name):
+        message = frappe.response["message"] = {
+            "success_key": True,
+            "message": "تم اضافة التعليق بنجاح!",
+            "comment": comment_name
+        }
+        return message
+    else:
+        return "حدث خطأ ولم نتمكن من اضافة التعليق . برجاء المحاولة مرة اخري!"
+
+@frappe.whitelist(allow_guest=True)
 def add_item_list(**kwargs):
     start = 0
     page_length = 20
