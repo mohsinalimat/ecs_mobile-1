@@ -162,17 +162,16 @@ def opportunity(name):
 
     child_data = frappe.db.get_list('Opportunity Item', filters={'parent': name}, order_by='idx',
                                     fields=[
+                                        'idx',
                                         'name',
                                         'item_code',
-                                        'qty',
+                                        'item_name',
                                         'item_group',
                                         'brand',
-                                        'uom',
-                                        'item_name',
                                         'description',
                                         'image',
-                                        'basic_rate',
-
+                                        'qty',
+                                        'uom',
                                     ])
 
     if child_data and doc_data:
@@ -1755,6 +1754,9 @@ def filtered_address(name):
                 'city': x.city,
                 'phone': x.phone
             }
+
+
+
 
 
             result.append(data)

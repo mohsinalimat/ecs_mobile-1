@@ -294,15 +294,15 @@ def add_item_list(**kwargs):
                                                      tabItem.stock_uom as stock_uom, 
                                                      tabItem.image as image,
                                                      tabItem.sales_uom as sales_uom,
-                                                     ifnull((select price_list_rate  from `tabItem Price` where item_code = tabItem.name and price_list = '{price_list}'),0) as price_list_rate,
-                                                     ifnull((select tax_rate from `tabItem Tax Template Detail` join `tabItem Tax` 
+                                                     ifnull((select max(price_list_rate)  from `tabItem Price` where item_code = tabItem.name and price_list = '{price_list}'),0) as price_list_rate,
+                                                     ifnull((select distinct `tabItem Tax Template Detail`.tax_rate from `tabItem Tax Template Detail` join `tabItem Tax` 
                                                      where `tabItem Tax Template Detail`.parent = `tabItem Tax`.item_tax_template and `tabItem Tax`.parent = `tabItem`.name),0) as tax_percent
-                                                     from tabItem  where tabItem.name like '%{item}%' or tabItem.item_name like '%{item}%' LIMIT {start},{page_length}""".format(start=kwargs['start'], page_length=kwargs['page_length'], price_list=kwargs['price_list'],item=kwargs['search_text']), as_dict=1)
+                                                     from tabItem  where tabItem.disabled = 0 and tabItem.name like '%{item}%' or tabItem.item_name like '%{item}%' LIMIT {start},{page_length}""".format(start=kwargs['start'], page_length=kwargs['page_length'], price_list=kwargs['price_list'],item=kwargs['search_text']), as_dict=1)
             result = []
             for item_dict in items:
                 if item_dict.tax_percent > 0 and item_dict.price_list_rate > 0:
-                    net_rate = item_dict.price_list_rate / (1 + (item_dict.tax_percent / 100))
-                    vat_value = item_dict.price_list_rate - net_rate
+                    net_rate = item_dict.price_list_rate * (1 + (item_dict.tax_percent / 100))
+                    vat_value = net_rate - item_dict.price_list_rate 
                     data = {
                         'name': item_dict.name,
                         'item_name': item_dict.item_name,
@@ -343,16 +343,16 @@ def add_item_list(**kwargs):
                                          tabItem.stock_uom as stock_uom, 
                                          tabItem.image as image,
                                          tabItem.sales_uom as sales_uom,
-                                         ifnull((select price_list_rate  from `tabItem Price` where item_code = tabItem.name and price_list = '{price_list}'),0) as price_list_rate,
-                                         ifnull((select tax_rate from `tabItem Tax Template Detail` join `tabItem Tax` 
+                                         ifnull((select max(price_list_rate) from `tabItem Price` where item_code = tabItem.name and price_list = '{price_list}'),0) as price_list_rate,
+                                         ifnull((select distinct `tabItem Tax Template Detail`.tax_rate from `tabItem Tax Template Detail` join `tabItem Tax` 
                                          where `tabItem Tax Template Detail`.parent = `tabItem Tax`.item_tax_template and `tabItem Tax`.parent = `tabItem`.name),0) as tax_percent
-                                         from tabItem LIMIT {start},{page_length} """.format(start=kwargs['start'], page_length=kwargs['page_length'], price_list=kwargs['price_list']), as_dict=1)
+                                         from tabItem where tabItem.disabled = 0 LIMIT {start},{page_length} """.format(start=kwargs['start'], page_length=kwargs['page_length'], price_list=kwargs['price_list']), as_dict=1)
 
         result = []
         for item_dict in items:
             if item_dict.tax_percent > 0 and item_dict.price_list_rate > 0:
-                net_rate = item_dict.price_list_rate / (1 + (item_dict.tax_percent / 100))
-                vat_value = item_dict.price_list_rate - net_rate
+                net_rate = item_dict.price_list_rate * (1 + (item_dict.tax_percent / 100))
+                vat_value = net_rate - item_dict.price_list_rate
                 data = {
                     'name': item_dict.name,
                     'item_name': item_dict.item_name,
