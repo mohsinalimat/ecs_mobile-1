@@ -186,6 +186,18 @@ def login(usr, pwd, url):
                 HR["docs"] = (docs)
                 modules.append(HR)
 
+        taxes = frappe.db.get_list('Sales Taxes and Charges', filters={'parent': "Default Tax Template"},
+                                        fields=[
+                                            'charge_type',
+                                            'description',
+                                            'account_head',
+                                        ])
+        company = frappe.db.get_list('Company',
+                                      fields=[
+                                            'name',
+                                            'default_currency',
+                                        ])
+
         frappe.response["message"] = {
             "success_key": True,
             "domain_status": y['message'],
@@ -195,7 +207,9 @@ def login(usr, pwd, url):
             "api_secret": api_generate,
             "email": user.email,
             "modules": modules,
-            "user_type": user.role_profile_name
+            "user_type": user.role_profile_name,
+            "default_tax_template": taxes,
+            "company_defaults": company
         }
 
         return
