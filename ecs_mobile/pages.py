@@ -415,10 +415,11 @@ def quotation(name):
     if child_data_3 and doc_data:
         qtn['payment_schedule'] = child_data_3
 
-    attachments = frappe.db.sql(""" Select file_name, file_url
-                                        from `tabFile`  where `tabFile`.attached_to_doctype = "Quotation"
-                                        and `tabFile`.attached_to_name = "{name}"
-                                    """.format(name=name), as_dict=1)
+    attachments = frappe.db.sql(""" Select file_name, file_url,
+                                        Date_Format(creation,'%d/%m/%Y') as date_added
+                                    from `tabFile`  where `tabFile`.attached_to_doctype = "Quotation"
+                                    and `tabFile`.attached_to_name = "{name}"
+                                """.format(name=name), as_dict=1)
 
     qtn['attachments'] = attachments
 
@@ -1184,10 +1185,11 @@ def payment_entry(name):
         pe['docstatus'] = x.docstatus
 
 
-    attachments = frappe.db.sql(""" Select file_name, file_url
-                                        from `tabFile`  where `tabFile`.attached_to_doctype = "Payment Entry"
-                                        and `tabFile`.attached_to_name = "{name}"
-                                    """.format(name=name), as_dict=1)
+    attachments = frappe.db.sql(""" Select file_name, file_url,
+                                        Date_Format(creation,'%d/%m/%Y') as date_added
+                                    from `tabFile`  where `tabFile`.attached_to_doctype = "Payment Entry"
+                                    and `tabFile`.attached_to_name = "{name}"
+                                """.format(name=name), as_dict=1)
 
     pe['attachments'] = attachments
 
