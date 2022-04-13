@@ -19,13 +19,29 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ############################################ LEAD ############################################
 
 ########################### Lead Full List & Search ############################
-    '''
+
     if doctype == "Lead" and con_doc == '%%':
+        conditions = {}
+        conditions1 = {}
+        if search_text != '%%':
+            conditions1["name"] = ['like', search_text]
+            conditions1["lead_name"] = ['like', search_text]
+            conditions1["company_name"] = ['like', search_text]
+            conditions1["mobile_no"] = ['like', search_text]
+        if filter1 != '%%':
+            conditions["status"] = filter1
+        if filter2 != '%%':
+            conditions["lead_owner"] = filter2
+        if filter3 != '%%':
+            conditions["organization_lead"] = filter3
+        if filter4 != '%%':
+            conditions["creation"] = ['>=', filter4]
+        if filter5 != '%%':
+            conditions["creation"] = ['<=', filter5]
+
         query = frappe.db.get_list('Lead',
-           or_filters=[{'name': ['like', search_text]},
-                       {'lead_name': ['like', search_text]},
-                       {'company_name': ['like', search_text]},
-                       {'mobile_no': ['like', search_text]}],
+           or_filters=conditions1,
+           filters=conditions,
            fields=["name", "lead_name", "company_name", "territory", "source", "market_segment", "status"],
            order_by='modified desc',
            start=start,
@@ -36,7 +52,6 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
         else:
             return "لا يوجد !"
     '''
-
 
     if doctype == "Lead" and con_doc == '%%':
         conditions = ""
@@ -66,6 +81,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
+    '''
 ########################### Quotations Connected With Lead & Search ############################
     if doctype == "Quotation" and con_doc == "Lead":
         connections = frappe.db.sql(
@@ -93,12 +109,30 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ############################################ OPPORTUNITY ############################################
 
 ########################### Opportunity Full List & Search ############################
-    '''
+
     if doctype == "Opportunity" and con_doc == '%%':
+        conditions = {}
+        conditions1 = {}
+        if search_text != '%%':
+            conditions1["name"] = ['like', search_text]
+            conditions1["customer_name"] = ['like', search_text]
+            conditions1["party_name"] = ['like', search_text]
+        if filter1 != '%%':
+            conditions["status"] = filter1
+        if filter2 != '%%':
+            conditions["opportunity_from"] = filter2
+        if filter3 != '%%':
+            conditions["party_name"] = filter3
+        if filter4 != '%%':
+            conditions["opportunity_type"] = filter4
+        if filter5 != '%%':
+            conditions["transaction_date"] = ['>=', filter5]
+        if filter6 != '%%':
+            conditions["transaction_date"] = ['<=', filter6]
+
         query = frappe.db.get_list('Opportunity',
-           or_filters=[{'name': ['like', search_text]},
-                       {'customer_name': ['like', search_text]},
-                       {'party_name': ['like', search_text]}],
+           or_filters=conditions1,
+           filters=conditions,
            fields=["name", "opportunity_from", "customer_name", "transaction_date",
                    "opportunity_type", "sales_stage", "status"],
            order_by='modified desc',
@@ -109,9 +143,8 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
+
     '''
-
-
     if doctype == "Opportunity" and con_doc == '%%':
         conditions = ""
         if search_text != '%%':
@@ -143,6 +176,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
+    '''
 ########################### Quotations Connected With Opportunity & Search ############################
     if doctype == "Quotation" and con_doc == "Opportunity":
         connections = frappe.db.sql(
@@ -170,12 +204,30 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ############################################ QUOTATION ############################################
 
 ########################### Quotation Full List & Search ############################
-    '''
+
     if doctype == "Quotation" and con_doc == '%%':
+        conditions = {}
+        conditions1 = {}
+        if search_text != '%%':
+            conditions1["name"] = ['like', search_text]
+            conditions1["customer_name"] = ['like', search_text]
+            conditions1["party_name"] = ['like', search_text]
+            conditions1["customer_address"] = ['like', search_text]
+        if filter1 != '%%':
+            conditions["status"] = filter1
+        if filter2 != '%%':
+            conditions["quotation_to"] = filter2
+        if filter3 != '%%':
+            conditions["customer_name"] = filter3
+        if filter4 != '%%':
+            conditions["order_type"] = filter4
+        if filter5 != '%%':
+            conditions["transaction_date"] = ['>=', filter5]
+        if filter6 != '%%':
+            conditions["transaction_date"] = ['<=', filter6]
         query = frappe.db.get_list('Quotation',
-           or_filters=[{'name': ['like', search_text]},
-                       {'customer_name': ['like', search_text]},
-                       {'party_name': ['like', search_text]}],
+           or_filters=conditions1,
+           filters=conditions,
            fields=["name", "quotation_to", "customer_name", "transaction_date", "grand_total",
                    "status"],
            order_by='modified desc',
@@ -186,8 +238,8 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
-    '''
 
+    '''
     if doctype == "Quotation" and con_doc == '%%':
         conditions = ""
         if search_text != '%%':
@@ -219,6 +271,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
+    '''
 
 ########################### Sales Orders Connected With Quotation & Search ############################
     if doctype == "Sales Order" and con_doc == "Quotation":
@@ -237,13 +290,28 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ############################################ CUSTOMER ############################################
 
 ########################### Customer Full List & Search ############################
-    '''
+
     if doctype == "Customer" and con_doc == '%%':
+        conditions1 = {}
+        conditions = {"disabled": ['=', 0]}
+        if search_text != '%%':
+            conditions1["name"] = ['like', search_text]
+            conditions1["customer_name"] = ['like', search_text]
+            conditions1["mobile_no"] = ['like', search_text]
+        if filter1 != '%%':
+            conditions["customer_group"] = filter1
+        if filter2 != '%%':
+            conditions["territory"] = filter2
+        if filter3 != '%%':
+            conditions["customer_type"] = filter3
+        if filter4 != '%%':
+            conditions["creation"] = ['>=', filter4]
+        if filter5 != '%%':
+            conditions["creation"] = ['<=', filter5]
+
         query = frappe.db.get_list('Customer',
-           filters=[{'disabled': ['=', 0]}],
-           or_filters=[{'name': ['like', search_text]},
-                       {'customer_name': ['like', search_text]},
-                       {'mobile_no': ['like', search_text]}],
+           or_filters=conditions1,
+           filters=conditions,
            fields=["name","customer_name","customer_group","customer_type","territory","mobile_no","tax_id","customer_primary_address","customer_primary_contact","default_currency","default_price_list","payment_terms","default_sales_partner"],
            order_by='modified desc',
            start=start,
@@ -253,9 +321,8 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
+
     '''
-
-
     if doctype == "Customer" and con_doc == '%%':
         conditions = ""
         if search_text != '%%':
@@ -284,6 +351,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
+    '''
 ########################### Quotations Connected With Customer & Search ############################
     if doctype == "Quotation" and con_doc == "Customer":
         connections = frappe.db.sql(
@@ -359,12 +427,31 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ############################################ SALES ORDER ############################################
 
 ########################### Sales Order Full List & Search ############################
-    '''
+
     if doctype == "Sales Order" and con_doc == '%%':
+        conditions1 = {}
+        conditions = {}
+        if search_text != '%%':
+            conditions1["name"] = ['like', search_text]
+            conditions1["customer_name"] = ['like', search_text]
+            conditions1["customer"] = ['like', search_text]
+            conditions1["customer_address"] = ['like', search_text]
+        if filter1 != '%%':
+            conditions["status"] = filter1
+        if filter2 != '%%':
+            conditions["customer"] = filter2
+        if filter3 != '%%':
+            conditions["delivery_status"] = filter3
+        if filter4 != '%%':
+            conditions["billing_status"] = filter4
+        if filter5 != '%%':
+            conditions["transaction_date"] = ['>=', filter5]
+        if filter6 != '%%':
+            conditions["transaction_date"] = ['<=', filter6]
+
         query = frappe.db.get_list('Sales Order',
-           or_filters=[{'name': ['like', search_text]},
-                       {'customer_name': ['like', search_text]},
-                       {'customer': ['like', search_text]}],
+           or_filters=conditions1,
+           filters=conditions,
            fields=["name", "customer_name", "customer_address", "transaction_date",
                    "grand_total", "status"],
            order_by='modified desc',
@@ -375,9 +462,8 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
+
     '''
-
-
     if doctype == "Sales Order" and con_doc == '%%':
         conditions = ""
         if search_text != '%%':
@@ -409,6 +495,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
+    '''
 
 ########################### Sales Invoices Connected With Sales Order & Search ############################
     if doctype == "Sales Invoice" and con_doc == "Sales Order":
@@ -498,12 +585,26 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ############################################ SALES INVOICE ############################################
 
 ########################### Sales Invoice Full List & Search ############################
-    '''
+
     if doctype == "Sales Invoice" and con_doc == '%%':
+        conditions1 = {}
+        conditions = {}
+        if search_text != '%%':
+            conditions1["name"] = ['like', search_text]
+            conditions1["customer_name"] = ['like', search_text]
+            conditions1["customer"] = ['like', search_text]
+            conditions1["customer_address"] = ['like', search_text]
+        if filter1 != '%%':
+            conditions["status"] = filter1
+        if filter2 != '%%':
+            conditions["customer"] = filter2
+        if filter3 != '%%':
+            conditions["posting_date"] = ['>=', filter3]
+        if filter4 != '%%':
+            conditions["posting_date"] = ['<=', filter4]
         query = frappe.db.get_list('Sales Invoice',
-           or_filters=[{'name': ['like', search_text]},
-                       {'customer_name': ['like', search_text]},
-                       {'customer': ['like', search_text]}],
+           or_filters=conditions1,
+           filters=conditions,
            fields=["name", "customer_name", "customer_address", "posting_date", "grand_total",
                    "status"],
            order_by='modified desc',
@@ -514,9 +615,8 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
+
     '''
-
-
     if doctype == "Sales Invoice" and con_doc == '%%':
         conditions = ""
         if search_text != '%%':
@@ -544,6 +644,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
+    '''
 
 ########################### Sales Orders Connected With Sales Invoice & Search ############################
     if doctype == "Sales Order" and con_doc == "Sales Invoice":
@@ -591,13 +692,32 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ############################################ PAYMENT ENTRY ############################################
 
 ########################### Payment Entry Full List & Search ############################
-    '''
+
     if doctype == "Payment Entry" and con_doc == '%%':
+        conditions1 = {}
+        conditions = {}
+        if search_text != '%%':
+            conditions1["name"] = ['like', search_text]
+            conditions1["party_name"] = ['like', search_text]
+            conditions1["mode_of_payment"] = ['like', search_text]
+            conditions1["party"] = ['like', search_text]
+        if filter1 != '%%':
+            conditions["status"] = filter1
+        if filter2 != '%%':
+            conditions["payment_type"] = filter2
+        if filter3 != '%%':
+            conditions["mode_of_payment"] = filter3
+        if filter4 != '%%':
+            conditions["party_type"] = filter4
+        if filter5 != '%%':
+            conditions["party"] = filter5
+        if filter6 != '%%':
+            conditions["posting_date"] = ['>=', filter6]
+        if filter7 != '%%':
+            conditions["posting_date"] = ['<=', filter7]
         query = frappe.db.get_list('Payment Entry',
-           or_filters=[{'name': ['like', search_text]},
-                       {'party_name': ['like', search_text]},
-                       {'mode_of_payment': ['like', search_text]},
-                       {'party': ['like', search_text]}],
+           or_filters=conditions1,
+           filters=conditions,
            fields=["name", "party_name", "payment_type", "mode_of_payment", "posting_date",
                    "paid_amount", "status"],
            order_by='modified desc',
@@ -608,9 +728,8 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
+
     '''
-
-
     if doctype == "Payment Entry" and con_doc == '%%':
         conditions = ""
         if search_text != '%%':
@@ -644,6 +763,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
+    '''
 ############################################ LEAD SOURCE ############################################
 
 ########################### Lead Source Full List & Search ############################
@@ -1047,19 +1167,38 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ############################################ ITEM ############################################
 
 ########################### Item Full List & Search ############################
-    '''
+
     if doctype == "Item" and con_doc == '%%':
+        conditions = {}
+        conditions1 = {}
+        if search_text != '%%':
+            conditions1["name"] = ['like', search_text]
+            conditions1["item_name"] = ['like', search_text]
+            conditions1["item_code"] = ['like', search_text]
+        if filter1 != '%%':
+            conditions["item_group"] = filter1
+        if filter2 != '%%':
+            conditions["brand"] = filter2
+        if filter3 != '%%':
+            conditions["is_stock_item"] = filter3
+        if filter4 != '%%':
+            conditions["stock_uom"] = filter4
+
         query = frappe.db.get_list('Item',
-           or_filters=[{'name': ['like', search_text]},
-                       {'item_name': ['like', search_text]},
-                       {'item_code': ['like', search_text]}],
+           or_filters=conditions1,
+           filters=conditions,
            fields=["name", "item_name", "item_group", "stock_uom", "image"],
            order_by='modified desc',
            start=start,
            page_length=page_length
            )
-    '''
 
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+
+    '''
     if doctype == "Item" and con_doc == '%%':
         conditions = ""
         if search_text != '%%':
@@ -1084,7 +1223,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
-
+    '''
 ############################################ MATERIAL REQUEST ############################################
 
 ########################### Material Request Full List & Search ############################
@@ -1106,11 +1245,28 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ############################################ STOCK ENTRY ############################################
 
 ########################### Stock Entry Full List & Search ############################
-    '''
+
     if doctype == "Stock Entry" and con_doc == '%%':
+        conditions = {}
+        conditions1 = {}
+        if search_text != '%%':
+            conditions1["name"] = ['like', search_text]
+        if filter1 != '%%':
+            conditions["docstatus"] = filter1
+        if filter2 != '%%':
+            conditions["stock_entry_type"] = filter2
+        if filter3 != '%%':
+            conditions["posting_date"] = ['>=', filter3]
+        if filter4 != '%%':
+            conditions["posting_date"] = ['<=', filter4]
+        if filter5 != '%%':
+            conditions["from_warehouse"] = filter5
+        if filter6 != '%%':
+            conditions["to_warehouse"] = filter6
+
         query = frappe.db.get_list('Stock Entry',
-           or_filters=[{'name': ['like', search_text]},
-                       {'title': ['like', search_text]}],
+           or_filters=conditions1,
+           filters=conditions,
            fields=["name", "stock_entry_type", "posting_date", "from_warehouse", "to_warehouse",
                    "docstatus"],
            order_by='modified desc',
@@ -1121,8 +1277,8 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
-    '''
 
+    '''
     if doctype == "Stock Entry" and con_doc == '%%':
         conditions = ""
         if search_text != '%%':
@@ -1151,7 +1307,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
-
+    '''
 ############################################ PURCHASE RECEIPT ############################################
 
 ########################### Purchase Receipt Full List & Search ############################
@@ -1174,13 +1330,29 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ############################################ DELIVERY NOTE ############################################
 
 ########################### Delivery Note Full List & Search ############################
-    '''
+
     if doctype == "Delivery Note" and con_doc == '%%':
+        conditions = {}
+        conditions1 = {}
+        if search_text != '%%':
+            conditions1["name"] = ['like', search_text]
+            conditions1["title"] = ['like', search_text]
+            conditions1["customer"] = ['like', search_text]
+            conditions1["customer_name"] = ['like', search_text]
+        if filter1 != '%%':
+            conditions["status"] = filter1
+        if filter2 != '%%':
+            conditions["customer"] = filter2
+        if filter3 != '%%':
+            conditions["posting_date"] = ['>=', filter3]
+        if filter4 != '%%':
+            conditions["posting_date"] = ['<=', filter4]
+        if filter5 != '%%':
+            conditions["set_warehouse"] = filter5
+
         query = frappe.db.get_list('Delivery Note',
-           or_filters=[{'name': ['like', search_text]},
-                       {'title': ['like', search_text]},
-                       {'customer': ['like', search_text]},
-                       {'customer_name': ['like', search_text]}],
+           or_filters=conditions1,
+           filters=conditions,
            fields=["name", "customer", "territory", "posting_date", "set_warehouse", "status"],
            order_by='modified desc',
            start=start,
@@ -1190,8 +1362,8 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
-    '''
 
+    '''
     if doctype == "Delivery Note" and con_doc == '%%':
         conditions = ""
         if search_text != '%%':
@@ -1220,7 +1392,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
-
+    '''
 ############################################ SUPPLIER ############################################
 
 ########################### Supplier Full List & Search ############################
