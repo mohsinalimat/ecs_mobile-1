@@ -103,33 +103,33 @@ def login(usr, pwd, url):
             if module.modq == "Selling":
                 Selling={}
 
-                Selling["Selling"] = "https://erpcloud.systems/icons/selling.png"
+                Selling["Selling"] = "https://erpcloud.systems/files/selling.png"
                 allowed_documents = frappe.db.sql(""" select `tabMobile User Documents`.document_name as docq 
                                             from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
                                             where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' and `tabMobile User Documents`.modules ='selling' order by `tabMobile User Documents`.idx  """.format(user=usr),as_dict=1)
                 docs = {}
                 for x in allowed_documents:
                     if x.docq == "Lead":
-                        docs["Lead"] = "https://erpcloud.systems/icons/lead.png"
+                        docs["Lead"] = "https://erpcloud.systems/files/lead.png"
                     if x.docq == "Opportunity":
-                        docs["Opportunity"] = "https://erpcloud.systems/icons/opportunity.png"
+                        docs["Opportunity"] = "https://erpcloud.systems/files/opportunity.png"
                     if x.docq == "Quotation":
-                        docs["Quotation"] = "https://erpcloud.systems/icons/quotation.png"
+                        docs["Quotation"] = "https://erpcloud.systems/files/quotation.png"
                     if x.docq == "Sales Order":
-                        docs["Sales Order"] = "https://erpcloud.systems/icons/sales_order.png"
+                        docs["Sales Order"] = "https://erpcloud.systems/files/sales_order.png"
                     if x.docq == "Customer":
-                        docs["Customer"] = "https://erpcloud.systems/icons/customer.png"
+                        docs["Customer"] = "https://erpcloud.systems/files/customer.png"
                     if x.docq == "Sales Invoice":
-                        docs["Sales Invoice"] = "https://erpcloud.systems/icons/sales_invoice.png"
+                        docs["Sales Invoice"] = "https://erpcloud.systems/files/sales_invoice.png"
                     if x.docq == "Payment Entry":
-                        docs["Payment Entry"] = "https://erpcloud.systems/icons/payment_entry.png"
+                        docs["Payment Entry"] = "https://erpcloud.systems/files/payment_entry.png"
 
                 Selling["docs"] = (docs)
                 modules.append(Selling)
 
             if module.modq == "Buying":
                 Buying = {}
-                Buying["Buying"] = "https://erpcloud.systems/icons/buying.png"
+                Buying["Buying"] = "https://erpcloud.systems/files/buying.png"
                 allowed_documents = frappe.db.sql(""" select `tabMobile User Documents`.document_name as docq 
                                             from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
                                             where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' and `tabMobile User Documents`.modules ='buying' order by `tabMobile User Documents`.idx  """.format(
@@ -137,20 +137,20 @@ def login(usr, pwd, url):
                 docs = {}
                 for x in allowed_documents:
                     if x.docq == "Supplier":
-                        docs["Supplier"] = "https://erpcloud.systems/icons/supplier.png"
+                        docs["Supplier"] = "https://erpcloud.systems/files/supplier.png"
                     if x.docq == "Supplier Quotation":
-                        docs["Supplier Quotation"] = "https://erpcloud.systems/icons/supplier_quotation.png"
+                        docs["Supplier Quotation"] = "https://erpcloud.systems/files/supplier_quotation.png"
                     if x.docq == "Purchase Order":
-                        docs["Purchase Order"] = "https://erpcloud.systems/icons/purchase_order.png"
+                        docs["Purchase Order"] = "https://erpcloud.systems/files/purchase_order.png"
                     if x.docq == "Purchase Invoice":
-                        docs["Purchase Invoice"] = "https://erpcloud.systems/icons/purchase_invoice.png"
+                        docs["Purchase Invoice"] = "https://erpcloud.systems/files/purchase_invoice.png"
 
                 Buying["docs"] = (docs)
                 modules.append(Buying)
 
             if module.modq == "Stock":
                 Stock = {}
-                Stock["Stock"] = "https://erpcloud.systems/icons/stock.png"
+                Stock["Stock"] = "https://erpcloud.systems/files/stock.png"
                 allowed_documents = frappe.db.sql(""" select `tabMobile User Documents`.document_name as docq 
                                             from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
                                             where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' and `tabMobile User Documents`.modules ='stock' order by `tabMobile User Documents`.idx  """.format(
@@ -158,22 +158,22 @@ def login(usr, pwd, url):
                 docs = {}
                 for x in allowed_documents:
                     if x.docq == "Item":
-                        docs["Item"] = "https://erpcloud.systems/icons/item.png"
+                        docs["Item"] = "https://erpcloud.systems/files/item.png"
                     if x.docq == "Material Request":
-                        docs["Material Request"] = "https://erpcloud.systems/icons/material_request.png"
+                        docs["Material Request"] = "https://erpcloud.systems/files/material_request.png"
                     if x.docq == "Purchase Order":
-                        docs["Purchase Receipt"] = "https://erpcloud.systems/icons/purchase_receipt.png"
+                        docs["Purchase Receipt"] = "https://erpcloud.systems/files/purchase_receipt.png"
                     if x.docq == "Stock Entry":
-                        docs["Stock Entry"] = "https://erpcloud.systems/icons/stock_entry.png"
+                        docs["Stock Entry"] = "https://erpcloud.systems/files/stock_entry.png"
                     if x.docq == "Delivery Note":
-                        docs["Delivery Note"] = "https://erpcloud.systems/icons/delivery_note.png"
+                        docs["Delivery Note"] = "https://erpcloud.systems/files/delivery_note.png"
 
                 Stock["docs"] = (docs)
                 modules.append(Stock)
 
             if module.modq == "HR":
                 HR = {}
-                HR["HR"] = "https://erpcloud.systems/icons/hr.png"
+                HR["HR"] = "https://erpcloud.systems/files/hr.png"
                 allowed_documents = frappe.db.sql(""" select `tabMobile User Documents`.document_name as docq 
                                             from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
                                             where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' and `tabMobile User Documents`.modules ='hr' order by `tabMobile User Documents`.idx  """.format(
@@ -181,7 +181,7 @@ def login(usr, pwd, url):
                 docs = {}
                 for x in allowed_documents:
                     if x.docq == "Employee":
-                        docs["Employee"] = "https://erpcloud.systems/icons/hr.png"
+                        docs["Employee"] = "https://erpcloud.systems/files/hr.png"
 
                 HR["docs"] = (docs)
                 modules.append(HR)
