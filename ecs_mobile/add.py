@@ -289,6 +289,7 @@ def add_item_list(**kwargs):
     try:
         if kwargs['search_text']:
             items = frappe.db.sql(""" select tabItem.name as name ,
+                                                     tabItem.item_code as item_code, 
                                                      tabItem.item_name as item_name, 
                                                      tabItem.item_group as item_group, 
                                                      tabItem.stock_uom as stock_uom, 
@@ -305,8 +306,10 @@ def add_item_list(**kwargs):
                     vat_value = net_rate - item_dict.price_list_rate 
                     data = {
                         'name': item_dict.name,
+                        'item_code': item_dict.item_code,
                         'item_name': item_dict.item_name,
                         'item_group': item_dict.item_group,
+                        'uom': item_dict.stock_uom,
                         'stock_uom': item_dict.stock_uom,
                         'image': item_dict.image,
                         'sales_uom': item_dict.sales_uom,
@@ -319,8 +322,10 @@ def add_item_list(**kwargs):
                 else:
                     data = {
                         'name': item_dict.name,
+                        'item_code': item_dict.item_code,
                         'item_name': item_dict.item_name,
                         'item_group': item_dict.item_group,
+                        'uom': item_dict.stock_uom,
                         'stock_uom': item_dict.stock_uom,
                         'image': item_dict.image,
                         'sales_uom': item_dict.sales_uom,
@@ -337,7 +342,8 @@ def add_item_list(**kwargs):
 
 
     except:
-        items = frappe.db.sql(""" select tabItem.name as name ,
+        items = frappe.db.sql(""" select tabItem.name as name,
+                                         tabItem.item_code as item_code,
                                          tabItem.item_name as item_name, 
                                          tabItem.item_group as item_group, 
                                          tabItem.stock_uom as stock_uom, 
@@ -355,8 +361,10 @@ def add_item_list(**kwargs):
                 vat_value = net_rate - item_dict.price_list_rate
                 data = {
                     'name': item_dict.name,
+                    'item_code': item_dict.item_code,
                     'item_name': item_dict.item_name,
                     'item_group': item_dict.item_group,
+                    'uom': item_dict.stock_uom,
                     'stock_uom': item_dict.stock_uom,
                     'image': item_dict.image,
                     'sales_uom': item_dict.sales_uom,
@@ -369,8 +377,10 @@ def add_item_list(**kwargs):
             else:
                 data = {
                     'name': item_dict.name,
+                    'item_code': item_dict.item_code,
                     'item_name': item_dict.item_name,
                     'item_group': item_dict.item_group,
+                    'uom': item_dict.stock_uom,
                     'stock_uom': item_dict.stock_uom,
                     'image': item_dict.image,
                     'sales_uom': item_dict.sales_uom,

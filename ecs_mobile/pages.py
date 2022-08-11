@@ -36,7 +36,8 @@ def lead(name):
                                           'request_type',
                                           'market_segment',
                                           'territory',
-                                          'industry'
+                                          'industry',
+                                          'docstatus',
                                           ])
     for x in doc_data:
         led['name'] = x.name
@@ -59,6 +60,7 @@ def lead(name):
         led['contact_by'] = x.contact_by
         led['contact_date'] = x.contact_date
         led['notes'] = x.notes
+        led['docstatus'] = x.docstatus
 
     attachments = frappe.db.sql(""" Select file_name, file_url,
                                         Date_Format(creation,'%d/%m/%Y') as date_added
@@ -135,7 +137,8 @@ def opportunity(name):
                                           'contact_email',
                                           'contact_mobile',
                                           'campaign',
-                                          'transaction_date'
+                                          'transaction_date',
+                                          'docstatus',
                                           ])
     for x in doc_data:
         opp['name'] = x.name
@@ -159,6 +162,7 @@ def opportunity(name):
         opp['contact_mobile'] = x.contact_mobile
         opp['campaign'] = x.campaign
         opp['transaction_date'] = x.transaction_date
+        opp['docstatus'] = x.docstatus
 
     child_data = frappe.db.get_list('Opportunity Item', filters={'parent': name}, order_by='idx',
                                     fields=[
@@ -481,6 +485,7 @@ def customer(name):
                                           'default_currency',
                                           'default_price_list',
                                           'default_sales_partner',
+                                          'docstatus',
                                           ])
     for x in doc_data:
         cust['name'] = x.name
@@ -500,6 +505,7 @@ def customer(name):
         cust['default_currency'] = x.default_currency
         cust['default_price_list'] = x.default_price_list
         cust['default_sales_partner'] = x.default_sales_partner
+        cust['docstatus'] = x.docstatus
 
     child_data = frappe.db.get_list('Customer Credit Limit', filters={'parent': name}, order_by='idx',
                                       fields=[
@@ -1234,6 +1240,7 @@ def item(name):
                                           'purchase_uom',
                                           'is_sales_item',
                                           'sales_uom',
+                                          'docstatus'
                                           ])
     for x in doc_data:
         item_['name'] = x.name
@@ -1253,6 +1260,7 @@ def item(name):
         item_['sales_uom'] = x.sales_uom
         item_['is_purchase_item'] = x.is_purchase_item
         item_['purchase_uom'] = x.purchase_uom
+        item_['docstatus'] = x.docstatus
 
     child_data1 = frappe.db.get_list('UOM Conversion Detail', filters={'parent': name}, order_by='idx',
                                       fields=[
