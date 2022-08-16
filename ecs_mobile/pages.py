@@ -26,6 +26,7 @@ def lead(name):
                                           'source',
                                           'email_id',
                                           'mobile_no',
+                                          'address_title',
                                           'address_line1',
                                           'city',
                                           'country',
@@ -48,6 +49,7 @@ def lead(name):
         led['industry'] = x.industry
         led['market_segment'] = x.market_segment
         led['territory'] = x.territory
+        led['address_title'] = x.address_title
         led['address_line1'] = x.address_line1
         led['city'] = x.city
         led['country'] = x.country
@@ -485,6 +487,7 @@ def customer(name):
                                           'default_currency',
                                           'default_price_list',
                                           'default_sales_partner',
+                                          'payment_terms',
                                           'docstatus',
                                           ])
     for x in doc_data:
@@ -505,6 +508,7 @@ def customer(name):
         cust['default_currency'] = x.default_currency
         cust['default_price_list'] = x.default_price_list
         cust['default_sales_partner'] = x.default_sales_partner
+        cust['payment_terms'] = x.payment_terms
         cust['docstatus'] = x.docstatus
 
     child_data = frappe.db.get_list('Customer Credit Limit', filters={'parent': name}, order_by='idx',

@@ -1187,7 +1187,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
         query = frappe.db.get_list('Item',
            or_filters=conditions1,
            filters=conditions,
-           fields=["name", "item_name", "item_group", "stock_uom", "image"],
+           fields=["name", "item_code", "item_name", "item_group", "stock_uom as uom", "image"],
            order_by='modified desc',
            start=start,
            page_length=page_length
