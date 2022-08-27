@@ -445,7 +445,8 @@ def ste_before_validate(doc, method=None):
     pass
 @frappe.whitelist()
 def ste_validate(doc, method=None):
-    pass
+    for x in doc.items:
+        x.image = frappe.db.get_value('Item', x.item_code, 'image')
 @frappe.whitelist()
 def ste_on_submit(doc, method=None):
     pass
