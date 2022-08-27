@@ -76,6 +76,7 @@ def lead(name):
                                         from `tabComment`  where `tabComment`.reference_doctype = "Lead"
                                         and `tabComment`.reference_name = "{name}" 
                                         and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
                                     """.format(name=name), as_dict=1)
 
     led['comments'] = comments
@@ -195,6 +196,7 @@ def opportunity(name):
                                         from `tabComment`  where `tabComment`.reference_doctype = "Opportunity"
                                         and `tabComment`.reference_name = "{name}" 
                                         and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
                                     """.format(name=name), as_dict=1)
 
     opp['comments'] = comments
@@ -433,6 +435,7 @@ def quotation(name):
                                         from `tabComment`  where `tabComment`.reference_doctype = "Quotation"
                                         and `tabComment`.reference_name = "{name}" 
                                         and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
                                     """.format(name=name), as_dict=1)
 
     qtn['comments'] = comments
@@ -535,6 +538,7 @@ def customer(name):
                                         from `tabComment`  where `tabComment`.reference_doctype = "Customer"
                                         and `tabComment`.reference_name = "{name}" 
                                         and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
                                     """.format(name=name), as_dict=1)
 
     cust['comments'] = comments
@@ -823,6 +827,7 @@ def sales_order(name):
                                         from `tabComment`  where `tabComment`.reference_doctype = "Sales Order"
                                         and `tabComment`.reference_name = "{name}" 
                                         and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
                                     """.format(name=name), as_dict=1)
 
     so['comments'] = comments
@@ -1105,6 +1110,7 @@ def sales_invoice(name):
                                         from `tabComment`  where `tabComment`.reference_doctype = "Sales Invoice"
                                         and `tabComment`.reference_name = "{name}" 
                                         and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
                                     """.format(name=name), as_dict=1)
 
     sinv['comments'] = comments
@@ -1207,6 +1213,7 @@ def payment_entry(name):
                                         from `tabComment`  where `tabComment`.reference_doctype = "Payment Entry"
                                         and `tabComment`.reference_name = "{name}" 
                                         and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
                                     """.format(name=name), as_dict=1)
 
     pe['comments'] = comments
@@ -1334,6 +1341,7 @@ def item(name):
                                         from `tabComment`  where `tabComment`.reference_doctype = "Item"
                                         and `tabComment`.reference_name = "{name}" 
                                         and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
                                     """.format(name=name), as_dict=1)
 
     item_['comments'] = comments
@@ -1514,6 +1522,7 @@ def stock_entry(name):
                                         from `tabComment`  where `tabComment`.reference_doctype = "Stock Entry"
                                         and `tabComment`.reference_name = "{name}" 
                                         and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
                                     """.format(name=name), as_dict=1)
 
     se['comments'] = comments
@@ -1723,6 +1732,7 @@ def delivery_note(name):
                                         from `tabComment`  where `tabComment`.reference_doctype = "Delivery Note"
                                         and `tabComment`.reference_name = "{name}" 
                                         and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
                                     """.format(name=name), as_dict=1)
 
     dn['comments'] = comments
