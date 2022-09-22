@@ -396,6 +396,300 @@ def add_item_list(**kwargs):
             return "لا يوجد منتجات !"
 
 
+@frappe.whitelist(allow_guest=True)
+def supplier_test(**kwargs):
+    supplier = frappe.new_doc('Supplier')
+    supplier.supplier_name = kwargs['data']['supplier_name']
+    supplier.supplier_type = kwargs['data']['supplier_type']
+    supplier.supplier_group = kwargs['data']['supplier_group']
+    supplier.tax_id = kwargs['data']['tax_id']
+    supplier.default_currency = kwargs['data']['default_currency']
+    supplier.default_price_list = kwargs['data']['default_price_list']
+    supplier.payment_terms = kwargs['data']['payment_terms']
+    supplier.country = kwargs['data']['country']
+    supplier.insert()
+    supplier_name = supplier.name
+
+    links = [
+        {
+            "link_doctype": "Supplier",
+            "link_name": supplier_name,
+            "link_title": supplier_name
+        }
+    ]
+
+    emails = [
+        {
+            "email_id": kwargs['data']['email_id'],
+            "is_primary": 1
+        }
+    ]
+
+    contacts = [
+        {
+            "phone": kwargs['data']['mobile_no'],
+            "is_primary_phone": 1,
+            "is_primary_mobile_no": 1
+        }
+    ]
+
+    contact = frappe.get_doc({
+        "doctype": "Contact",
+        "first_name": kwargs['data']['supplier_name'],
+        "links": links,
+        "email_ids": emails,
+        "phone_nos": contacts,
+        "is_primary_contact": 1,
+        "is_billing_contact": 1,
+    })
+    contact.insert()
+
+    address = frappe.get_doc({
+        "doctype": "Address",
+        "address_title": kwargs['data']['supplier_name'],
+        "address_line1": kwargs['data']['address_line1'],
+        "city": kwargs['data']['city'],
+        "country": kwargs['data']['country'],
+        "address_type": "Billing",
+        "links": links,
+        "is_primary_address_type": 1,
+        "is_shipping_address_type": 1,
+    })
+    address.insert()
+
+    supplier.supplier_primary_address = address.name
+    supplier.supplier_primary_contact = contact.name
+    supplier.save()
+
+    frappe.db.commit()
+    if (supplier_name):
+        message = frappe.response["message"] = {
+            "success_key": True,
+            "message": "تم اضافة المعاملة بنجاح!",
+            "name": supplier_name
+        }
+        return message
+    else:
+        return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
+
+        
+
+@frappe.whitelist(allow_guest=True)
+def supplier_quotation(**kwargs):
+    s_quotation =frappe.get_doc(kwargs['data'])
+
+    s_quotation.insert()
+    quotation_name = s_quotation.name
+    frappe.db.commit()
+    if (s_quotation):
+        message = frappe.response["message"] = {
+            "success_key": True,
+            "message": "تم اضافة المعاملة بنجاح!",
+            "supplier_quotation_name": quotation_name
+        }
+        return message
+    else:
+        return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
+        
+
+@frappe.whitelist(allow_guest=True)
+def purchase_order(**kwargs):
+    p_order =frappe.get_doc(kwargs['data'])
+
+    p_order.insert()
+    purchase_order_name = p_order.name
+    frappe.db.commit()
+    if (purchase_order_name):
+        message = frappe.response["message"] = {
+            "success_key": True,
+            "message": "تم اضافة المعاملة بنجاح!",
+            "purchase_order_name": purchase_order_name
+        }
+        return message
+    else:
+        return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
+@frappe.whitelist(allow_guest=True)
+def purchase_invoice(**kwargs):
+    purchase_invoice =frappe.get_doc(kwargs['data'])
+
+    purchase_invoice.insert()
+    purchase_invoice_name = purchase_invoice.name
+    frappe.db.commit()
+    if (purchase_invoice_name):
+        message = frappe.response["message"] = {
+            "success_key": True,
+            "message": "تم اضافة المعاملة بنجاح!",
+            "purchase_invoice_name": purchase_invoice_name
+        }
+        return message
+    else:
+        return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
+
+
+
+@frappe.whitelist(allow_guest=True)
+def purchsae_receipt(**kwargs):
+    purchsae_receipt_data =frappe.get_doc(kwargs['data'])
+
+    purchsae_receipt_data.insert()
+    purchsae_receipt_data_name = purchsae_receipt_data.name
+    frappe.db.commit()
+    if (purchsae_receipt_data_name):
+        message = frappe.response["message"] = {
+            "success_key": True,
+            "message": "تم اضافة المعاملة بنجاح!",
+            "purchsae_receipt_name": purchsae_receipt_data_name
+        }
+        return message
+    else:
+        return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
+
+
+
+@frappe.whitelist(allow_guest=True)
+def material_request(**kwargs):
+    material_request_data =frappe.get_doc(kwargs['data'])
+
+    material_request_data.insert()
+    material_request_data_name = material_request_data.name
+    frappe.db.commit()
+    if (material_request_data_name):
+        message = frappe.response["message"] = {
+            "success_key": True,
+            "message": "تم اضافة المعاملة بنجاح!",
+            "material_request_name": material_request_data_name
+        }
+        return message
+    else:
+        return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
+        
+
+@frappe.whitelist(allow_guest=True)
+def leave_application(**kwargs):
+    leave_application_data =frappe.get_doc(kwargs['data'])
+
+    leave_application_data.insert()
+    leave_application_data_name = leave_application_data.name
+    frappe.db.commit()
+    if (leave_application_data_name):
+        message = frappe.response["message"] = {
+            "success_key": True,
+            "message": "تم اضافة المعاملة بنجاح!",
+            "leave_application_name": leave_application_data_name
+        }
+        return message
+    else:
+        return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
+        
+        
+@frappe.whitelist(allow_guest=True)
+def supplier(**kwargs):
+    supplier = frappe.new_doc("Supplier")
+    supplier.supplier_name = kwargs["data"]["supplier_name"]
+    supplier.supplier_type = kwargs["data"]["supplier_type"]
+    supplier.supplier_group = kwargs["data"]["supplier_group"]
+    if kwargs["data"].get("tax_id"):
+        supplier.tax_id = kwargs["data"]["tax_id"]
+    if kwargs["data"].get("default_currency"):
+        supplier.default_currency = kwargs["data"]["default_currency"]
+    if kwargs["data"].get("default_price_list"):
+        supplier.default_price_list = kwargs["data"]["default_price_list"]
+    if kwargs["data"].get("payment_terms"):
+        supplier.payment_terms = kwargs["data"]["payment_terms"]
+    if kwargs["data"].get("country"):
+        supplier.country = kwargs["data"]["country"]
+    supplier.insert()
+    supplier_name = supplier.name
+
+    links = [
+        {
+            "link_doctype": "Supplier",
+            "link_name": supplier_name,
+            "link_title": supplier_name,
+        }
+    ]
+    emails = [{"email_id": kwargs["data"].get("email_id"), "is_primary": 1}]
+
+    contacts = [
+        {
+            "phone": kwargs["data"].get("mobile_no"),
+            "is_primary_phone": 1,
+            "is_primary_mobile_no": 1,
+        }
+    ]
+
+    contact = frappe.get_doc(
+        {
+            "doctype": "Contact",
+            "first_name": kwargs["data"]["supplier_name"],
+            "links": links,
+            "email_ids": emails,
+            "phone_nos": contacts,
+            "is_primary_contact": 1,
+            "is_billing_contact": 1,
+        }
+    )
+    if (
+        kwargs["data"].get("supplier_name")
+        and kwargs["data"].get("email_id")
+        and kwargs["data"].get("mobile_no")
+    ):
+
+        contact.insert()
+        supplier.supplier_primary_contact = contact.name
+
+    if (
+        kwargs["data"].get("supplier_name")
+        and kwargs["data"].get("address_line1")
+        and kwargs["data"].get("city")
+        and kwargs["data"].get("address_type", "Billing")
+    ):
+        address = frappe.get_doc(
+            {
+                "doctype": "Address",
+                "address_title": kwargs["data"]["supplier_name"],
+                "address_line1": kwargs["data"]["address_line1"],
+                "city": kwargs["data"]["city"],
+                "country": kwargs["data"].get("country", None),
+                "address_type": kwargs["data"].get("address_type", "Billing"),
+                "links": links,
+                "is_primary_address_type": 1,
+                "is_shipping_address_type": 1,
+            }
+        )
+        address.insert()
+        supplier.supplier_primary_address = address.name
+
+    supplier.save()
+
+    frappe.db.commit()
+    if supplier_name:
+        message = frappe.response["message"] = {
+            "success_key": True,
+            "message": "تم اضافة المعاملة بنجاح!",
+            "name": supplier_name,
+        }
+        return message
+    else:
+        return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
+
+@frappe.whitelist(allow_guest=True)
+def employee_checkin(**kwargs):
+    employee_checkin_data =frappe.get_doc(kwargs['data'])
+
+    employee_checkin_data.insert()
+    employee_checkin_data_name = employee_checkin_data.name
+    frappe.db.commit()
+    if (employee_checkin_data_name):
+        message = frappe.response["message"] = {
+            "success_key": True,
+            "message": "تم اضافة المعاملة بنجاح!",
+            "employee_checkin_data_name": employee_checkin_data_name
+        }
+        return message
+    else:
+        return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
+        
 

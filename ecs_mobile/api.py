@@ -182,6 +182,20 @@ def login(usr, pwd, url):
                 for x in allowed_documents:
                     if x.docq == "Employee":
                         docs["Employee"] = "https://erpcloud.systems/files/hr.png"
+                    if x.docq == "Leave Application":
+                        docs["Leave Application"] = "https://erpcloud.systems/files/leave_application.png"
+                    if x.docq == "Employee Checkin":
+                        docs["Employee Checkin"] = "https://erpcloud.systems/files/employee_checkin.png"
+                    if x.docq == "Attendance Request":
+                        docs["Attendance Request"] = "https://erpcloud.systems/files/attendance_request.png"
+                    if x.docq == "Employee Advance":
+                        docs["Employee Advance"] = "https://erpcloud.systems/files/employee_advance.png"
+                    if x.docq == "Expense Claim":
+                        docs["Expense Claim"] = "https://erpcloud.systems/files/expense_claim.png"
+                    if x.docq == "Loan Application":
+                        docs["Loan Application"] = "https://erpcloud.systems/files/loan_application.png"
+                    if x.docq == "Employee Grievance":
+                        docs["Employee Grievance"] = "https://erpcloud.systems/files/employee_grievance.png"
 
                 HR["docs"] = (docs)
                 modules.append(HR)

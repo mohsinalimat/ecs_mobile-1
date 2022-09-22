@@ -87,7 +87,7 @@ def dn_onload(doc, method=None):
     pass
 @frappe.whitelist()
 def dn_before_insert(doc, method=None):
-    pass
+    doc.set_posting_time = 1
 @frappe.whitelist()
 def dn_after_insert(doc, method=None):
     pass
@@ -116,7 +116,7 @@ def dn_before_cancel(doc, method=None):
 def dn_on_update(doc, method=None):
     pass
 
-################ Sales Invoice
+################ Sales Invoice#
 
 
 @frappe.whitelist()
@@ -124,7 +124,7 @@ def siv_onload(doc, method=None):
     pass
 @frappe.whitelist()
 def siv_before_insert(doc, method=None):
-    pass
+    doc.set_posting_time = 1
 @frappe.whitelist()
 def siv_after_insert(doc, method=None):
     pass
@@ -291,7 +291,7 @@ def pr_onload(doc, method=None):
     pass
 @frappe.whitelist()
 def pr_before_insert(doc, method=None):
-    pass
+    doc.set_posting_time = 1
 @frappe.whitelist()
 def pr_after_insert(doc, method=None):
     pass
@@ -328,7 +328,7 @@ def piv_onload(doc, method=None):
     pass
 @frappe.whitelist()
 def piv_before_insert(doc, method=None):
-    pass
+    doc.set_posting_time = 1
 @frappe.whitelist()
 def piv_after_insert(doc, method=None):
     pass
@@ -436,7 +436,7 @@ def ste_onload(doc, method=None):
     pass
 @frappe.whitelist()
 def ste_before_insert(doc, method=None):
-    pass
+    doc.set_posting_time = 1
 @frappe.whitelist()
 def ste_after_insert(doc, method=None):
     pass

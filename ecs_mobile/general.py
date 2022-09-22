@@ -34,10 +34,14 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             conditions["lead_owner"] = filter2
         if filter3 != '%%':
             conditions["organization_lead"] = filter3
-        if filter4 != '%%':
-            conditions["creation"] = ['>=', filter4]
-        if filter5 != '%%':
-            conditions["creation"] = ['<=', filter5]
+            
+        if filter4 != '%%' and  filter5 == "%%":
+                conditions["creation"] = ['>=', filter4]
+        if filter5 != '%%' and  filter4 == "%%":
+                conditions["creation"] = ['<=', filter5]
+        if filter4 != "%%" and filter5 !="%%":
+                conditions["creation"] = ['between', [filter4, filter5]]
+                
 
         query = frappe.db.get_list('Lead',
            or_filters=conditions1,
@@ -85,7 +89,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ########################### Quotations Connected With Lead & Search ############################
     if doctype == "Quotation" and con_doc == "Lead":
         connections = frappe.db.sql(
-            """ select name, quotation_to, customer_name, transaction_date, grand_total, status
+            """ select name, quotation_to, customer_name, transaction_date, currency, grand_total, status
                 from `tabQuotation` where `party_name` = '{cur_nam}'
                 and (`tabQuotation`.name like '%{search_text}%' or `tabQuotation`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
             """.format(start=start, page_length=page_length, cur_nam=cur_nam, search_text=search_text), as_dict=1)
@@ -125,10 +129,15 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             conditions["party_name"] = filter3
         if filter4 != '%%':
             conditions["opportunity_type"] = filter4
-        if filter5 != '%%':
-            conditions["transaction_date"] = ['>=', filter5]
-        if filter6 != '%%':
-            conditions["transaction_date"] = ['<=', filter6]
+            
+        if filter5 != '%%' and  filter6 == "%%":
+                conditions["transaction_date"] = ['>=', filter5]
+        if filter6 != '%%' and  filter5 == "%%":
+                conditions["transaction_date"] = ['<=', filter6]
+        if filter5 != "%%" and filter6 !="%%":
+                conditions["transaction_date"] = ['between', [filter5, filter6]]
+                
+
 
         query = frappe.db.get_list('Opportunity',
            or_filters=conditions1,
@@ -180,7 +189,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ########################### Quotations Connected With Opportunity & Search ############################
     if doctype == "Quotation" and con_doc == "Opportunity":
         connections = frappe.db.sql(
-            """ select name, quotation_to, customer_name, transaction_date, grand_total, status
+            """ select name, quotation_to, customer_name, transaction_date, currency, grand_total, status
                 from `tabQuotation` where `opportunity` = '{cur_nam}'
                 and (`tabQuotation`.name like '%{search_text}%' or `tabQuotation`.customer_name like '%{search_text}%' or `tabQuotation`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
             """.format(start=start, page_length=page_length, cur_nam=cur_nam, search_text=search_text), as_dict=1)
@@ -192,7 +201,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ########################### Supplier Quotations Connected With Opportunity & Search ############################
     if doctype == "Supplier Quotation" and con_doc == "Opportunity":
         connections = frappe.db.sql(
-            """ select name,supplier,transaction_date,valid_till,grand_total,status
+            """ select name,supplier,transaction_date,valid_till,currency,grand_total,status
                 from `tabSupplier Quotation` where `opportunity` = '{cur_nam}'
                 and (`tabSupplier Quotation`.name like '%{search_text}%' or `tabSupplier Quotation`.supplier like '%{search_text}%' or `tabSupplier Quotation`.supplier_address like '%{search_text}%') LIMIT {start},{page_length}
             """.format(start=start, page_length=page_length, cur_nam=cur_nam, search_text=search_text), as_dict=1)
@@ -221,15 +230,19 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             conditions["customer_name"] = filter3
         if filter4 != '%%':
             conditions["order_type"] = filter4
-        if filter5 != '%%':
-            conditions["transaction_date"] = ['>=', filter5]
-        if filter6 != '%%':
-            conditions["transaction_date"] = ['<=', filter6]
+            
+        if filter5 != '%%' and  filter6 == "%%":
+                conditions["transaction_date"] = ['>=', filter5]
+        if filter6 != '%%' and  filter5 == "%%":
+                conditions["transaction_date"] = ['<=', filter6]
+        if filter5 != "%%" and filter6 !="%%":
+                conditions["transaction_date"] = ['between', [filter5, filter6]]
+
         query = frappe.db.get_list('Quotation',
            or_filters=conditions1,
            filters=conditions,
            fields=["name", "quotation_to", "customer_name", "transaction_date", "grand_total",
-                   "status"],
+                   "status", "currency"],
            order_by='modified desc',
            start=start,
            page_length=page_length
@@ -277,7 +290,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
     if doctype == "Sales Order" and con_doc == "Quotation":
         connections = frappe.db.sql(
             """ select distinct `tabSales Order`.name as name,`tabSales Order`.customer_name as customer_name,`tabSales Order`.customer_address as customer_address,
-                       `tabSales Order`.transaction_date as transaction_date,`tabSales Order`.grand_total as grand_total,`tabSales Order`.status as status
+                       `tabSales Order`.transaction_date as transaction_date,`tabSales Order`.currency as currency,`tabSales Order`.grand_total as grand_total,`tabSales Order`.status as status
                 from `tabSales Order` join `tabSales Order Item` on `tabSales Order`.name = `tabSales Order Item`.parent
                 where `tabSales Order Item`.prevdoc_docname = '{cur_nam}'
                 and (`tabSales Order`.name like '%{search_text}%' or `tabSales Order`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
@@ -304,15 +317,20 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             conditions["territory"] = filter2
         if filter3 != '%%':
             conditions["customer_type"] = filter3
-        if filter4 != '%%':
-            conditions["creation"] = ['>=', filter4]
-        if filter5 != '%%':
-            conditions["creation"] = ['<=', filter5]
+            
+            
+        if filter4 != '%%' and  filter5 == "%%":
+                conditions["creation"] = ['>=', filter4]
+        if filter5 != '%%' and  filter4 == "%%":
+                conditions["creation"] = ['<=', filter5]
+        if filter4 != "%%" and filter5 !="%%":
+                conditions["creation"] = ['between', [filter4, filter5]]
+
 
         query = frappe.db.get_list('Customer',
            or_filters=conditions1,
            filters=conditions,
-           fields=["name","customer_name","customer_group","customer_type","territory","mobile_no","tax_id","customer_primary_address","customer_primary_contact","default_currency","default_price_list","payment_terms","default_sales_partner"],
+           fields=["name","customer_name","customer_group","customer_type","territory","mobile_no","tax_id","customer_primary_address","customer_primary_contact","default_currency","default_price_list","payment_terms","default_sales_partner", "default_currency"],
            order_by='modified desc',
            start=start,
            page_length=page_length
@@ -355,7 +373,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ########################### Quotations Connected With Customer & Search ############################
     if doctype == "Quotation" and con_doc == "Customer":
         connections = frappe.db.sql(
-            """ select name, quotation_to, customer_name, transaction_date, grand_total, status
+            """ select name, quotation_to, customer_name, transaction_date, currency, grand_total, status
                 from `tabQuotation` where `party_name` = '{cur_nam}'
                 and (`tabQuotation`.name like '%{search_text}%' or `tabQuotation`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
             """.format(start=start, page_length=page_length, cur_nam=cur_nam, search_text=search_text), as_dict=1)
@@ -379,7 +397,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ########################### Sales Orders Connected With Customer & Search ############################
     if doctype == "Sales Order" and con_doc == "Customer":
         connections = frappe.db.sql(
-            """ select name,customer_name,customer_address,transaction_date,grand_total,status
+            """ select name,customer_name,customer_address,transaction_date,currency,grand_total,status
                 from `tabSales Order` where `customer` = '{cur_nam}' 
                 and (`tabSales Order`.name like '%{search_text}%' or `tabSales Order`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
             """.format(start=start, page_length=page_length, cur_nam=cur_nam, search_text=search_text), as_dict=1)
@@ -391,7 +409,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ########################### Delivery Notes Connected With Customer & Search ############################
     if doctype == "Delivery Note" and con_doc == "Customer":
         connections = frappe.db.sql(
-            """ select name,customer,territory,posting_date,set_warehouse,status
+            """ select name,customer,territory,posting_date,set_warehouse,currency,status
                 from `tabDelivery Note` where `customer` = '{cur_nam}'
                 and (`tabDelivery Note`.name like '%{search_text}%' or `tabDelivery Note`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
             """.format(start=start, page_length=page_length, cur_nam=cur_nam, search_text=search_text), as_dict=1)
@@ -403,7 +421,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ########################### Sales Invoices Connected With Customer & Search ############################
     if doctype == "Sales Invoice" and con_doc == "Customer":
         connections = frappe.db.sql(
-            """ select name,customer_name,customer_address,posting_date,grand_total,status
+            """ select name,customer_name,customer_address,posting_date,currency,grand_total,status
                 from `tabSales Invoice` where `customer` = '{cur_nam}'
                 and (`tabSales Invoice`.name like '%{search_text}%' or `tabSales Invoice`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
             """.format(start=start, page_length=page_length, cur_nam=cur_nam, search_text=search_text), as_dict=1)
@@ -415,10 +433,29 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 ########################### Payment Entries Connected With Customer & Search ############################
     if doctype == "Payment Entry" and con_doc == "Customer":
         connections = frappe.db.sql(
-            """ select name,party_name,payment_type,mode_of_payment,posting_date,paid_amount,status
+            """ select name,party_name,payment_type,mode_of_payment,posting_date,paid_from_account_currency as currency,paid_amount as base_paid_amount,status
                 from `tabPayment Entry` where `party` = '{cur_nam}'
                 and (`tabPayment Entry`.name like '%{search_text}%' or `tabPayment Entry`.mode_of_payment like '%{search_text}%') LIMIT {start},{page_length}
             """.format(start=start, page_length=page_length, cur_nam=cur_nam, search_text=search_text), as_dict=1)
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+    ########################### Payment Entries Connected With Supplier & Search ############################
+    if doctype == "Payment Entry" and con_doc == "Supplier":
+        connections = frappe.db.sql(
+             """ select name,party_name,payment_type,mode_of_payment,posting_date,paid_amount as base_paid_amount, paid_from_account_currency as currency,status
+                 from `tabPayment Entry` where `party` = '{cur_nam}'
+                 and (`tabPayment Entry`.name like '%{search_text}%' or `tabPayment Entry`.mode_of_payment like '%{search_text}%') LIMIT {start},{page_length}
+             """.format(
+                 start=start,
+                 page_length=page_length,
+                 cur_nam=cur_nam,
+                 search_text=search_text,
+             ),
+             as_dict=1,
+         )
         if connections:
             return connections
         else:
@@ -444,16 +481,18 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             conditions["delivery_status"] = filter3
         if filter4 != '%%':
             conditions["billing_status"] = filter4
-        if filter5 != '%%':
-            conditions["transaction_date"] = ['>=', filter5]
-        if filter6 != '%%':
-            conditions["transaction_date"] = ['<=', filter6]
+        if filter5 != '%%' and  filter6 == "%%":
+                conditions["transaction_date"] = ['>=', filter5]
+        if filter6 != '%%' and  filter5 == "%%":
+                conditions["transaction_date"] = ['<=', filter6]
+        if filter5 != "%%" and filter6 !="%%":
+                conditions["transaction_date"] = ['between', [filter5, filter6]]
 
         query = frappe.db.get_list('Sales Order',
            or_filters=conditions1,
            filters=conditions,
            fields=["name", "customer_name", "customer_address", "transaction_date",
-                   "grand_total", "status"],
+                   "grand_total", "status", "currency"],
            order_by='modified desc',
            start=start,
            page_length=page_length
@@ -501,7 +540,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
     if doctype == "Sales Invoice" and con_doc == "Sales Order":
         connections = frappe.db.sql(
             """ select distinct `tabSales Invoice`.name as name,`tabSales Invoice`.customer_name as customer_name,`tabSales Invoice`.customer_address as customer_address,
-                       `tabSales Invoice`.posting_date as posting_date,`tabSales Invoice`.grand_total as grand_total,`tabSales Invoice`.status as status
+                       `tabSales Invoice`.posting_date as posting_date, `tabSales Invoice`.currency as currency, `tabSales Invoice`.grand_total as grand_total,`tabSales Invoice`.status as status
                 from `tabSales Invoice` join `tabSales Invoice Item` on `tabSales Invoice`.name = `tabSales Invoice Item`.parent
                 where `tabSales Invoice Item`.sales_order = '{cur_nam}'
                 and (`tabSales Invoice`.name like '%{search_text}%' or `tabSales Invoice`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
@@ -515,7 +554,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
     if doctype == "Delivery Note" and con_doc == "Sales Order":
         connections = frappe.db.sql(
             """ select distinct `tabDelivery Note`.name as name,`tabDelivery Note`.customer as customer,`tabDelivery Note`.territory as territory,
-                       `tabDelivery Note`.posting_date as posting_date,`tabDelivery Note`.set_warehouse as set_warehouse,`tabDelivery Note`.status as status
+                       `tabDelivery Note`.posting_date as posting_date,`tabDelivery Note`.set_warehouse as set_warehouse,`tabDelivery Note`.currency as currency,`tabDelivery Note`.status as status
                 from `tabDelivery Note` join `tabDelivery Note Item` on `tabDelivery Note`.name = `tabDelivery Note Item`.parent
                 where `tabDelivery Note Item`.against_sales_order = '{cur_nam}'
                 and (`tabDelivery Note`.name like '%{search_text}%' or `tabDelivery Note`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
@@ -543,7 +582,8 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
     if doctype == "Purchase Order" and con_doc == "Sales Order":
         connections = frappe.db.sql(
             """ select distinct `tabPurchase Order`.name as name,`tabPurchase Order`.supplier as supplier, `tabPurchase Order`.grand_total as grand_total,
-                      `tabPurchase Order`.transaction_date as transaction_date,`tabPurchase Order`.set_warehouse as set_warehouse,`tabPurchase Order`.status as status
+                      `tabPurchase Order`.transaction_date as transaction_date,`tabPurchase Order`.set_warehouse as set_warehouse,
+                      `tabPurchase Order`.currency as currency, `tabPurchase Order`.status as status
                 from `tabPurchase Order` join `tabPurchase Order Item` on `tabPurchase Order`.name = `tabPurchase Order Item`.parent
                 where `tabPurchase Order Item`.sales_order = '{cur_nam}'
                 and (`tabPurchase Order`.name like '%{search_text}%' or `tabPurchase Order`.supplier_address like '%{search_text}%' or `tabPurchase Order`.supplier like '%{search_text}%') LIMIT {start},{page_length}
@@ -557,7 +597,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
     if doctype == "Quotation" and con_doc == "Sales Order":
         connections = frappe.db.sql(
             """ select distinct `tabQuotation`.name as name, `tabQuotation`.quotation_to as quotation_to, `tabQuotation`.customer_name as customer_name,
-                       `tabQuotation`.transaction_date as transaction_date, `tabQuotation`.grand_total as grand_total, `tabQuotation`.status as status
+                       `tabQuotation`.transaction_date as transaction_date, `tabQuotation`.currency as currency,`tabQuotation`.grand_total as grand_total, `tabQuotation`.status as status
                 from `tabQuotation` join `tabSales Order Item` on `tabQuotation`.name = `tabSales Order Item`.prevdoc_docname
                 where `tabSales Order Item`.parent = '{cur_nam}'
                 and (`tabQuotation`.name like '%{search_text}%' or `tabQuotation`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
@@ -571,8 +611,8 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
     if doctype == "Payment Entry" and con_doc == "Sales Order":
         connections = frappe.db.sql(
             """ select distinct `tabPayment Entry`.name as name,`tabPayment Entry`.party_name as party_name,
-                       `tabPayment Entry`.payment_type as payment_type,`tabPayment Entry`.mode_of_payment as mode_of_payment,
-                       `tabPayment Entry`.posting_date as posting_date,`tabPayment Entry`.paid_amount as paid_amount,`tabPayment Entry`.status as status
+                       `tabPayment Entry`.payment_type as payment_type,`tabPayment Entry`.mode_of_payment as mode_of_payment, `tabPayment Entry`.paid_from_account_currency as currency,
+                       `tabPayment Entry`.posting_date as posting_date,`tabPayment Entry`.paid_amount as base_paid_amount,`tabPayment Entry`.status as status
                 from `tabPayment Entry` join `tabPayment Entry Reference` on `tabPayment Entry`.name = `tabPayment Entry Reference`.parent
                 where `tabPayment Entry Reference`.reference_name = '{cur_nam}'
                 and (`tabPayment Entry`.name like '%{search_text}%' or `tabPayment Entry`.mode_of_payment like '%{search_text}%') LIMIT {start},{page_length}
@@ -598,15 +638,19 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             conditions["status"] = filter1
         if filter2 != '%%':
             conditions["customer"] = filter2
-        if filter3 != '%%':
-            conditions["posting_date"] = ['>=', filter3]
-        if filter4 != '%%':
-            conditions["posting_date"] = ['<=', filter4]
+            
+        if filter3 != '%%' and  filter4 == "%%":
+                conditions["posting_date"] = ['>=', filter3]
+        if filter4 != '%%' and  filter3 == "%%":
+                conditions["posting_date"] = ['<=', filter4]
+        if filter3 != "%%" and filter4 !="%%":
+                conditions["posting_date"] = ['between', [filter3, filter4]]
+                
         query = frappe.db.get_list('Sales Invoice',
            or_filters=conditions1,
            filters=conditions,
            fields=["name", "customer_name", "customer_address", "posting_date", "grand_total",
-                   "status"],
+                   "status", "currency"],
            order_by='modified desc',
            start=start,
            page_length=page_length
@@ -650,7 +694,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
     if doctype == "Sales Order" and con_doc == "Sales Invoice":
         connections = frappe.db.sql(
             """ select distinct `tabSales Order`.name as name,`tabSales Order`.customer_name as customer_name,`tabSales Order`.customer_address as customer_address,
-                    `tabSales Order`.transaction_date as transaction_date,`tabSales Order`.grand_total as grand_total,`tabSales Order`.status as status
+                    `tabSales Order`.transaction_date as transaction_date, `tabSales Order`.currency as currency, `tabSales Order`.grand_total as grand_total,`tabSales Order`.status as status
                 from `tabSales Order` join `tabSales Invoice Item` on `tabSales Order`.name = `tabSales Invoice Item`.sales_order
                 where `tabSales Invoice Item`.parent = '{cur_nam}'
                 and (`tabSales Order`.name like '%{search_text}%' or `tabSales Order`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
@@ -664,7 +708,8 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
     if doctype == "Delivery Note" and con_doc == "Sales Invoice":
         connections = frappe.db.sql(
             """ select distinct `tabDelivery Note`.name as name,`tabDelivery Note`.customer as customer,`tabDelivery Note`.territory as territory,
-                       `tabDelivery Note`.posting_date as posting_date,`tabDelivery Note`.set_warehouse as set_warehouse,`tabDelivery Note`.status as status
+                       `tabDelivery Note`.posting_date as posting_date,`tabDelivery Note`.set_warehouse as set_warehouse, `tabDelivery Note`.currency as currency,
+                       `tabDelivery Note`.status as status
                 from `tabDelivery Note` join `tabDelivery Note Item` on `tabDelivery Note`.name = `tabDelivery Note Item`.parent
                 where `tabDelivery Note Item`.against_sales_invoice = '{cur_nam}'
                 and (`tabDelivery Note`.name like '%{search_text}%' or `tabDelivery Note`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
@@ -679,13 +724,18 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
         connections = frappe.db.sql(
             """ select distinct `tabPayment Entry`.name as name,`tabPayment Entry`.party_name as party_name,
                        `tabPayment Entry`.payment_type as payment_type,`tabPayment Entry`.mode_of_payment as mode_of_payment,
-                       `tabPayment Entry`.posting_date as posting_date,`tabPayment Entry`.paid_amount as paid_amount,`tabPayment Entry`.status as status
+                       `tabPayment Entry`.posting_date as posting_date,`tabPayment Entry`.paid_amount as base_paid_amount,
+                       `tabPayment Entry`.status as status, `tabPayment Entry`.paid_from_account_currency as currency
                 from `tabPayment Entry` join `tabPayment Entry Reference` on `tabPayment Entry`.name = `tabPayment Entry Reference`.parent
                 where `tabPayment Entry Reference`.reference_name = '{cur_nam}'
                 and (`tabPayment Entry`.name like '%{search_text}%' or `tabPayment Entry`.mode_of_payment like '%{search_text}%') LIMIT {start},{page_length}
             """.format(start=start, page_length=page_length, cur_nam=cur_nam, search_text=search_text), as_dict=1)
+        
+
+                                            
         if connections:
             return connections
+            
         else:
             return "لا يوجد روابط !"
 
@@ -711,19 +761,29 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             conditions["party_type"] = filter4
         if filter5 != '%%':
             conditions["party"] = filter5
-        if filter6 != '%%':
+        if filter6 != '%%' and  filter7 == "%%":
             conditions["posting_date"] = ['>=', filter6]
-        if filter7 != '%%':
+        if filter7 != '%%' and  filter6 == "%%":
             conditions["posting_date"] = ['<=', filter7]
+        if filter6 != "%%" and filter7 !="%%":
+            conditions["posting_date"] = ['between', [filter6, filter7]]
         query = frappe.db.get_list('Payment Entry',
            or_filters=conditions1,
            filters=conditions,
            fields=["name", "party_name", "payment_type", "mode_of_payment", "posting_date",
-                   "paid_amount", "status"],
+                   "paid_amount as base_paid_amount", "paid_from_account_currency as currency", "status", "company"],
            order_by='modified desc',
            start=start,
-           page_length=page_length
+           page_length=page_length,
            )
+
+        '''
+        for x in range(len(query)):
+
+            currency = frappe.db.get_value("Company", {"name": query[x].company}, "default_currency")
+
+            query[x]["currency"] = currency
+        '''
         if query:
             return query
         else:
@@ -1117,6 +1177,26 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
         query = frappe.db.get_list('Price List',
            or_filters=[{'name': ['like', search_text]},
                        {'price_list_name': ['like', search_text]}],
+           filters ={"selling": 1},
+           fields=["name", "currency"],
+           order_by='name asc',
+           start=start,
+           page_length=page_length
+           )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+
+
+
+
+########################### Buying Price List Full List & Search ############################
+    if doctype == "Buying Price List" and con_doc == '%%':
+        query = frappe.db.get_list('Price List',
+           or_filters=[{'name': ['like', search_text]},
+                       {'price_list_name': ['like', search_text]}],
+           filters = {"buying": 1},
            fields=["name", "currency"],
            order_by='name asc',
            start=start,
@@ -1228,9 +1308,26 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 
 ########################### Material Request Full List & Search ############################
     if doctype == "Material Request" and con_doc == '%%':
+        conditions = {}
+        or_conditions = {}
+        if search_text != '%%':
+            or_conditions["name"] = ['like', search_text]
+            or_conditions["title"] = ['like', search_text]
+        if filter1 != '%%':
+            conditions["status"] = filter1
+        if filter2 != '%%':
+            conditions["material_request_type"] = filter2
+        if filter3 != '%%':
+            conditions["set_warehouse"] = filter3
+        if filter4 != '%%' and  filter5 == "%%":
+                conditions["transaction_date"] = ['>=', filter4]
+        if filter5 != '%%' and  filter4 == "%%":
+                conditions["transaction_date"] = ['<=', filter5]
+        if filter4 != "%%" and filter5 !="%%":
+                conditions["transaction_date"] = ['between', [filter4, filter5]]
         query = frappe.db.get_list('Material Request',
-           or_filters=[{'name': ['like', search_text]},
-                       {'title': ['like', search_text]}],
+           or_filters=or_conditions,
+           filters=conditions,
            fields=["name", "material_request_type", "transaction_date", "set_warehouse",
                    "status"],
            order_by='modified desc',
@@ -1244,6 +1341,93 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 
 ############################################ STOCK ENTRY ############################################
 
+    if doctype == "Supplier Quotation" and con_doc == "Material Request":
+        connections = frappe.db.sql(
+            """ select distinct `tabSupplier Quotation`.name as name,`tabSupplier Quotation`.supplier as supplier,
+                       `tabSupplier Quotation`.transaction_date as transaction_date, `tabSupplier Quotation`.valid_till as valid_till,
+                       `tabSupplier Quotation`.grand_total as grand_total,`tabSupplier Quotation`.status as status,
+                       `tabSupplier Quotation`.currency as currency
+                    from `tabSupplier Quotation` join `tabSupplier Quotation Item` on `tabSupplier Quotation`.name = `tabSupplier Quotation Item`.parent
+                where `tabSupplier Quotation Item`.material_request = '{cur_nam}'
+                and (`tabSupplier Quotation`.name like '%{search_text}%' or `tabSupplier Quotation`.supplier like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+    if doctype == "Purchase Order" and con_doc == "Material Request":
+        connections = frappe.db.sql(
+            """ select distinct `tabPurchase Order`.name as name,`tabPurchase Order`.supplier as supplier,
+                       `tabPurchase Order`.transaction_date as transaction_date, `tabPurchase Order`.set_warehouse as set_warehouse,
+                       `tabPurchase Order`.grand_total as grand_total,`tabPurchase Order`.status as status,
+                       `tabPurchase Order`.currency as currency
+                from `tabPurchase Order` join `tabPurchase Order Item` on `tabPurchase Order`.name = `tabPurchase Order Item`.parent
+                where `tabPurchase Order Item`.material_request = '{cur_nam}'
+                and (`tabPurchase Order`.name like '%{search_text}%' or `tabPurchase Order`.supplier like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+
+    if doctype == "Purchase Receipt" and con_doc == "Material Request":
+        connections = frappe.db.sql(
+            """ select distinct `tabPurchase Receipt`.name as name,`tabPurchase Receipt`.supplier as supplier,`tabPurchase Receipt`.posting_date as posting_date		,
+                `tabPurchase Receipt`.set_warehouse as set_warehouse,`tabPurchase Receipt`.status as status,
+                `tabPurchase Receipt`.currency as currency, `tabPurchase Receipt`.total as total,`tabPurchase Receipt`.total_qty as total_qty,`tabPurchase Receipt`.status as status,
+                `tabPurchase Receipt`.currency as currency
+                from `tabPurchase Receipt` join `tabPurchase Receipt Item` on `tabPurchase Receipt`.name = `tabPurchase Receipt Item`.parent
+                where `tabPurchase Receipt Item`.material_request = '{cur_nam}'
+                and (`tabPurchase Receipt`.name like '%{search_text}%' or `tabPurchase Receipt`.supplier_address like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+    if doctype == "Stock Entry" and con_doc == "Material Request":
+        connections = frappe.db.sql(
+            """ select distinct `tabStock Entry`.name	 as name,`tabStock Entry`.stock_entry_type as stock_entry_type,
+                       `tabStock Entry`.posting_date as posting_date, `tabStock Entry`.from_warehouse as from_warehouse,
+                       `tabStock Entry`.to_warehouse as to_warehouse, `tabStock Entry`.docstatus as docstatus
+                from `tabStock Entry` join `tabStock Entry Detail` on `tabStock Entry`.name = `tabStock Entry Detail`.parent
+                where `tabStock Entry Detail`.material_request = '{cur_nam}'
+                and (`tabStock Entry`.name like '%{search_text}%' or `tabStock Entry`.stock_entry_type like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+############################################ STOCK ENTRY ############################################
+
 ########################### Stock Entry Full List & Search ############################
 
     if doctype == "Stock Entry" and con_doc == '%%':
@@ -1255,10 +1439,13 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             conditions["docstatus"] = filter1
         if filter2 != '%%':
             conditions["stock_entry_type"] = filter2
-        if filter3 != '%%':
-            conditions["posting_date"] = ['>=', filter3]
-        if filter4 != '%%':
-            conditions["posting_date"] = ['<=', filter4]
+            
+        if filter3 != '%%' and  filter4 == "%%":
+                conditions["posting_date"] = ['>=', filter3]
+        if filter4 != '%%' and  filter3 == "%%":
+                conditions["posting_date"] = ['<=', filter4]
+        if filter3 != "%%" and filter4 !="%%":
+                conditions["posting_date"] = ['between', [filter3, filter4]]
         if filter5 != '%%':
             conditions["from_warehouse"] = filter5
         if filter6 != '%%':
@@ -1312,12 +1499,30 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 
 ########################### Purchase Receipt Full List & Search ############################
     if doctype == "Purchase Receipt" and con_doc == '%%':
+        or_conditions = {}
+        conditions = {}
+        if search_text != '%%':
+            or_conditions["supplier"] = ["like", search_text]
+            or_conditions["name"] = ["like", search_text]
+        if filter1 != '%%':
+            conditions["status"] = filter1
+        if filter2 != '%%':
+            conditions["supplier"] = filter2
+        if filter3 != '%%':
+            conditions["is_return"] = filter3
+        if filter4 != '%%':
+            conditions["set_warehouse"] = filter4
+        if filter5 != '%%' and  filter6 == "%%":
+                conditions["posting_date"] = ['>=', filter5]
+        if filter6 != '%%' and  filter5 == "%%":
+                conditions["posting_date"] = ['<=', filter6]
+        if filter5 != "%%" and filter6 !="%%":
+                conditions["posting_date"] = ['between', [filter5, filter6]]
+
         query = frappe.db.get_list('Purchase Receipt',
-           or_filters=[{'name': ['like', search_text]},
-                       {'title': ['like', search_text]},
-                       {'supplier': ['like', search_text]},
-                       {'supplier_name': ['like', search_text]}],
-           fields=["name", "supplier", "posting_date", "set_warehouse", "status"],
+           or_filters=or_conditions,
+           filters=conditions,
+           fields=["name", "supplier", "posting_date", "set_warehouse", "status","currency"],
            order_by='modified desc',
            start=start,
            page_length=page_length
@@ -1326,6 +1531,81 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
+
+############################################ DELIVERY NOTE ############################################
+
+
+    ########################### Purchase Order Connected With Purchase Receipt & Search ############################
+    if doctype == "Purchase Order" and con_doc == "Purchase Receipt":
+        connections = frappe.db.sql(
+            """ select distinct `tabPurchase Order`.name as name,`tabPurchase Order`.supplier as supplier,
+                       `tabPurchase Order`.transaction_date as transaction_date,
+                       `tabPurchase Order`.set_warehouse as set_warehouse	,`tabPurchase Order`.grand_total as grand_total,
+                       `tabPurchase Order`.currency as currency, `tabPurchase Order`.status as status
+                from `tabPurchase Order` join `tabPurchase Receipt Item` on `tabPurchase Order`.name = `tabPurchase Receipt Item`.purchase_order
+                where `tabPurchase Receipt Item`.parent = '{cur_nam}'
+                and (`tabPurchase Order`.name like '%{search_text}%' or `tabPurchase Order`.supplier like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+
+
+
+    ########################### Purchase Invoice Connected With Purchase Receipt & Search ############################
+    if doctype == "Purchase Invoice" and con_doc == "Purchase Receipt":
+        connections = frappe.db.sql(
+            """ select distinct `tabPurchase Invoice`.name as name,`tabPurchase Invoice`.supplier as supplier,
+                       `tabPurchase Invoice`.posting_date as posting_date, `tabPurchase Invoice`.due_date as due_date,
+                       `tabPurchase Invoice`.total as total,`tabPurchase Invoice`.grand_total as grand_total,
+                       `tabPurchase Invoice`.currency as currency, `tabPurchase Invoice`.status as status
+                from `tabPurchase Invoice` join `tabPurchase Invoice Item` on `tabPurchase Invoice`.name = `tabPurchase Invoice Item`.parent
+                where `tabPurchase Invoice Item`.purchase_receipt = '{cur_nam}'
+                and (`tabPurchase Invoice`.name like '%{search_text}%' or `tabPurchase Invoice`.supplier like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+
+
+
+    ########################### Purchase Receipt Connected With Purchase Receipt & Search ############################
+    if doctype == "Purchase Receipt" and con_doc == "Purchase Receipt":
+        connections = frappe.db.sql(
+            """ select distinct pr1.name as name, pr1.supplier as supplier,
+                       pr1.posting_date as posting_date, pr1.posting_date as posting_date,
+                       pr1.set_warehouse as set_warehouse,pr1.status as status,
+                       pr1.currency as currency
+                from `tabPurchase Receipt` pr1 join `tabPurchase Receipt` pr2 on pr1.name = pr2.amended_from
+                where pr2.amended_from = '{cur_nam}'
+                and ( pr1.name like '%{search_text}%' or pr1.supplier like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
 
 ############################################ DELIVERY NOTE ############################################
 
@@ -1343,17 +1623,20 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             conditions["status"] = filter1
         if filter2 != '%%':
             conditions["customer"] = filter2
-        if filter3 != '%%':
-            conditions["posting_date"] = ['>=', filter3]
-        if filter4 != '%%':
-            conditions["posting_date"] = ['<=', filter4]
+        if filter3 != '%%' and  filter4 == "%%":
+                conditions["posting_date"] = ['>=', filter3]
+        if filter4 != '%%' and  filter3 == "%%":
+                conditions["posting_date"] = ['<=', filter4]
+        if filter3 != "%%" and filter4 !="%%":
+                conditions["posting_date"] = ['between', [filter3, filter4]]
+               
         if filter5 != '%%':
             conditions["set_warehouse"] = filter5
 
         query = frappe.db.get_list('Delivery Note',
            or_filters=conditions1,
            filters=conditions,
-           fields=["name", "customer", "territory", "posting_date", "set_warehouse", "status"],
+           fields=["name", "customer", "territory", "posting_date", "set_warehouse", "status","currency"],
            order_by='modified desc',
            start=start,
            page_length=page_length
@@ -1397,13 +1680,145 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 
 ########################### Supplier Full List & Search ############################
     if doctype == "Supplier" and con_doc == '%%':
+        conditions1 = {}
+        conditions = {"disabled": ['=', 0]}
+        if search_text != '%%':
+            conditions1["name"] = ['like', search_text]
+            conditions1["supplier_name"] = ['like', search_text]
+            conditions1["mobile_no"] = ['like', search_text]
+        if filter1 != '%%':
+            conditions["supplier_group"] = filter1
+        if filter2 != '%%':
+            conditions["country"] = filter2
+        if filter3 != '%%':
+            conditions["supplier_type"] = filter3
+            
+        if filter4 != '%%' and filter5 == "%%":
+            conditions["creation"] = ['>=', filter4]
+        if filter5 != '%%' and filter4 == "%%":
+            conditions["creation"] = ['<=', filter5]
+        if filter4 != "%%" and filter5 !="%%":
+            conditions["creation"] = ['between', [filter4, filter5]]
+
         query = frappe.db.get_list('Supplier',
-           or_filters=[{'name': ['like', search_text]},
-                       {'supplier_name': ['like', search_text]},
-                       {'mobile_no': ['like', search_text]}],
+           or_filters=conditions1,
+           filters=conditions,
            fields=["name", "supplier_name", "supplier_group", "supplier_type", "country",
-                   "mobile_no"],
+                   "mobile_no", "default_currency"],
            order_by='modified desc',
+           start=start,
+           page_length=page_length
+           )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+
+
+    ########################### Purchase Invoice Connected With Purchase Order & Search ############################
+    if doctype == "Supplier Quotation" and con_doc == "Supplier":
+        connections = frappe.db.sql(
+            """ select distinct `tabSupplier Quotation`.name as name,`tabSupplier Quotation`.supplier as supplier,
+                       `tabSupplier Quotation`.transaction_date as transaction_date, `tabSupplier Quotation`.valid_till as valid_till, 
+                       `tabSupplier Quotation`.total as total,`tabSupplier Quotation`.grand_total as grand_total,
+                       `tabSupplier Quotation`.currency as currency, `tabSupplier Quotation`.status as status
+                from `tabSupplier Quotation` join `tabSupplier` on `tabSupplier`.name = `tabSupplier Quotation`.supplier
+                where `tabSupplier Quotation`.supplier = '{cur_nam}'
+                and (`tabSupplier Quotation`.name like '%{search_text}%' or `tabSupplier Quotation`.supplier like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+    ########################### Purchase Receipt Connected With Purchase Order & Search ############################
+
+    if doctype == "Purchase Receipt" and con_doc == "Supplier":
+        connections = frappe.db.sql(
+            """ select distinct `tabPurchase Receipt`.name as name,`tabPurchase Receipt`.supplier as supplier,`tabPurchase Receipt`.set_warehouse as set_warehouse,
+                `tabPurchase Receipt`.posting_date as posting_date,`tabPurchase Receipt`.grand_total as grand_total,
+                `tabPurchase Receipt`.currency as currency, `tabPurchase Receipt`.total as total,`tabPurchase Receipt`.total_qty as total_qty,`tabPurchase Receipt`.status as status
+                from `tabPurchase Receipt` join `tabSupplier` on `tabPurchase Receipt`.supplier = `tabSupplier`.name
+                where `tabPurchase Receipt`.supplier = '{cur_nam}'
+                and (`tabPurchase Receipt`.name like '%{search_text}%' or `tabPurchase Receipt`.supplier_address like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+    ########################### Purchase Invoice Connected With Purchase Order & Search ############################
+    if doctype == "Purchase Invoice" and con_doc == "Supplier":
+        connections = frappe.db.sql(
+            """ select distinct `tabPurchase Invoice`.name as name,`tabPurchase Invoice`.supplier as supplier,`tabPurchase Invoice`.currency as currency,
+                       `tabPurchase Invoice`.posting_date as posting_date, `tabPurchase Invoice`.due_date as due_date,`tabPurchase Invoice`.grand_total as grand_total,`tabPurchase Invoice`.status as status
+                from `tabPurchase Invoice` join `tabSupplier` on `tabPurchase Invoice`.supplier = `tabSupplier`.name
+                where `tabPurchase Invoice`.supplier = '{cur_nam}'
+                and (`tabPurchase Invoice`.name like '%{search_text}%' or `tabPurchase Invoice`.supplier_address like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+    ########################### Purchase Receipt Connected With Purchase Order & Search ############################
+
+    ########################### Payment Entry Connected With Purchase Invoice & Search ############################
+    if doctype == "Purchase Order" and con_doc == "Supplier":
+        connections = frappe.db.sql(
+            """ select distinct `tabPurchase Order`.name as name,`tabPurchase Order`.supplier as supplier,
+                `tabPurchase Order`.transaction_date as transaction_date,
+                `tabPurchase Order`.set_warehouse as set_warehouse,
+                `tabPurchase Order`.grand_total as grand_total,
+                `tabPurchase Order`.currency as currency,
+                `tabPurchase Order`.status as status
+                from `tabPurchase Order` join `tabSupplier` on `tabPurchase Order`.supplier = `tabSupplier`.name
+                where `tabPurchase Order`.supplier   = '{cur_nam}'
+                and (`tabPurchase Order`.name like '%{search_text}%' or `tabPurchase Order`.supplier_address like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+
+############################################ SUPPLIER GROUP ############################################
+
+########################### Supplier Group Full List & Search ############################
+    if doctype == "Supplier Group" and con_doc == '%%':
+        query = frappe.db.get_list('Supplier Group',
+           filters=[{'is_group': ['=', 0]}],
+           or_filters=[{'name': ['like', search_text]},
+                       {'supplier_group_name': ['like', search_text]}],
+           fields=["name"],
+           order_by='name asc',
            start=start,
            page_length=page_length
            )
@@ -1416,11 +1831,29 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
 
 ########################### Supplier Quotation Full List & Search ############################
     if doctype == "Supplier Quotation" and con_doc == '%%':
+        or_conditions = {}
+        conditions = {}
+        if search_text != '%%':
+            or_conditions["supplier"] = ["like", search_text]
+            or_conditions["name"] = ["like", search_text]
+            or_conditions["supplier_name"] = ["like", search_text]
+        if filter1 != '%%':
+            conditions["status"] = filter1
+        if filter2 != '%%':
+            conditions["supplier"] = filter2
+        if filter3 != '%%' and  filter4 == "%%":
+                conditions["transaction_date"] = ['>=', filter3]
+        if filter4 != '%%' and  filter3 == "%%":
+                conditions["transaction_date"] = ['<=', filter4]
+        if filter3 != "%%" and filter4 !="%%":
+                conditions["transaction_date"] = ['between', [filter3, filter4]]
+
+
         query = frappe.db.get_list('Supplier Quotation',
-           or_filters=[{'name': ['like', search_text]},
-                       {'supplier': ['like', search_text]}],
+           or_filters=or_conditions,
+           filters=conditions,
            fields=["name", "supplier", "transaction_date", "valid_till", "grand_total",
-                   "status"],
+                   "status", "currency"],
            order_by='modified desc',
            start=start,
            page_length=page_length
@@ -1429,16 +1862,103 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
+            
+
+    ########################### Purchase Invoice Connected With Purchase Order & Search ############################
+    if doctype == "Quotation" and con_doc == "Supplier Quotation":
+        connections = frappe.db.sql(
+            """ select distinct `tabQuotation`.name as name,`tabQuotation`.quotation_to as quotation_to,`tabQuotation`.customer_name as customer_name,
+                       `tabQuotation`.transaction_date as transaction_date, `tabQuotation`.currency as currency,
+                       `tabQuotation`.grand_total as grand_total,`tabQuotation`.status as status
+                from `tabQuotation` join `tabSupplier Quotation` on `tabQuotation`.supplier_quotation = `tabSupplier Quotation`.name
+                where `tabQuotation`.supplier_quotation = '{cur_nam}'
+                and (`tabQuotation`.name like '%{search_text}%' or `tabQuotation`.quotation_to like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+    ########################### Purchase Orders Connected With Supplier Quotation & Search ############################
+    if doctype == "Purchase Order" and con_doc == "Supplier Quotation":
+        connections = frappe.db.sql(
+            """ select distinct `tabPurchase Order`.name as name,`tabPurchase Order`.supplier as supplier,
+                `tabPurchase Order`.currency as currency, `tabPurchase Order`.transaction_date as transaction_date, 
+                `tabPurchase Order`.status as status, `tabPurchase Order`.set_warehouse as set_warehouse,
+                `tabPurchase Order`.grand_total as grand_total
+                from `tabPurchase Order` join `tabPurchase Order Item` on `tabPurchase Order`.name = `tabPurchase Order Item`.parent
+                where `tabPurchase Order Item`.supplier_quotation = '{cur_nam}'
+                and (`tabPurchase Order`.name like '%{search_text}%' or `tabPurchase Order`.supplier_address like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+    ########################### Payment Request Connected With Purchase Invoice & Search ############################
+    if doctype == "Material Request" and con_doc == "Supplier Quotation":
+        connections = frappe.db.sql(
+            """ select distinct `tabMaterial Request`.name as name,`tabMaterial Request`.material_request_type as material_request_type,`tabMaterial Request`.set_warehouse as set_warehouse,
+                       `tabMaterial Request`.transaction_date as transaction_date, `tabMaterial Request`.schedule_date as schedule_date,`tabMaterial Request`.status as status
+                from `tabMaterial Request` join `tabSupplier Quotation Item` on `tabMaterial Request`.name = `tabSupplier Quotation Item`.material_request
+                where `tabSupplier Quotation Item`.parent = '{cur_nam}'
+                and (`tabMaterial Request`.name like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
 
 ############################################ PURCHASE ORDER ############################################
 
 ########################### Purchase Order Full List & Search ############################
     if doctype == "Purchase Order" and con_doc == '%%':
+        or_conditions = {}
+        conditions = {}
+        if search_text != '%%':
+            or_conditions["supplier"] = ["like", search_text]
+            or_conditions["name"] = ["like", search_text]
+        if filter1 != '%%':
+            conditions["status"] = filter1
+        if filter2 != '%%':
+            conditions["supplier"] = filter2
+        
+        if filter3 != '%%' and  filter4 == "%%":
+                conditions["transaction_date"] = ['>=', filter3]
+        if filter4 != '%%' and filter3 == "%%":
+                conditions["transaction_date"] = ['<=', filter4]
+        if filter3 != "%%" and filter4 !="%%":
+                conditions["transaction_date"] = ['between', [filter3, filter4]]
+                
+
+
         query = frappe.db.get_list('Purchase Order',
-           or_filters=[{'name': ['like', search_text]},
-                       {'supplier': ['like', search_text]}],
+           or_filters=or_conditions,
+           filters=conditions,
            fields=["name", "supplier", "transaction_date", "set_warehouse", "grand_total",
-                   "status"],
+                   "status", "currency"],
            order_by='modified desc',
            start=start,
            page_length=page_length
@@ -1447,15 +1967,151 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
+
+
+
+
+    if doctype == "Purchase Receipt" and con_doc == "Purchase Order":
+        connections = frappe.db.sql(
+            """ select distinct `tabPurchase Receipt`.name as name,`tabPurchase Receipt`.supplier as supplier,
+                       `tabPurchase Receipt`.set_warehouse as set_warehouse, `tabPurchase Receipt`.currency as currency, 
+                       `tabPurchase Receipt`.posting_date as posting_date,`tabPurchase Receipt`.grand_total as grand_total,`tabPurchase Receipt`.status as status
+                from `tabPurchase Receipt` join `tabPurchase Receipt Item` on `tabPurchase Receipt`.name = `tabPurchase Receipt Item`.parent
+                where `tabPurchase Receipt Item`.purchase_order = '{cur_nam}'
+                and (`tabPurchase Receipt`.name like '%{search_text}%' or `tabPurchase Receipt`.supplier_address like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+    ########################### Purchase Invoice Connected With Purchase Order & Search ############################
+    if doctype == "Purchase Invoice" and con_doc == "Purchase Order":
+        connections = frappe.db.sql(
+            """ select distinct `tabPurchase Invoice`.name as name,`tabPurchase Invoice`.supplier as supplier,`tabPurchase Invoice`.currency as currency,
+                       `tabPurchase Invoice`.posting_date as posting_date, `tabPurchase Invoice`.due_date as due_date,`tabPurchase Invoice`.grand_total as grand_total,`tabPurchase Invoice`.status as status
+                from `tabPurchase Invoice` join `tabPurchase Invoice Item` on `tabPurchase Invoice`.name = `tabPurchase Invoice Item`.parent
+                where `tabPurchase Invoice Item`.purchase_order = '{cur_nam}'
+                and (`tabPurchase Invoice`.name like '%{search_text}%' or `tabPurchase Invoice`.supplier_address like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+    ########################### Payment Entry Connected With Purchase Invoice & Search ############################
+    if doctype == "Material Request" and con_doc == "Purchase Order":
+        connections = frappe.db.sql(
+            """ select distinct `tabMaterial Request`.name as name,`tabMaterial Request`.material_request_type as material_request_type,`tabMaterial Request`.set_warehouse as set_warehouse,
+                       `tabMaterial Request`.transaction_date as transaction_date, `tabMaterial Request`.schedule_date as schedule_date,`tabMaterial Request`.status as status
+                from `tabMaterial Request` join `tabPurchase Order Item` on `tabMaterial Request`.name = `tabPurchase Order Item`.material_request
+                where `tabPurchase Order Item`.parent = '{cur_nam}'
+                and (`tabMaterial Request`.name like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+    ########################### Payment Request Connected With Purchase Invoice & Search ############################
+    if doctype == "Supplier Quotation" and con_doc == "Purchase Order":
+        connections = frappe.db.sql(
+            """ select distinct `tabSupplier Quotation`.name as name,`tabSupplier Quotation`.supplier as supplier,
+                       `tabSupplier Quotation`.currency as currency,
+                       `tabSupplier Quotation`.grand_total as grand_total,
+                       `tabSupplier Quotation`.transaction_date as transaction_date, 
+                       `tabSupplier Quotation`.valid_till as valid_till,
+                       `tabSupplier Quotation`.status as status
+                from `tabSupplier Quotation` join `tabPurchase Order Item` on `tabSupplier Quotation`.name = `tabPurchase Order Item`.supplier_quotation
+                where `tabPurchase Order Item`.parent = '{cur_nam}'
+                and (`tabSupplier Quotation`.name like '%{search_text}%' or `tabSupplier Quotation`.supplier_address like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+    ########################### Purchase Receipt Connected With Purchase Order & Search ############################
+
+    if doctype == "Payment Entry" and con_doc == "Purchase Order":
+        connections = frappe.db.sql(
+            """ select distinct `tabPayment Entry`.name as name,`tabPayment Entry`.payment_type as payment_type,
+                       `tabPayment Entry`.mode_of_payment as mode_of_payment,
+                       `tabPayment Entry`.paid_from_account_currency as currency,
+                       `tabPayment Entry`.paid_amount as base_paid_amount,
+                       `tabPayment Entry`.posting_date as posting_date, `tabPayment Entry`.party_name as party_name,`tabPayment Entry`.status as status
+                from `tabPayment Entry` join `tabPayment Entry Reference` on `tabPayment Entry`.name = `tabPayment Entry Reference`.parent
+                where `tabPayment Entry Reference`.reference_name = '{cur_nam}'
+                and (`tabPayment Entry`.name like '%{search_text}%' or `tabPayment Entry`.contact_email like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
 
 ############################################ PURCHASE INVOICE ############################################
 
 ########################### Purchase Invoice Full List & Search ############################
     if doctype == "Purchase Invoice" and con_doc == '%%':
+        or_conditions = {}
+        conditions = {}
+        if search_text != '%%':
+            or_conditions["supplier"] = ["like", search_text]
+            or_conditions["name"] = ["like", search_text]
+        if filter1 != '%%':
+            conditions["status"] = filter1
+        if filter2 != '%%':
+            conditions["supplier"] = filter2
+        if filter3 != '%%':
+            conditions["is_return"] = filter3
+            
+        if filter4 != '%%' and  filter5 == "%%":
+                conditions["posting_date"] = ['>=', filter4]
+        if filter5 != '%%' and  filter4 == "%%":
+                conditions["posting_date"] = ['<=', filter5]
+        if filter4 != "%%" and filter5 !="%%":
+                conditions["posting_date"] = ['between', [filter4, filter5]]
+             
         query = frappe.db.get_list('Purchase Invoice',
-           or_filters=[{'name': ['like', search_text]},
-                       {'supplier': ['like', search_text]}],
-           fields=["name", "supplier", "posting_date", "grand_total", "status"],
+           or_filters=or_conditions,
+           filters=conditions,
+           fields=["name", "supplier", "posting_date", "grand_total", "status", "currency"],
            order_by='modified desc',
            start=start,
            page_length=page_length
@@ -1464,6 +2120,97 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return query
         else:
             return "لا يوجد !"
+            
+
+    ########################### Purchase Order Connected With Purchase Invoice & Search ############################
+
+    if doctype == "Purchase Order" and con_doc == "Purchase Invoice":
+        connections = frappe.db.sql(
+            """ select distinct `tabPurchase Order`.name as name,`tabPurchase Order`.supplier as supplier,`tabPurchase Order`.currency as currency,
+                       `tabPurchase Order`.transaction_date as transaction_date,`tabPurchase Order`.grand_total as grand_total,`tabPurchase Order`.status as status
+                from `tabPurchase Order` join `tabPurchase Invoice Item` on `tabPurchase Order`.name = `tabPurchase Invoice Item`.purchase_order
+                where `tabPurchase Invoice Item`.parent = '{cur_nam}'
+                and (`tabPurchase Order`.name like '%{search_text}%' or `tabPurchase Order`.supplier_address like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+    ########################### Purchase Invoice Connected With Purchase Invoice & Search ############################
+    if doctype == con_doc == "Purchase Invoice":
+        connections = frappe.db.sql(
+            """ select  pi_2.name as name, pi_2.supplier as supplier,pi_2.supplier_address as supplier_address,
+                       pi_2.posting_date as posting_date,pi_2.due_date as due_date,pi_2.grand_total as grand_total,pi_2.status as status
+                from `tabPurchase Invoice` pi_1 join `tabPurchase Invoice` pi_2 on pi_1.name = pi_2.return_against
+                where pi_2.return_against = '{cur_nam}'
+                and (pi_2.name like '%{search_text}%' or pi_2.supplier_address like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+    ########################### Payment Entry Connected With Purchase Invoice & Search ############################
+    if doctype == "Payment Entry" and con_doc == "Purchase Invoice":
+        connections = frappe.db.sql(
+            """ select distinct `tabPayment Entry`.name as name,`tabPayment Entry`.payment_type as payment_type,`tabPayment Entry`.mode_of_payment as mode_of_payment,
+                       `tabPayment Entry`.posting_date as posting_date,`tabPayment Entry`.party as party,`tabPayment Entry`.party_name as part_name,
+                       `tabPayment Entry`.status as status,
+                       `tabPayment Entry`.paid_amount as base_paid_amount,`tabPayment Entry`.paid_from_account_currency as currency
+                from `tabPayment Entry` join `tabPayment Entry Reference` on `tabPayment Entry`.name = `tabPayment Entry Reference`.parent
+                where `tabPayment Entry Reference`.reference_name = '{cur_nam}'
+                and (`tabPayment Entry`.name like '%{search_text}%' or `tabPayment Entry`.party_name like '%{search_text}%') LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
+
+
+    ########################### Payment Request Connected With Purchase Invoice & Search ############################
+    if doctype == "Payment Request" and con_doc == "Purchase Invoice":
+
+        connections = frappe.db.sql(
+            """ select distinct `tabPayment Request`.name as name,`tabPayment Request`.payment_request_type as payment_request_type, `tabPayment Request`.mode_of_payment as mode_of_payment,
+                      `tabPayment Request`.transaction_date as transaction_date,`tabPayment Request`.party_type as party_type,`tabPayment Request`.party as party,`tabPayment Request`.status as status,
+                      `tabPayment Request`.grand_total as grand_total,`tabPayment Request`.currency as currency
+                from `tabPayment Request` join `tabPurchase Invoice` on `tabPayment Request`.reference_name = `tabPurchase Invoice`.name
+                where `tabPayment Request`.reference_name = '{cur_nam}'
+                and (`tabPayment Request`.name like '%{search_text}%' or `tabPayment Request`.party_type like '%{search_text}%' ) LIMIT {start},{page_length}
+            """.format(
+                start=start,
+                page_length=page_length,
+                cur_nam=cur_nam,
+                search_text=search_text,
+            ),
+            as_dict=1,
+        )
+        if connections:
+            return connections
+        else:
+            return "لا يوجد روابط !"
 
 ############################################ ADDRESS ############################################
 
@@ -1476,10 +2223,10 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
                                                  address_title as address_title,
                                                  address_line1 as address_line1,
                                                  city as city,
-                                                 phone as phone
+                                                 country as country
                                           from tabAddress where name = '{filtered}'
                                           and (address_title like '{search_text}' or address_line1 like '{search_text}'
-                                               or city like '{search_text}' or phone like '{search_text}') LIMIT {start},{page_length}
+                                               or city like '{search_text}' or country like '{search_text}') LIMIT {start},{page_length}
                                       """.format(filtered=d.parent, search_text=search_text, start=start, page_length=page_length,), as_dict=1)
             for x in query:
                 data = {
@@ -1487,7 +2234,7 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
                     'address_title': x.address_title,
                     'address_line1': x.address_line1,
                     'city': x.city,
-                    'phone': x.phone
+                    'country': x.country
                 }
                 result.append(data)
 
@@ -1503,11 +2250,11 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
         contacts = frappe.db.get_list('Dynamic Link', filters={'link_name': cur_nam}, fields=['parent'])
         result = []
         for d in contacts:
-            query = frappe.db.sql(""" select name as name ,
+            query = frappe.db.sql(""" select name as name,
+                                             first_name as contact_display,
                                              email_id as email_id,
                                              mobile_no as mobile_no,
-                                             phone as phone,
-                                             company_name as company_name
+                                             phone as phone
                                       from tabContact where name = '{filtered}'
                                       and (name like '{search_text}' or email_id like '{search_text}'
                                            or mobile_no like '{search_text}' or phone like '{search_text}'
@@ -1516,10 +2263,10 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             for x in query:
                 data = {
                     'name': x.name,
-                    'email_id': x.email_id,
+                    'contact_display': str(x.contact_display),
                     'mobile_no': x.mobile_no,
-                    'company_name': x.company_name,
-                    'phone': x.phone
+                    'phone': x.phone,
+                    'email_id': x.email_id
                 }
                 result.append(data)
 
@@ -1527,4 +2274,184 @@ def general_service(doctype, filter1='%%', filter2='%%', filter3='%%', filter4='
             return result
         else:
             return "لا يوجد !"
+
+
+    ########################### Leave Ap[plication Full List & Search ############################
+    if doctype == "Leave Application" and con_doc == "%%":
+        or_conditions = {}
+        conditions = {}
+        from_date = "from_date"
+        to_date = "to_date"
+        if search_text != "%%":
+            or_conditions["employee_name"] = ["like", search_text]
+            or_conditions["name"] = ["like", search_text]
+        if filter1 != "%%":
+            conditions["status"] = filter1
+        if filter2 != "%%":
+            conditions["employee"] = filter2
+        if filter3 != "%%":
+            conditions[filter3] = [
+                "between",
+                [from_date, to_date],
+            ]
+        if filter4 != "%%":
+            conditions["department"] = filter4
+        if filter5 != "%%":
+            conditions["leave_type"] = filter5
+        if filter6 != "%%" and filter7 == "%%":
+            conditions["posting_date"] = [">=", filter6]
+        if filter7 != "%%" and filter6 == "%%":
+            conditions["posting_date"] = ["<=", filter7]
+        if filter6 != "%%" and filter7 != "%%":
+            conditions["posting_date"] = ["between", [filter6, filter7]]
+
+        query = frappe.db.get_list(
+            "Leave Application",
+            or_filters=or_conditions,
+            filters=conditions,
+            fields=[
+                "name",
+                "employee_name",
+                "department",
+                "leave_type",
+                "from_date",
+                "to_date",
+                "total_leave_days",
+                "status",
+            ],
+            order_by="modified desc",
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+	    ########################### Attendance Connected With Leave Application & Search ############################
+
+    # if doctype == "Attendance" and con_doc == "Leave Application":
+    #     connections = frappe.db.sql(
+    #         """ select distinct `tabAttendance`.name as name,`tabAttendance`.employee_name as employee_name,`tabAttendance`.department as department,
+    #                    `tabAttendance`.leave_type as leave_type,`tabAttendance`.attendance_date as attendance_date, `tabAttendance`.status as status
+    #             from `tabAttendance` join `tabLeave Application` on `tabLeave Application`.name = `Attendance`.leave_application
+    #             where `Attendance`.leave_application = '{cur_nam}'
+    #             and (`tabAttendance`.name like '%{search_text}%' or `tabAttendance`.supplier_address like '%{search_text}%') LIMIT {start},{page_length}
+    #         """.format(
+    #             start=start,
+    #             page_length=page_length,
+    #             cur_nam=cur_nam,
+    #             search_text=search_text,
+    #         ),
+    #         as_dict=1,
+    #     )
+    #     if connections:
+    #         return connections
+    #     else:
+    #         return "لا يوجد روابط !"
+    
+
+########################### Purchase Invoice Full List & Search ############################
+    if doctype == "Employee" and con_doc == '%%':
+        or_conditions = {}
+        conditions = {}
+        if search_text != '%%':
+            or_conditions["employee_name"] = ["like", search_text]
+            or_conditions["name"] = ["like", search_text]
+        if filter1 != '%%':
+            conditions["status"] = filter1
+        if filter2 != '%%':
+            conditions["gender"] = filter2
+        if filter3 != '%%':
+            conditions["company"] = filter3
+            
+        if filter4 != '%%' and  filter5 == "%%":
+                conditions["date_of_joining"] = ['>=', filter4]
+        if filter5 != '%%' and  filter4 == "%%":
+                conditions["date_of_joining"] = ['<=', filter5]
+        if filter4 != "%%" and filter5 !="%%":
+                conditions["date_of_joining"] = ['between', [filter4, filter5]]
+             
+        query = frappe.db.get_list('Employee',
+           or_filters=or_conditions,
+           filters=conditions,
+           fields=["name", "employee_name", "attendance_device_id", "designation", "department", "branch", "status"],
+           order_by='modified desc',
+           start=start,
+           page_length=page_length
+           )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+            
+
+    if doctype == "Leave Type" and con_doc == '%%':
+            conditions = {}
+            query = frappe.db.get_list('Leave Type',
+               filters=conditions,
+               fields=["name", "leave_type_name"],
+               order_by='modified desc',
+               start=start,
+               page_length=page_length
+               )
+            if query:
+                return query
+            else:
+                return "لا يوجد !"	
+
+
+
+    if doctype == "Department" and con_doc == '%%':
+            conditions = {}
+            query = frappe.db.get_list('Department',
+               filters=conditions,
+               fields=["name",],
+               order_by='modified desc',
+               start=start,
+               page_length=page_length
+               )
+            if query:
+                return query
+            else:
+                return "لا يوجد !"
+
+
+            
+    if doctype == "Employee Checkin" and con_doc == "%%":
+        or_conditions = {}
+        conditions = {}
+        if search_text != "%%":
+            or_conditions["employee_name"] = ["like", search_text]
+            or_conditions["name"] = ["like", search_text]
+        if filter1 != "%%":
+            conditions["log_type"] = filter1
+        if filter2 != "%%" and filter3 == "%%":
+            conditions["time"] = [">=", filter2]
+        if filter3 != "%%" and filter2 == "%%":
+            conditions["time"] = ["<=", filter3]
+        if filter2 != "%%" and filter3 != "%%":
+            conditions["time"] = ["between", [filter2, filter3]]
+
+        query = frappe.db.get_list(
+            "Employee Checkin",
+            or_filters=or_conditions,
+            filters=conditions,
+            fields=[
+                "name",
+                "employee_name",
+                "employee",
+                "log_type",
+                "time",
+                "shift",
+                "device_id",
+            ],
+            order_by="modified desc",
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+
 
