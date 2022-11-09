@@ -1,5 +1,4 @@
-from __future__ import unicode_literals
-from itertools import groupby
+
 import frappe
 import erpnext
 from frappe import auth
@@ -7,6 +6,8 @@ import random
 import datetime
 import json, ast
 from erpnext.accounts.utils import get_balance_on
+from six import iteritems, string_types
+
 from frappe.utils import (
     flt,
     getdate,
@@ -307,10 +308,8 @@ def quotation(name):
             "customer_address",
             "address_display",
             "contact_person",
-
             "contact_display",
             "contact_mobile",
-
             "contact_email",
             "customer_group",
             "territory",
@@ -358,18 +357,22 @@ def quotation(name):
 
         ####START OF ADDRESS & CONTACT####
         qtn["customer_address"] = x.customer_address
-        qtn["address_line1"] = frappe.db.get_value("Address", x.customer_address, "address_line1")
+        qtn["address_line1"] = frappe.db.get_value(
+            "Address", x.customer_address, "address_line1"
+        )
         qtn["city"] = frappe.db.get_value("Address", x.customer_address, "city")
         qtn["country"] = frappe.db.get_value("Address", x.customer_address, "country")
         qtn["contact_person"] = x.contact_person
-        qtn["contact_display"] = frappe.db.get_value("Contact", x.contact_person, "first_name")
+        qtn["contact_display"] = frappe.db.get_value(
+            "Contact", x.contact_person, "first_name"
+        )
         qtn["mobile_no"] = frappe.db.get_value("Contact", x.contact_person, "mobile_no")
         qtn["phone"] = frappe.db.get_value("Contact", x.contact_persont, "phone")
         qtn["email_id"] = frappe.db.get_value("Contact", x.contact_person, "email_id")
         ####END OF ADDRESS & CONTACT####
 
         qtn["address_display"] = x.address_display
-        #qtn["contact_display"] = x.contact_display
+        # qtn["contact_display"] = x.contact_display
         qtn["contact_mobile"] = x.contact_mobile
         qtn["contact_email"] = x.contact_email
         qtn["customer_group"] = x.customer_group
@@ -601,6 +604,7 @@ def customer(name):
             "market_segment",
             "industry",
             "tax_id",
+            "lead_name",
             "customer_primary_address",
             "primary_address",
             "customer_primary_contact",
@@ -610,12 +614,15 @@ def customer(name):
             "default_price_list",
             "default_sales_partner",
             "payment_terms",
+            "longitude",
+            "latitude",
             "docstatus",
         ],
     )
     for x in doc_data:
         cust["name"] = x.name
         cust["customer_name"] = x.customer_name
+        cust["lead_name"] = x.lead_name
         cust["disabled"] = x.disabled
         cust["customer_type"] = x.customer_type
         cust["customer_group"] = x.customer_group
@@ -624,19 +631,35 @@ def customer(name):
         cust["industry"] = x.industry
         cust["tax_id"] = x.tax_id
         cust["customer_primary_address"] = x.customer_primary_address
-        cust["address_line1"] = frappe.db.get_value("Address", x.customer_primary_address, "address_line1")
-        cust["city"] = frappe.db.get_value("Address", x.customer_primary_address, "city")
-        cust["country"] = frappe.db.get_value("Address", x.customer_primary_address, "country")
+        cust["address_line1"] = frappe.db.get_value(
+            "Address", x.customer_primary_address, "address_line1"
+        )
+        cust["city"] = frappe.db.get_value(
+            "Address", x.customer_primary_address, "city"
+        )
+        cust["country"] = frappe.db.get_value(
+            "Address", x.customer_primary_address, "country"
+        )
         cust["customer_primary_contact"] = x.customer_primary_contact
-        cust["contact_display"] = frappe.db.get_value("Contact", x.customer_primary_contact, "first_name")
-        cust["mobile_no"] = frappe.db.get_value("Contact", x.customer_primary_contact, "mobile_no")
-        cust["phone"] = frappe.db.get_value("Contact", x.customer_primary_contact, "phone")
-        cust["email_id"] = frappe.db.get_value("Contact", x.customer_primary_contact, "email_id")
+        cust["contact_display"] = frappe.db.get_value(
+            "Contact", x.customer_primary_contact, "first_name"
+        )
+        cust["mobile_no"] = frappe.db.get_value(
+            "Contact", x.customer_primary_contact, "mobile_no"
+        )
+        cust["phone"] = frappe.db.get_value(
+            "Contact", x.customer_primary_contact, "phone"
+        )
+        cust["email_id"] = frappe.db.get_value(
+            "Contact", x.customer_primary_contact, "email_id"
+        )
         cust["primary_address"] = x.primary_address
         cust["default_currency"] = x.default_currency
         cust["default_price_list"] = x.default_price_list
         cust["default_sales_partner"] = x.default_sales_partner
         cust["payment_terms"] = x.payment_terms
+        cust["longitude"] = x.longitude
+        cust["latitude"] = x.latitude
         cust["docstatus"] = x.docstatus
         if x.payment_terms:
             cust["credit_days"] = frappe.db.get_value(
@@ -766,6 +789,92 @@ def customer(name):
 
 
 @frappe.whitelist()
+def customer_visit(name):
+
+    response = {}
+
+    doc_data = frappe.db.get_list(
+        "Customer Visit",
+        filters={"name": name},
+        fields=[
+            "name",
+            "docstatus",
+            "customer",
+            "customer_address",
+            "posting_date",
+            "time",
+            "description",
+            "longitude",
+            "latitude",
+            "location",
+            "docstatus",
+        ],
+    )
+    if not doc_data:
+        return "لا يوجد"
+    address_line1, city, country = frappe.db.get_value(
+        "Address",
+        {"name": doc_data[0].customer_address},
+        ["address_line1", "city", "country"],
+    )
+    response["name"] = doc_data[0].name
+    response["customer"] = doc_data[0].customer
+    response["customer_address"] = doc_data[0].customer_address
+    response["address_line1"] = address_line1
+    response["city"] = city
+    response["country"] = country
+    response["posting_date"] = doc_data[0].posting_date
+    response["time"] = doc_data[0].time
+    response["description"] = doc_data[0].description
+    response["longitude"] = doc_data[0].longitude
+    response["latitude"] = doc_data[0].latitude
+    response["location"] = doc_data[0].location
+    response["docstatus"] = doc_data[0].docstatus
+
+    attachments = frappe.db.sql(
+        """ Select file_name, file_url,
+                                        Date_Format(creation,'%d/%m/%Y') as date_added
+                                        from `tabFile`  where `tabFile`.attached_to_doctype = "Customer Visit"
+                                        and `tabFile`.attached_to_name = "{name}"
+                                        order by `tabFile`.creation
+                                    """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+
+    response["attachments"] = attachments
+
+    comments = frappe.db.sql(
+        """ Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Customer Visit"
+                                        and `tabComment`.reference_name = "{name}"
+                                        and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
+                                    """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+
+    response["comments"] = comments
+
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Customer Visit" and disabled = 0 """,
+        as_dict=1,
+    )
+    response["print_formats"] = print_formats
+    pf_standard = {}
+    pf_standard["name"] = "Standard"
+    print_formats.append(pf_standard)
+
+    if doc_data:
+        return response
+    else:
+        return "لا يوجد عميل بهذا الاسم"
+
+
+@frappe.whitelist()
 def sales_order(name):
     so = {}
     doc_data = frappe.db.get_list(
@@ -784,10 +893,8 @@ def sales_order(name):
             "customer_address",
             "address_display",
             "contact_person",
-
             "contact_display",
             "contact_mobile",
-
             "contact_email",
             "project",
             "order_type",
@@ -839,18 +946,22 @@ def sales_order(name):
 
         ####START OF ADDRESS & CONTACT####
         so["customer_address"] = x.customer_address
-        so["address_line1"] = frappe.db.get_value("Address", x.customer_address, "address_line1")
+        so["address_line1"] = frappe.db.get_value(
+            "Address", x.customer_address, "address_line1"
+        )
         so["city"] = frappe.db.get_value("Address", x.customer_address, "city")
         so["country"] = frappe.db.get_value("Address", x.customer_address, "country")
         so["contact_person"] = x.contact_person
-        so["contact_display"] = frappe.db.get_value("Contact", x.contact_person, "first_name")
+        so["contact_display"] = frappe.db.get_value(
+            "Contact", x.contact_person, "first_name"
+        )
         so["mobile_no"] = frappe.db.get_value("Contact", x.contact_person, "mobile_no")
         so["phone"] = frappe.db.get_value("Contact", x.contact_persont, "phone")
         so["email_id"] = frappe.db.get_value("Contact", x.contact_person, "email_id")
         ####END OF ADDRESS & CONTACT####
 
         so["address_display"] = x.address_display
-        #so["contact_display"] = x.contact_display
+        # so["contact_display"] = x.contact_display
         so["contact_mobile"] = x.contact_mobile
         so["contact_email"] = x.contact_email
         so["project"] = x.project
@@ -1148,10 +1259,8 @@ def sales_invoice(name):
             "customer_address",
             "address_display",
             "contact_person",
-
             "contact_display",
             "contact_mobile",
-
             "contact_email",
             "project",
             "cost_center",
@@ -1188,6 +1297,8 @@ def sales_invoice(name):
             "base_in_words",
             "grand_total",
             "in_words",
+            "longitude",
+            "latitude",
             "docstatus",
         ],
     )
@@ -1206,19 +1317,24 @@ def sales_invoice(name):
 
         ####START OF ADDRESS & CONTACT####
         sinv["customer_address"] = x.customer_address
-        sinv["address_line1"] = frappe.db.get_value("Address", x.customer_address, "address_line1")
+        sinv["address_line1"] = frappe.db.get_value(
+            "Address", x.customer_address, "address_line1"
+        )
         sinv["city"] = frappe.db.get_value("Address", x.customer_address, "city")
         sinv["country"] = frappe.db.get_value("Address", x.customer_address, "country")
         sinv["contact_person"] = x.contact_person
-        sinv["contact_display"] = frappe.db.get_value("Contact", x.contact_person, "first_name")
-        sinv["mobile_no"] = frappe.db.get_value("Contact", x.contact_person, "mobile_no")
+        sinv["contact_display"] = frappe.db.get_value(
+            "Contact", x.contact_person, "first_name"
+        )
+        sinv["mobile_no"] = frappe.db.get_value(
+            "Contact", x.contact_person, "mobile_no"
+        )
         sinv["phone"] = frappe.db.get_value("Contact", x.contact_persont, "phone")
         sinv["email_id"] = frappe.db.get_value("Contact", x.contact_person, "email_id")
         ####END OF ADDRESS & CONTACT####
 
-
         sinv["address_display"] = x.address_display
-        #sinv["contact_display"] = x.contact_display
+        # sinv["contact_display"] = x.contact_display
         sinv["contact_mobile"] = x.contact_mobile
         sinv["contact_email"] = x.contact_email
         sinv["project"] = x.project
@@ -1253,6 +1369,8 @@ def sales_invoice(name):
         sinv["base_in_words"] = x.base_in_words
         sinv["grand_total"] = x.grand_total
         sinv["in_words"] = x.in_words
+        sinv["longitude"] = x.longitude
+        sinv["latitude"] = x.latitude
         sinv["docstatus"] = x.docstatus
 
     child_data_1 = frappe.db.get_list(
@@ -1390,8 +1508,10 @@ def sales_invoice(name):
 
     sales_order = frappe.db.get_list(
         "Sales Invoice Item",
-        filters={"sales_order": ["!=", ""], "parent":name,},
-
+        filters={
+            "sales_order": ["!=", ""],
+            "parent": name,
+        },
         group_by="sales_order",
     )
     delivery_note = frappe.db.get_list(
@@ -1439,6 +1559,7 @@ def sales_invoice(name):
         return sinv
     else:
         return "لا يوجد فاتورة مبيعات بهذا الاسم"
+
 
 @frappe.whitelist()
 def payment_entry(name):
@@ -1529,6 +1650,144 @@ def payment_entry(name):
     else:
         return "لا يوجد مدفوعات ومقبوضات بهذا الاسم"
 
+
+@frappe.whitelist()
+def journal_entry(name):
+    response = {}
+    doc_data = frappe.db.get_list(
+        "Journal Entry",
+        filters={"name": name},
+        fields=[
+            "name",
+            "docstatus",
+            "voucher_type",
+            "posting_date",
+            "total_debit",
+            "total_credit",
+            "difference",
+            "multi_currency",
+            "total_amount_currency",
+            "total_amount",
+            "total_amount_in_words",
+            "remark",
+            "user_remark",
+            "mode_of_payment",
+            "cheque_no",
+            "cheque_date",
+            "write_off_based_on",
+            "write_off_amount",
+            "pay_to_recd_from",
+            "is_opening",
+            "mode_of_payment",
+        ],
+    )
+    if not doc_data:
+        return "لا يوجد"
+    response["name"] = doc_data[0].name
+    response["docstatus"] = doc_data[0].docstatus
+    response["voucher_type"] = doc_data[0].voucher_type
+    response["posting_date"] = doc_data[0].posting_date
+    response["total_debit"] = doc_data[0].total_debit
+    response["total_credit"] = doc_data[0].total_credit
+    response["difference"] = doc_data[0].difference
+    response["multi_currency"] = doc_data[0].multi_currency
+    response["total_amount_currency"] = doc_data[0].total_amount_currency
+    response["total_amount"] = doc_data[0].total_amount
+    response["total_amount_in_words"] = doc_data[0].total_amount_in_words
+    response["remark"] = doc_data[0].remark
+    response["user_remark"] = doc_data[0].user_remark
+    response["mode_of_payment"] = doc_data[0].mode_of_payment
+    response["cheque_no"] = doc_data[0].cheque_no
+    response["cheque_date"] = doc_data[0].cheque_date
+
+    response["write_off_based_on"] = doc_data[0].write_off_based_on
+    response["write_off_amount"] = doc_data[0].write_off_amount
+    response["pay_to_recd_from"] = doc_data[0].pay_to_recd_from
+    response["is_opening"] = doc_data[0].is_opening
+    response["paid_amount"] = doc_data[0].paid_amount
+    response["status"] = doc_data[0].status
+
+    attachments = frappe.db.sql(
+        """ Select file_name, file_url,
+                                        Date_Format(creation,'%d/%m/%Y') as date_added
+                                    from `tabFile`  where `tabFile`.attached_to_doctype = "Journal Entry"
+                                    and `tabFile`.attached_to_name = "{name}"
+                                    order by `tabFile`.creation
+                                """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+
+    response["attachments"] = attachments
+
+    comments = frappe.db.sql(
+        """ Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Journal Entry"
+                                        and `tabComment`.reference_name = "{name}"
+                                        and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
+                                    """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+
+    response["comments"] = comments
+    journal_entry_account = frappe.db.get_list(
+        "Journal Entry Account",
+        filters={"parent": name},
+        order_by="idx",
+        fields=[
+            "balance",
+            "idx",
+            "name",
+            "parenttype",
+            "account",
+            "account_type",
+            "party_type",
+            "party",
+            "party_balance",
+            "cost_center",
+            "account_currency",
+            "exchange_rate",
+            "debit_in_account_currency",
+            "debit",
+            "credit_in_account_currency",
+            "credit",
+            "is_advance",
+        ],
+    )
+    for index in range(len(journal_entry_account)):
+        for key in journal_entry_account[index]:
+            if key == "balance":
+                journal_entry_account[index][key] = (
+                    str(journal_entry_account[index]["balance"])
+                    + " "
+                    + str(
+                        frappe.db.get_value(
+                            "Account",
+                            str(journal_entry_account[index]["account"]),
+                            "account_currency",
+                        )
+                    )
+                )
+    if journal_entry_account and doc_data:
+        response["accounts"] = journal_entry_account
+
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Journal Entry" and disabled = 0 """,
+        as_dict=1,
+    )
+    response["print_formats"] = print_formats
+    pf_standard = {}
+    pf_standard["name"] = "Standard"
+    print_formats.append(pf_standard)
+
+    if doc_data:
+        return response
+    else:
+        return "لا يوجد مدفوعات ومقبوضات بهذا الاسم"
 
 
 @frappe.whitelist()
@@ -1960,10 +2219,8 @@ def delivery_note(name):
             "customer_address",
             "address_display",
             "contact_person",
-
             "contact_display",
             "contact_mobile",
-
             "contact_email",
             "project",
             "cost_center",
@@ -2011,18 +2268,22 @@ def delivery_note(name):
 
         ####START OF ADDRESS & CONTACT####
         dn["customer_address"] = x.customer_address
-        dn["address_line1"] = frappe.db.get_value("Address", x.customer_address, "address_line1")
+        dn["address_line1"] = frappe.db.get_value(
+            "Address", x.customer_address, "address_line1"
+        )
         dn["city"] = frappe.db.get_value("Address", x.customer_address, "city")
         dn["country"] = frappe.db.get_value("Address", x.customer_address, "country")
         dn["contact_person"] = x.contact_person
-        dn["contact_display"] = frappe.db.get_value("Contact", x.contact_person, "first_name")
+        dn["contact_display"] = frappe.db.get_value(
+            "Contact", x.contact_person, "first_name"
+        )
         dn["mobile_no"] = frappe.db.get_value("Contact", x.contact_person, "mobile_no")
         dn["phone"] = frappe.db.get_value("Contact", x.contact_persont, "phone")
         dn["email_id"] = frappe.db.get_value("Contact", x.contact_person, "email_id")
         ####END OF ADDRESS & CONTACT####
 
         dn["address_display"] = x.address_display
-        #dn["contact_display"] = x.contact_display
+        # dn["contact_display"] = x.contact_display
         dn["contact_mobile"] = x.contact_mobile
         dn["contact_email"] = x.contact_email
         dn["project"] = x.project
@@ -2192,53 +2453,54 @@ def delivery_note(name):
     else:
         return "لا يوجد إذن تسليم بهذا الاسم"
 
+
 @frappe.whitelist(allow_guest=True)
 def purchase_receipt(name):
     response = {}
     doc_data = frappe.db.get_list(
         "Purchase Receipt",
         filters={"name": name},
-	fields=[
-    	"name",
-        "supplier",
-        "supplier_name",
-        "status",
-        "posting_date",
-        "supplier_address",
-        "address_display",
-        "contact_person",
-        "contact_display",
-        "contact_mobile",
-        "contact_email",
-        "project",
-        "cost_center",
-        "currency",
-        "conversion_rate",
-        "buying_price_list",
-
-        "price_list_currency",
-        "plc_conversion_rate",
-        "ignore_pricing_rule",
-        "set_warehouse",
-        "tc_name",
-        "total_qty",
-        "base_total",
-        "base_net_total",
-        "total",
-        "net_total",
-        "base_total_taxes_and_charges",
-        "total_taxes_and_charges",
-        "additional_discount_percentage",
-        "apply_discount_on",
-        "discount_amount",
-        "base_discount_amount",
-        "base_grand_total",
-        "grand_total",
-        "in_words",
-        "base_in_words",
-        "is_return",
-        "docstatus",
-    ])
+        fields=[
+            "name",
+            "supplier",
+            "supplier_name",
+            "status",
+            "posting_date",
+            "supplier_address",
+            "address_display",
+            "contact_person",
+            "contact_display",
+            "contact_mobile",
+            "contact_email",
+            "project",
+            "cost_center",
+            "currency",
+            "conversion_rate",
+            "buying_price_list",
+            "price_list_currency",
+            "plc_conversion_rate",
+            "ignore_pricing_rule",
+            "set_warehouse",
+            "tc_name",
+            "total_qty",
+            "base_total",
+            "base_net_total",
+            "total",
+            "net_total",
+            "base_total_taxes_and_charges",
+            "total_taxes_and_charges",
+            "additional_discount_percentage",
+            "apply_discount_on",
+            "discount_amount",
+            "base_discount_amount",
+            "base_grand_total",
+            "grand_total",
+            "in_words",
+            "base_in_words",
+            "is_return",
+            "docstatus",
+        ],
+    )
     for x in doc_data:
         response["name"] = x.name
         response["supplier"] = x.supplier
@@ -2246,22 +2508,31 @@ def purchase_receipt(name):
         response["status"] = x.status
         response["posting_date"] = x.posting_date
 
-
         ####START OF ADDRESS & CONTACT####
         response["supplier_address"] = x.supplier_address
-        response["address_line1"] = frappe.db.get_value("Address", x.supplier_address, "address_line1")
+        response["address_line1"] = frappe.db.get_value(
+            "Address", x.supplier_address, "address_line1"
+        )
         response["city"] = frappe.db.get_value("Address", x.supplier_address, "city")
-        response["country"] = frappe.db.get_value("Address", x.supplier_address, "country")
+        response["country"] = frappe.db.get_value(
+            "Address", x.supplier_address, "country"
+        )
         response["contact_person"] = x.contact_person
-        response["contact_display"] = frappe.db.get_value("Contact", x.contact_person, "first_name")
-        response["mobile_no"] = frappe.db.get_value("Contact", x.contact_person, "mobile_no")
+        response["contact_display"] = frappe.db.get_value(
+            "Contact", x.contact_person, "first_name"
+        )
+        response["mobile_no"] = frappe.db.get_value(
+            "Contact", x.contact_person, "mobile_no"
+        )
         response["phone"] = frappe.db.get_value("Contact", x.contact_persont, "phone")
-        response["email_id"] = frappe.db.get_value("Contact", x.contact_person, "email_id")
+        response["email_id"] = frappe.db.get_value(
+            "Contact", x.contact_person, "email_id"
+        )
         ####END OF ADDRESS & CONTACT####
 
-        #response["contact_person"] = x.contact_person
+        # response["contact_person"] = x.contact_person
         response["address_display"] = x.address_display
-        #response["contact_display"] = x.contact_display
+        # response["contact_display"] = x.contact_display
         response["contact_mobile"] = x.contact_mobile
         response["contact_email"] = x.contact_email
         response["is_return"] = x.is_return
@@ -2330,6 +2601,7 @@ def purchase_receipt(name):
             "item_name",
             "description",
             "item_group",
+            "image",
             "qty",
             "uom",
             "stock_uom",
@@ -2358,7 +2630,6 @@ def purchase_receipt(name):
             "docstatus",
         ],
     )
-
 
     child_table_taxes_and_charges = frappe.db.get_list(
         "Purchase Taxes and Charges",
@@ -2420,11 +2691,9 @@ def purchase_receipt(name):
     pf_standard["name"] = "Standard"
     print_formats.append(pf_standard)
 
-
-
     con_purchase_order = frappe.db.get_list(
         "Purchase Receipt Item",
-        filters={"parent": name, "purchase_order":["!=", "null%"] },
+        filters={"parent": name, "purchase_order": ["!=", "null%"]},
     )
     count_purchase_order = len(con_purchase_order)
     purchase_orders = {}
@@ -2433,7 +2702,7 @@ def purchase_receipt(name):
         "Purchase Invoice Item",
         filters={"purchase_receipt": name},
         fields=["parent"],
-        group_by="parent"
+        group_by="parent",
     )
     count_purchase_invoice = len(con_purchase_invoice)
     purchase_invoices = {}
@@ -2442,7 +2711,7 @@ def purchase_receipt(name):
         "Purchase Receipt",
         filters={"amended_from": name},
         fields=["name"],
-        group_by="name"
+        group_by="name",
     )
     count_purchase_receipt = len(con_purchase_receipt)
     purchase_receipts = {}
@@ -2451,21 +2720,23 @@ def purchase_receipt(name):
     if count_purchase_order > 0 and doc_data:
         purchase_orders["name"] = "Purchase Order"
         purchase_orders["count"] = count_purchase_order
-        purchase_orders[
-            "icon"
-        ] = "https://erpcloud.systems/files/purchase_order.png"
+        purchase_orders["icon"] = "https://erpcloud.systems/files/purchase_order.png"
         connections.append(purchase_orders)
 
     if count_purchase_invoice > 0 and doc_data:
         purchase_invoices["name"] = "Purchase Invoice"
         purchase_invoices["count"] = count_purchase_invoice
-        purchase_invoices["icon"] = "https://erpcloud.systems/files/purchase_invoice.png"
+        purchase_invoices[
+            "icon"
+        ] = "https://erpcloud.systems/files/purchase_invoice.png"
         connections.append(purchase_invoices)
 
     if count_purchase_receipt > 0 and doc_data:
         purchase_receipts["name"] = "Purchase Receipt"
         purchase_receipts["count"] = count_purchase_receipt
-        purchase_receipts["icon"] = "https://erpcloud.systems/files/purchase_receipt.png"
+        purchase_receipts[
+            "icon"
+        ] = "https://erpcloud.systems/files/purchase_receipt.png"
         connections.append(purchase_receipts)
     response["conn"] = connections
 
@@ -2554,7 +2825,6 @@ def filtered_contact(name):
         return "لا يوجد جهة اتصال !"
 
 
-
 @frappe.whitelist()
 def supplier(name):
     supp = {}
@@ -2600,14 +2870,28 @@ def supplier(name):
         supp["country"] = x.country
         supp["tax_id"] = x.tax_id
         supp["supplier_primary_address"] = x.supplier_primary_address
-        supp["address_line1"] = frappe.db.get_value("Address", x.supplier_primary_address, "address_line1")
-        supp["city"] = frappe.db.get_value("Address", x.supplier_primary_address, "city")
-        supp["country"] = frappe.db.get_value("Address", x.supplier_primary_address, "country")
+        supp["address_line1"] = frappe.db.get_value(
+            "Address", x.supplier_primary_address, "address_line1"
+        )
+        supp["city"] = frappe.db.get_value(
+            "Address", x.supplier_primary_address, "city"
+        )
+        supp["country"] = frappe.db.get_value(
+            "Address", x.supplier_primary_address, "country"
+        )
         supp["supplier_primary_contact"] = x.supplier_primary_contact
-        supp["contact_display"] = frappe.db.get_value("Contact", x.supplier_primary_contact, "first_name")
-        supp["mobile_no"] = frappe.db.get_value("Contact", x.supplier_primary_contact, "mobile_no")
-        supp["phone"] = frappe.db.get_value("Contact", x.supplier_primary_contact, "phone")
-        supp["email_id"] = frappe.db.get_value("Contact", x.supplier_primary_contact, "email_id")
+        supp["contact_display"] = frappe.db.get_value(
+            "Contact", x.supplier_primary_contact, "first_name"
+        )
+        supp["mobile_no"] = frappe.db.get_value(
+            "Contact", x.supplier_primary_contact, "mobile_no"
+        )
+        supp["phone"] = frappe.db.get_value(
+            "Contact", x.supplier_primary_contact, "phone"
+        )
+        supp["email_id"] = frappe.db.get_value(
+            "Contact", x.supplier_primary_contact, "email_id"
+        )
         supp["primary_address"] = x.primary_address
         supp["default_currency"] = x.default_currency
         supp["default_price_list"] = x.default_price_list
@@ -2706,9 +2990,6 @@ def supplier(name):
     # count_party_specific_item = len(conn_party_spcecific_item)
     # party_specific_item = {}
 
-
-
-
     connections = []
     #
     # if count_party_specific_item and doc_data:
@@ -2734,7 +3015,7 @@ def supplier(name):
     #     request_for_quotation["name"] = "Request For Quotation"
     #     request_for_quotation["count"] = count_request_for_quotations
     #     request_for_quotation["icon"] = "https://erpcloud.systems/files/request_for_quotation.png"
-         # connections.append(request_for_quotation)
+    # connections.append(request_for_quotation)
     if supplier_quotation_count > 0 and doc_data:
         supp_qtn_connections["name"] = "Supplier Quotation"
         supp_qtn_connections["count"] = supplier_quotation_count
@@ -2792,7 +3073,6 @@ def supplier_quotation(name):
             "contact_display",
             "address_display",
             "contact_mobile",
-
             "contact_email",
             "currency",
             "buying_price_list",
@@ -2813,7 +3093,6 @@ def supplier_quotation(name):
             "total",
             "base_total",
             "base_net_total",
-
             "net_total",
             "in_words",
             "base_in_words",
@@ -2832,18 +3111,28 @@ def supplier_quotation(name):
 
         ####START OF ADDRESS & CONTACT####
         response["supplier_address"] = row.supplier_address
-        response["address_line1"] = frappe.db.get_value("Address", row.supplier_address, "address_line1")
+        response["address_line1"] = frappe.db.get_value(
+            "Address", row.supplier_address, "address_line1"
+        )
         response["city"] = frappe.db.get_value("Address", row.supplier_address, "city")
-        response["country"] = frappe.db.get_value("Address", row.supplier_address, "country")
+        response["country"] = frappe.db.get_value(
+            "Address", row.supplier_address, "country"
+        )
         response["contact_person"] = row.contact_person
-        response["contact_display"] = frappe.db.get_value("Contact", row.contact_person, "first_name")
-        response["mobile_no"] = frappe.db.get_value("Contact", row.contact_person, "mobile_no")
+        response["contact_display"] = frappe.db.get_value(
+            "Contact", row.contact_person, "first_name"
+        )
+        response["mobile_no"] = frappe.db.get_value(
+            "Contact", row.contact_person, "mobile_no"
+        )
         response["phone"] = frappe.db.get_value("Contact", row.contact_persont, "phone")
-        response["email_id"] = frappe.db.get_value("Contact", row.contact_person, "email_id")
+        response["email_id"] = frappe.db.get_value(
+            "Contact", row.contact_person, "email_id"
+        )
         ####END OF ADDRESS & CONTACT####
 
-        #response["contact_display"] = row.contact_display
-        #response["contact_person"] = row.contact_person
+        # response["contact_display"] = row.contact_display
+        # response["contact_person"] = row.contact_person
         response["contact_mobile"] = row.contact_mobile
         response["address_display"] = row.address_display
         response["contact_email"] = row.contact_email
@@ -3072,7 +3361,6 @@ def purchase_order(name):
             "supplier_address",
             "address_display",
             "contact_person",
-
             "contact_display",
             "contact_mobile",
             "contact_email",
@@ -3144,8 +3432,8 @@ def purchase_order(name):
 
     for row in doc_data:
         response["name"] = row.name
-        #response["naming_series"] = row.naming_series
-        #response["title"] = row.title
+        # response["naming_series"] = row.naming_series
+        # response["title"] = row.title
         response["supplier"] = row.supplier
         response["supplier_name"] = row.supplier_name
         response["transaction_date"] = row.transaction_date
@@ -3154,18 +3442,28 @@ def purchase_order(name):
 
         ####START OF ADDRESS & CONTACT####
         response["supplier_address"] = row.supplier_address
-        response["address_line1"] = frappe.db.get_value("Address", row.supplier_address, "address_line1")
+        response["address_line1"] = frappe.db.get_value(
+            "Address", row.supplier_address, "address_line1"
+        )
         response["city"] = frappe.db.get_value("Address", row.supplier_address, "city")
-        response["country"] = frappe.db.get_value("Address", row.supplier_address, "country")
+        response["country"] = frappe.db.get_value(
+            "Address", row.supplier_address, "country"
+        )
         response["contact_person"] = row.contact_person
-        response["contact_display"] = frappe.db.get_value("Contact", row.contact_person, "first_name")
-        response["mobile_no"] = frappe.db.get_value("Contact", row.contact_person, "mobile_no")
+        response["contact_display"] = frappe.db.get_value(
+            "Contact", row.contact_person, "first_name"
+        )
+        response["mobile_no"] = frappe.db.get_value(
+            "Contact", row.contact_person, "mobile_no"
+        )
         response["phone"] = frappe.db.get_value("Contact", row.contact_persont, "phone")
-        response["email_id"] = frappe.db.get_value("Contact", row.contact_person, "email_id")
+        response["email_id"] = frappe.db.get_value(
+            "Contact", row.contact_person, "email_id"
+        )
         ####END OF ADDRESS & CONTACT####
 
         response["address_display"] = row.address_display
-        #response["contact_person"] = row.contact_person
+        # response["contact_person"] = row.contact_person
         response["contact_mobile"] = row.contact_mobile
         response["contact_email"] = row.contact_email
 
@@ -3194,19 +3492,19 @@ def purchase_order(name):
         response["base_in_words"] = row.base_in_words
         response["docstatus"] = row.docstatus
         response["price_list_currency"] = row.price_list_currency
-        #response["tax_withholding_category"] = row.tax_withholding_category
-        #response["company"] = row.company
-        #response["schedule_date"] = row.schedule_date
-        #response["order_confirmation_no"] = row.order_confirmation_no
-        #response["order_confirmation_date"] = row.order_confirmation_date
-        #response["amended_from"] = row.amended_from
-        #response["drop_ship"] = row.drop_ship
-        #response["customer"] = row.customer
-        #response["customer_name"] = row.customer_name
-        #response["customer_contact_person"] = row.customer_contact_person
-        #response["customer_contact_display"] = row.customer_contact_display
-        #response["customer_contact_mobile"] = row.customer_contact_mobile
-        #response["customer_contact_email"] = row.customer_contact_email
+        # response["tax_withholding_category"] = row.tax_withholding_category
+        # response["company"] = row.company
+        # response["schedule_date"] = row.schedule_date
+        # response["order_confirmation_no"] = row.order_confirmation_no
+        # response["order_confirmation_date"] = row.order_confirmation_date
+        # response["amended_from"] = row.amended_from
+        # response["drop_ship"] = row.drop_ship
+        # response["customer"] = row.customer
+        # response["customer_name"] = row.customer_name
+        # response["customer_contact_person"] = row.customer_contact_person
+        # response["customer_contact_display"] = row.customer_contact_display
+        # response["customer_contact_mobile"] = row.customer_contact_mobile
+        # response["customer_contact_email"] = row.customer_contact_email
         response["contact_display"] = row.contact_display
         # response["shipping_address"] = row.shipping_address
         # response["shipping_address_display"] = row.shipping_address_display
@@ -3447,7 +3745,7 @@ def purchase_order(name):
 
     get_current_purchase_order_items = frappe.db.get_list(
         "Purchase Order Item",
-        filters={"material_request": ["!=", "null"], "parent":name},
+        filters={"material_request": ["!=", "null"], "parent": name},
         fields=[
             "material_request",
         ],
@@ -3456,7 +3754,7 @@ def purchase_order(name):
     material_requests = {}
     get_supplier_quotations = frappe.db.get_list(
         "Purchase Order Item",
-        filters={"supplier_quotation": ["!=", "null"], "parent":name},
+        filters={"supplier_quotation": ["!=", "null"], "parent": name},
         fields=[
             "supplier_quotation",
         ],
@@ -3476,7 +3774,9 @@ def purchase_order(name):
     if count_purchase_invoice > 0 and doc_data:
         purchase_invoices["name"] = "Purchase Invoice"
         purchase_invoices["count"] = count_purchase_invoice
-        purchase_invoices["icon"] = "https://erpcloud.systems/files/purchase_invoice.png"
+        purchase_invoices[
+            "icon"
+        ] = "https://erpcloud.systems/files/purchase_invoice.png"
         connections.append(purchase_invoices)
     if count_payment_entries > 0 and doc_data:
         payment_entries["name"] = "Payment Entry"
@@ -3544,10 +3844,6 @@ def purchase_invoice(name):
             "set_from_warehouse",
             "supplier_warehouse",
             "update_stock",
-
-
-
-
             "total_qty",
             "base_total",
             "base_net_total",
@@ -3557,9 +3853,7 @@ def purchase_invoice(name):
             "tax_category",
             "shipping_rule",
             "taxes_and_charges",
-
             "other_charges_calculation",
-
             "base_taxes_and_charges_added",
             "base_taxes_and_charges_deducted",
             "base_total_taxes_and_charges",
@@ -3587,31 +3881,22 @@ def purchase_invoice(name):
             "clearance_date",
             "paid_amount",
             "base_paid_amount",
-
             "write_off_amount",
             "base_write_off_amount",
             "write_off_account",
             "write_off_cost_center",
             "allocate_advances_automatically",
-
-
-
             "payment_terms_template",
             "ignore_default_payment_terms_template",
-
             "tc_name",
             "terms",
-
             "letter_head",
             "select_print_heading",
             "group_same_items",
             "language",
-
             "on_hold",
             "release_date",
-
             "hold_comment",
-
             "status",
             "inter_company_invoice_reference",
             "represents_company",
@@ -3624,9 +3909,6 @@ def purchase_invoice(name):
             "remarks",
             "from_date",
             "to_date",
-
-
-
         ],
     )
     for row in doc_data:
@@ -3640,19 +3922,29 @@ def purchase_invoice(name):
 
         ####START OF ADDRESS & CONTACT####
         response["supplier_address"] = row.supplier_address
-        response["address_line1"] = frappe.db.get_value("Address", row.supplier_address, "address_line1")
+        response["address_line1"] = frappe.db.get_value(
+            "Address", row.supplier_address, "address_line1"
+        )
         response["city"] = frappe.db.get_value("Address", row.supplier_address, "city")
-        response["country"] = frappe.db.get_value("Address", row.supplier_address, "country")
+        response["country"] = frappe.db.get_value(
+            "Address", row.supplier_address, "country"
+        )
         response["contact_person"] = row.contact_person
-        response["contact_display"] = frappe.db.get_value("Contact", row.contact_person, "first_name")
-        response["mobile_no"] = frappe.db.get_value("Contact", row.contact_person, "mobile_no")
+        response["contact_display"] = frappe.db.get_value(
+            "Contact", row.contact_person, "first_name"
+        )
+        response["mobile_no"] = frappe.db.get_value(
+            "Contact", row.contact_person, "mobile_no"
+        )
         response["phone"] = frappe.db.get_value("Contact", row.contact_persont, "phone")
-        response["email_id"] = frappe.db.get_value("Contact", row.contact_person, "email_id")
+        response["email_id"] = frappe.db.get_value(
+            "Contact", row.contact_person, "email_id"
+        )
         ####END OF ADDRESS & CONTACT####
 
         response["address_display"] = row.address_display
-        #response["contact_person"] = row.contact_person
-        #response["contact_display"]= row.contact_display
+        # response["contact_person"] = row.contact_person
+        # response["contact_display"]= row.contact_display
         response["contact_mobile"] = row.contact_mobile
         response["contact_email"] = row.contact_email
         response["currency"] = row.currency
@@ -3684,7 +3976,6 @@ def purchase_invoice(name):
         response["in_words"] = row.in_words
         response["base_in_words"] = row.base_in_words
         response["docstatus"] = row.docstatus
-
 
     # attachments and comments
     attachments = frappe.db.sql(
@@ -3731,11 +4022,8 @@ def purchase_invoice(name):
             "idx",
             "name",
             "item_code",
-
             "item_name",
             "product_bundle",
-
-
             "description",
             "image",
             "qty",
@@ -3744,7 +4032,6 @@ def purchase_invoice(name):
             "conversion_factor",
             "stock_qty",
             "price_list_rate",
-
             "margin_type",
             "margin_rate_or_amount",
             "rate_with_margin",
@@ -3764,15 +4051,9 @@ def purchase_invoice(name):
             "base_net_rate",
             "base_net_amount",
             "warehouse",
-
-
-
-
             "item_group",
             "brand",
             "received_qty",
-
-
             "expense_account",
             "manufacturer",
             "manufacturer_part_no",
@@ -3784,13 +4065,12 @@ def purchase_invoice(name):
             "cost_center",
             "is_fixed_asset",
             "item_tax_rate",
-
         ],
     )
     if purchase_invoice_item and doc_data:
         response["purchase_invoice_item"] = purchase_invoice_item
 
-    '''
+    """
     child_pricing_rule_detail = frappe.db.get_list(
         "Pricing Rule Detail",
         filters={"parent": name},
@@ -3837,7 +4117,7 @@ def purchase_invoice(name):
         response[
             "child_purchase_receipt_item_supplied"
         ] = child_purchase_receipt_item_supplied
-    '''
+    """
     child_purchase_taxes_and_charges = frappe.db.get_list(
         "Purchase Taxes and Charges",
         filters={"parent": name},
@@ -3853,7 +4133,6 @@ def purchase_invoice(name):
             "account_head",
             "description",
             "rate",
-
             "cost_center",
             "account_currency",
             "tax_amount",
@@ -3867,7 +4146,7 @@ def purchase_invoice(name):
     )
     if child_purchase_taxes_and_charges and doc_data:
         response["child_purchase_taxes_and_charges"] = child_purchase_taxes_and_charges
-    '''
+    """
     child_purchase_invice_advance = frappe.db.get_list(
         "Purchase Invoice Advance",
         filters={"parent": name},
@@ -3904,7 +4183,7 @@ def purchase_invoice(name):
 
     if child_advance_tax and doc_data:
         response["child_advance_tax"] = child_advance_tax
-    '''
+    """
     child_payment_schedule = frappe.db.get_list(
         "Payment Schedule",
         filters={"parent": name},
@@ -3974,8 +4253,9 @@ def purchase_invoice(name):
     purchase_invoices = {}
 
     con_purchase_order = frappe.db.get_list(
-         "Purchase Invoice Item",
-         filters={"parent": name},)
+        "Purchase Invoice Item",
+        filters={"parent": name},
+    )
     count_purchase_order = len(con_purchase_order)
     purchase_orders = {}
 
@@ -4005,12 +4285,10 @@ def purchase_invoice(name):
     # purchase_order_item = frappe.db.get_list("Purchase Order Item", filters={"material_request":})
     connections = []
     if count_purchase_order > 0 and doc_data:
-         purchase_orders["name"] = "Purchase Order"
-         purchase_orders["count"] = count_purchase_order
-         purchase_orders[
-             "icon"
-         ] = "https://erpcloud.systems/files/purchase_order.png"
-         connections.append(purchase_orders)
+        purchase_orders["name"] = "Purchase Order"
+        purchase_orders["count"] = count_purchase_order
+        purchase_orders["icon"] = "https://erpcloud.systems/files/purchase_order.png"
+        connections.append(purchase_orders)
 
     if count_purchase_invoice > 0 and doc_data:
         purchase_invoices["name"] = "Purchase Invoice"
@@ -4049,26 +4327,30 @@ def purchase_invoice(name):
     else:
         return "لا يوجد مورد بهذا الاسم"
 
+
 @frappe.whitelist(allow_guest=True)
 def get_price_list(name):
     if str(name).lower() in ["buying", "buy", "1"]:
-        return frappe.db.get_list("Price List",
-                filters={"buying":1},
-                fields=[
+        return frappe.db.get_list(
+            "Price List",
+            filters={"buying": 1},
+            fields=[
                 "name",
                 "currency",
-                ])
+            ],
+        )
     elif str(name).lower() in ["selling", "sell", "0"]:
-        return frappe.db.get_list("Price List",
-                filters={"selling":1},
-                fields=[
+        return frappe.db.get_list(
+            "Price List",
+            filters={"selling": 1},
+            fields=[
                 "name",
                 "currency",
-                ])
+            ],
+        )
 
     else:
         return "لا يوجد"
-
 
 
 @frappe.whitelist(allow_guest=True)
@@ -4077,22 +4359,22 @@ def material_request(name):
     doc_data = frappe.db.get_list(
         "Material Request",
         filters={"name": name},
-	fields=[
-    	"name",
-
-        "material_request_type",
-        "status",
-        "docstatus",
-        "transfer_status",
-        "transaction_date",
-        "schedule_date",
-        "company",
-        "set_warehouse",
-        "set_from_warehouse",
-        "customer",
-        "per_ordered",
-        "per_received",
-    ])
+        fields=[
+            "name",
+            "material_request_type",
+            "status",
+            "docstatus",
+            "transfer_status",
+            "transaction_date",
+            "schedule_date",
+            "company",
+            "set_warehouse",
+            "set_from_warehouse",
+            "customer",
+            "per_ordered",
+            "per_received",
+        ],
+    )
     response["name"] = doc_data[0].name
 
     response["material_request_type"] = doc_data[0].material_request_type
@@ -4105,7 +4387,6 @@ def material_request(name):
     response["set_warehouse"] = doc_data[0].set_warehouse
     response["set_from_warehouse"] = doc_data[0].set_warehouse
     response["customer"] = doc_data[0].customer
-
 
     attachments = frappe.db.sql(
         """ Select file_name, file_url,
@@ -4141,6 +4422,7 @@ def material_request(name):
         fields=[
             "idx",
             "name",
+            "image",
             "item_code",
             "item_name",
             "schedule_date",
@@ -4177,39 +4459,35 @@ def material_request(name):
     pf_standard["name"] = "Standard"
     print_formats.append(pf_standard)
 
-
-
     con_material_request = frappe.db.get_list(
         "Supplier Quotation Item",
-        filters={"material_request": name },
+        filters={"material_request": name},
     )
     count_material_request = len(con_material_request)
     supplier_quotation = {}
 
     con_purchase_order = frappe.db.get_list(
         "Purchase Order Item",
-        filters={"material_request": name },
+        filters={"material_request": name},
     )
     count_purchase_order = len(con_purchase_order)
     purchase_order = {}
 
     con_purchase_receipt = frappe.db.get_list(
         "Purchase Receipt Item",
-        filters={"material_request": name },
+        filters={"material_request": name},
     )
     count_purchase_receipt = len(con_purchase_receipt)
     purchase_receipt = {}
 
     con_stock_entry = frappe.db.get_list(
         "Stock Entry Detail",
-        filters={"material_request": name },
+        filters={"material_request": name},
     )
     count_stock_entry = len(con_stock_entry)
     stock_entry = {}
 
-
     connections = []
-
 
     if count_material_request > 0 and doc_data:
         supplier_quotation["name"] = "Supplier Quotation"
@@ -4244,32 +4522,37 @@ def material_request(name):
 
 
 ################################################## HR section ########################################################################
+
+
 @frappe.whitelist(allow_guest=True)
 def leave_application(name):
     response = {}
     doc_data = frappe.db.get_list(
         "Leave Application",
         filters={"name": name},
-	fields=[
-    	"name",
-    	"docstatus",
-        "employee",
-        "description",
-        "employee_name",
-        "leave_type",
-        "department",
-        "leave_balance",
-        "from_date",
-        "to_date",
-        "half_day",
-        "total_leave_days",
-        "leave_approver",
-        "leave_approver_name",
-        "status",
-        "posting_date",
-        "follow_via_email",
-
-    ])
+        fields=[
+            "name",
+            "docstatus",
+            "employee",
+            "description",
+            "employee_name",
+            "leave_type",
+            "department",
+            "leave_balance",
+            "from_date",
+            "to_date",
+            "half_day",
+            "total_leave_days",
+            "leave_approver",
+            "leave_approver_name",
+            "status",
+            "posting_date",
+            "follow_via_email",
+            "department",
+        ],
+    )
+    if not doc_data:
+        return "لا يوجد"
     response["name"] = doc_data[0].name
     response["docstatus"] = doc_data[0].docstatus
     response["employee"] = doc_data[0].employee
@@ -4285,8 +4568,8 @@ def leave_application(name):
     response["leave_approver_name"] = doc_data[0].leave_approver_name
     response["status"] = doc_data[0].status
     response["posting_date"] = doc_data[0].posting_date
+    response["department"] = doc_data[0].department
     response["description"] = doc_data[0].description
-
 
     attachments = frappe.db.sql(
         """ Select file_name, file_url,
@@ -4315,7 +4598,6 @@ def leave_application(name):
     # dssss
     response["comments"] = comments
 
-
     print_formats = frappe.db.sql(
         """ Select name from `tabPrint Format` where doc_type = "Leave Application" and disabled = 0 """,
         as_dict=1,
@@ -4325,35 +4607,10 @@ def leave_application(name):
     pf_standard["name"] = "Standard"
     print_formats.append(pf_standard)
 
-
-
-    con_attendance = frappe.db.get_list(
-        "Attendance",
-        filters={"leave_application": name },
-    )
-    count_con_attendance = len(con_attendance)
-    attendance = {}
-
-
-
-    connections = []
-
-
-    if count_con_attendance > 0 and doc_data:
-        attendance["name"] = "Supplier Quotation"
-        attendance["count"] = count_con_attendance
-        attendance[
-            "icon"
-        ] = "https://erpcloud.systems/files/attendance.png"
-        connections.append(attendance)
-
-    response["conn"] = connections
-
     if doc_data:
         return response
     else:
         return "لا يوجد"
-
 
 
 @frappe.whitelist(allow_guest=True)
@@ -4370,9 +4627,14 @@ def employee_checkin(name):
             "log_type",
             "device_id",
             "skip_auto_attendance",
+            "longitude",
+            "latitude",
+            "skip_auto_attendance",
             "docstatus",
         ],
     )
+    if not doc_data:
+        return "لا يوجد"
     response["name"] = doc_data[0].name
     response["employee"] = doc_data[0].employee
     response["employee_name"] = doc_data[0].employee_name
@@ -4380,6 +4642,8 @@ def employee_checkin(name):
     response["log_type"] = doc_data[0].log_type
     response["device_id"] = doc_data[0].device_id
     response["skip_auto_attendance"] = doc_data[0].skip_auto_attendance
+    response["longitude"] = doc_data[0].longitude
+    response["latitude"] = doc_data[0].latitude
     response["docstatus"] = doc_data[0].docstatus
 
     attachments = frappe.db.sql(
@@ -4422,7 +4686,7 @@ def employee_checkin(name):
         return response
     else:
         return "لا يوجد"
-        
+
 
 @frappe.whitelist(allow_guest=True)
 def employee(name):
@@ -4434,6 +4698,9 @@ def employee(name):
             "name",
             "docstatus",
             "employee_name",
+            "first_name",
+            "last_name",
+            "company",
             "employment_type",
             "status",
             "gender",
@@ -4459,11 +4726,16 @@ def employee(name):
             "user_id",
             "holiday_list",
             "default_shift",
+            "employee_number",
         ],
     )
+    if not doc_data:
+        return "لا يوجد"
     response["name"] = doc_data[0].name
     response["docstatus"] = doc_data[0].docstatus
     response["employee_name"] = doc_data[0].employee_name
+    response["first_name"] = doc_data[0].first_name
+    response["last_name"] = doc_data[0].last_name
     response["gender"] = doc_data[0].gender
     response["date_of_birth"] = doc_data[0].date_of_birth
 
@@ -4474,17 +4746,22 @@ def employee(name):
     response["employment_type"] = doc_data[0].employment_type
     response["date_of_joining"] = doc_data[0].date_of_joining
     response["leave_approver"] = doc_data[0].leave_approver
+    response["leave_approver_name"] = frappe.db.get_value(
+        "User", doc_data[0].leave_approver, "full_name"
+    )
+    response["expense_approver"] = doc_data[0].expense_approver
     response["user_id"] = doc_data[0].user_id
     response["attendance_device_id"] = doc_data[0].attendance_device_id
+    response["employee_number"] = doc_data[0].employee_number
     response["cell_number"] = doc_data[0].cell_number
 
     response["emails"] = {
         "personal_email": doc_data[0].get("personal_email", None),
-        "prefered_email": doc_data[0].get("prefered_contact_email", None),
+        "prefered_email": doc_data[0].get("prefered_email", None),
         "company_email": doc_data[0].get("company_email", None),
     }
 
-    response["addresss"] = {
+    response["address"] = {
         "current_address": doc_data[0].get("current_address", None),
         "permanent_address": doc_data[0].get("permanent_address", None),
     }
@@ -4598,6 +4875,761 @@ def employee(name):
 
     response["conn"] = connections
 
+    if doc_data:
+        return response
+    else:
+        return "لا يوجد"
+
+
+@frappe.whitelist(allow_guest=True)
+def attendance_request(name):
+    response = {}
+    doc_data = frappe.db.get_list(
+        "Attendance Request",
+        filters={"name": name},
+        fields=[
+            "name",
+            "docstatus",
+            "employee",
+            "employee_name",
+            "department",
+            "company",
+            "from_date",
+            "to_date",
+            "half_day",
+            "half_day_date",
+            "reason",
+            "explanation",
+        ],
+    )
+    if not doc_data:
+        return "لا يوجد"
+    response["name"] = doc_data[0].name
+    response["docstatus"] = doc_data[0].docstatus
+    response["employee"] = doc_data[0].employee
+    response["employee_name"] = doc_data[0].employee_name
+    response["department"] = doc_data[0].department
+    response["company"] = doc_data[0].company
+    response["from_date"] = doc_data[0].from_date
+    response["to_date"] = doc_data[0].to_date
+    response["half_day"] = doc_data[0].half_day
+    response["half_day_date"] = doc_data[0].half_day_date
+    response["reason"] = doc_data[0].reason
+    response["explanation"] = doc_data[0].explanation
+    attachments = frappe.db.sql(
+        """ Select file_name, file_url,
+                                        Date_Format(creation,'%d/%m/%Y') as date_added
+                                        from `tabFile`  where `tabFile`.attached_to_doctype = "Attendance Request"
+                                        and `tabFile`.attached_to_name = "{name}"
+                                        order by `tabFile`.creation
+                                    """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+    response["attachments"] = attachments
+
+    comments = frappe.db.sql(
+        """ Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Attendance Request"
+                                        and `tabComment`.reference_name = "{name}"
+                                        and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
+                                    """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+    # dssss
+    response["comments"] = comments
+
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Attendance Request" and disabled = 0 """,
+        as_dict=1,
+    )
+    response["print_formats"] = print_formats
+    pf_standard = {}
+    pf_standard["name"] = "Standard"
+    print_formats.append(pf_standard)
+
+    if doc_data:
+        return response
+    else:
+        return "لا يوجد"
+
+
+@frappe.whitelist(allow_guest=True)
+def employee_advance(name):
+    response = {}
+    doc_data = frappe.db.get_list(
+        "Employee Advance",
+        filters={"name": name},
+        fields=[
+            "name",
+            "docstatus",
+            "employee",
+            "employee_name",
+            "department",
+            "posting_date",
+            "currency",
+            "exchange_rate",
+            "repay_unclaimed_amount_from_salary",
+            "purpose",
+            "advance_amount",
+            "paid_amount",
+            "pending_amount",
+            "claimed_amount",
+            "return_amount",
+            "status",
+            "company",
+            "advance_account",
+            "mode_of_payment",
+        ],
+    )
+    if not doc_data:
+        return "لا يوجد"
+    response["name"] = doc_data[0].name
+    response["docstatus"] = doc_data[0].docstatus
+    response["employee"] = doc_data[0].employee
+    response["employee_name"] = doc_data[0].employee_name
+    response["department"] = doc_data[0].department
+    response["posting_date"] = doc_data[0].posting_date
+    response["currency"] = doc_data[0].currency
+    response["exchange_rate"] = doc_data[0].exchange_rate
+    response["repay_unclaimed_amount_from_salary"] = doc_data[
+        0
+    ].repay_unclaimed_amount_from_salary
+    response["purpose"] = doc_data[0].purpose
+    response["advance_amount"] = doc_data[0].advance_amount
+    response["paid_amount"] = doc_data[0].paid_amount
+    response["pending_amount"] = doc_data[0].pending_amount
+    response["claimed_amount"] = doc_data[0].claimed_amount
+    response["return_amount"] = doc_data[0].return_amount
+    response["status"] = doc_data[0].status
+    response["company"] = doc_data[0].company
+    response["advance_account"] = doc_data[0].advance_account
+    response["mode_of_payment"] = doc_data[0].mode_of_payment
+
+    attachments = frappe.db.sql(
+        """ Select file_name, file_url,
+                                        Date_Format(creation,'%d/%m/%Y') as date_added
+                                        from `tabFile`  where `tabFile`.attached_to_doctype = "Employee Advance"
+                                        and `tabFile`.attached_to_name = "{name}"
+                                        order by `tabFile`.creation
+                                    """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+    response["attachments"] = attachments
+
+    comments = frappe.db.sql(
+        """ Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Employee Advance"
+                                        and `tabComment`.reference_name = "{name}"
+                                        and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
+                                    """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+    # dssss
+    response["comments"] = comments
+
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Employee Advance" and disabled = 0 """,
+        as_dict=1,
+    )
+    response["print_formats"] = print_formats
+    pf_standard = {}
+    pf_standard["name"] = "Standard"
+    print_formats.append(pf_standard)
+
+    connections = []
+    payment_entry_reference = frappe.db.get_list(
+        "Payment Entry Reference", filters={"reference_name": name}
+    )
+    count_payment_entry_reference = len(payment_entry_reference)
+    entry_reference = {}
+
+    if count_payment_entry_reference > 0 and doc_data:
+        entry_reference["name"] = "Payment Entry"
+        entry_reference["count"] = count_payment_entry_reference
+        entry_reference["icon"] = "https://erpcloud.systems/files/payment_entry.png"
+        connections.append(entry_reference)
+
+    con_expense_claim = frappe.db.get_list(
+        "Expense Claim Advance", filters={"employee_advance": name}
+    )
+    count_con_expense_claim = len(con_expense_claim)
+    expense_claim = {}
+
+    if count_con_expense_claim > 0 and doc_data:
+        expense_claim["name"] = "Expense Claim"
+        expense_claim["count"] = count_con_expense_claim
+        expense_claim["icon"] = "https://erpcloud.systems/files/expense_claim.png"
+        connections.append(expense_claim)
+
+    response["conn"] = connections
+    if doc_data:
+        return response
+    else:
+        return "لا يوجد"
+
+
+@frappe.whitelist()
+def get_pending_amount(employee, posting_date):
+    employee_due_amount = frappe.get_all(
+        "Employee Advance",
+        filters={
+            "employee": employee,
+            "docstatus": 1,
+            "posting_date": ("<=", posting_date),
+        },
+        fields=["advance_amount", "paid_amount"],
+    )
+    return sum([(emp.advance_amount - emp.paid_amount) for emp in employee_due_amount])
+
+
+@frappe.whitelist(allow_guest=True)
+def expense_claim(name):
+    response = {}
+    doc_data = frappe.db.get_list(
+        "Expense Claim",
+        filters={"name": name},
+        fields=[
+            "name",
+            "docstatus",
+            "employee",
+            "employee_name",
+            "department",
+            "expense_approver",
+            "approval_status",
+            "is_paid",
+            "total_sanctioned_amount",
+            "total_taxes_and_charges",
+            "total_advance_amount",
+            "grand_total",
+            "total_claimed_amount",
+            "total_amount_reimbursed",
+            "posting_date",
+            "payable_account",
+            "cost_center",
+            "project",
+            "status",
+        ],
+    )
+    if not doc_data:
+        return "لا يوجد"
+    response["name"] = doc_data[0].name
+    response["docstatus"] = doc_data[0].docstatus
+    response["employee"] = doc_data[0].employee
+    response["employee_name"] = doc_data[0].employee_name
+    response["department"] = doc_data[0].department
+    response["expense_approver"] = doc_data[0].expense_approver
+    response["approval_status"] = doc_data[0].approval_status
+    response["is_paid"] = doc_data[0].is_paid
+    response["total_sanctioned_amount"] = doc_data[0].total_sanctioned_amount
+    response["total_taxes_and_charges"] = doc_data[0].total_taxes_and_charges
+    response["total_advance_amount"] = doc_data[0].total_advance_amount
+    response["grand_total"] = doc_data[0].grand_total
+    response["total_claimed_amount"] = doc_data[0].total_claimed_amount
+    response["total_amount_reimbursed"] = doc_data[0].total_amount_reimbursed
+    response["posting_date"] = doc_data[0].posting_date
+    response["payable_account"] = doc_data[0].payable_account
+    response["cost_center"] = doc_data[0].cost_center
+    response["project"] = doc_data[0].project
+    response["status"] = doc_data[0].status
+
+    attachments = frappe.db.sql(
+        """ Select file_name, file_url,
+                                        Date_Format(creation,'%d/%m/%Y') as date_added
+                                        from `tabFile`  where `tabFile`.attached_to_doctype = "Expense Claim"
+                                        and `tabFile`.attached_to_name = "{name}"
+                                        order by `tabFile`.creation
+                                    """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+    response["attachments"] = attachments
+
+    comments = frappe.db.sql(
+        """ Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Expense Claim"
+                                        and `tabComment`.reference_name = "{name}"
+                                        and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
+                                    """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+    # dssss
+    response["comments"] = comments
+
+    expense_taxes_and_charges = frappe.db.sql(
+        """
+    SELECT idx, name, account_head, description, rate, tax_amount, total, cost_center
+    FROM `tabExpense Taxes and Charges` expense_taxes_and_charges
+    WHERE expense_taxes_and_charges.parent = "{name}"
+    ORDER BY idx 
+        """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+    # expense_taxes_and_charges = frappe.db.get_list(
+    #     "Expense Taxes And Charges",
+    #     filters={"parent": name},
+    #     order_by="idx",
+    #     fields=[
+    #         "idx",
+    #         "name",
+    #         "account_head",
+    #         "description",
+    #         "rate",
+    #         "tax_amount",
+    #         "total",
+    #         "cost_center",
+    #     ],
+    # )
+
+    if expense_taxes_and_charges and doc_data:
+        response["taxes"] = expense_taxes_and_charges
+    expense_claim_detail = frappe.db.get_list(
+        "Expense Claim Detail",
+        filters={"parent": name},
+        order_by="idx",
+        fields=[
+            "idx",
+            "name",
+            "expense_date",
+            "expense_type",
+            "amount",
+            "sanctioned_amount",
+            "cost_center",
+            "description",
+            "default_account",
+        ],
+    )
+
+    if expense_claim_detail and doc_data:
+        response["expenses"] = expense_claim_detail
+
+        # expense_taxes_and_charges = frappe.db.get_list(
+        #     "Expense Taxes And Charges",
+        #     filters={"parent": name},
+        #     order_by="idx",
+        #     fields=[
+        #         "idx",
+        #         "name",
+        #         "account_head",
+        #         "description",
+        #         "rate",
+        #         "tax_amount",
+        #         "total",
+        #         "cost_center",
+        #     ],
+        # )
+
+        # if expense_taxes_and_charges and doc_data:
+        #     response["taxes"] = expense_taxes_and_charges
+
+        expense_claim_advance = frappe.db.get_list(
+            "Expense Claim Advance",
+            filters={"parent": name},
+            order_by="idx",
+            fields=[
+                "idx",
+                "name",
+                "employee_advance",
+                "posting_date",
+                "advance_paid",
+                "unclaimed_amount",
+                "allocated_amount",
+            ],
+        )
+
+    if expense_claim_advance and doc_data:
+        response["claim_advance"] = expense_claim_advance
+
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Expense Claim" and disabled = 0 """,
+        as_dict=1,
+    )
+    response["print_formats"] = print_formats
+    pf_standard = {}
+    pf_standard["name"] = "Standard"
+    print_formats.append(pf_standard)
+
+    connections = []
+    payment_entry_reference = frappe.db.get_list(
+        "Payment Entry Reference", filters={"reference_name": name}
+    )
+    count_payment_entry_reference = len(payment_entry_reference)
+    entry_reference = {}
+
+    if count_payment_entry_reference > 0 and doc_data:
+        entry_reference["name"] = "Payment Entry"
+        entry_reference["count"] = count_payment_entry_reference
+        entry_reference["icon"] = "https://erpcloud.systems/files/payment_entry.png"
+        connections.append(entry_reference)
+
+    con_employee_advance = frappe.db.get_list(
+        "Expense Claim Advance",
+        filters={"employee_advance": ["!=", "null"], "parent": name},
+    )
+    count_con_employee_advance = len(con_employee_advance)
+    employee_advance = {}
+
+    if count_con_employee_advance > 0 and doc_data:
+        employee_advance["name"] = "Employee Advance"
+        employee_advance["count"] = count_con_employee_advance
+        employee_advance["icon"] = "https://erpcloud.systems/files/employee_advance.png"
+        connections.append(employee_advance)
+
+    response["conn"] = connections
+    if doc_data:
+        return response
+    else:
+        return "لا يوجد"
+
+
+@frappe.whitelist(allow_guest=True)
+def loan_application(name):
+    response = {}
+    doc_data = frappe.db.get_list(
+        "Loan Application",
+        filters={"name": name},
+        fields=[
+            "name",
+            "docstatus",
+            "applicant_type",
+            "applicant",
+            "applicant_name",
+            "posting_date",
+            "loan_type",
+            "posting_date",
+            "is_term_loan",
+            "loan_amount",
+            "is_secured_loan",
+            "rate_of_interest",
+            "maximum_loan_amount",
+            "repayment_method",
+            "total_payable_amount",
+            "repayment_periods",
+            "repayment_amount",
+            "total_payable_interest",
+            "status",
+        ],
+    )
+    if not doc_data:
+        return "لا يوجد"
+    response["name"] = doc_data[0].name
+    response["docstatus"] = doc_data[0].docstatus
+    response["applicant_type"] = doc_data[0].applicant_type
+    response["applicant"] = doc_data[0].applicant
+    response["applicant_name"] = doc_data[0].applicant_name
+    response["posting_date"] = doc_data[0].posting_date
+    response["loan_type"] = doc_data[0].loan_type
+    response["is_term_loan"] = doc_data[0].is_term_loan
+    response["loan_amount"] = doc_data[0].loan_amount
+    response["is_secured_loan"] = doc_data[0].is_secured_loan
+    response["rate_of_interest"] = doc_data[0].rate_of_interest
+    response["maximum_loan_amount"] = doc_data[0].maximum_loan_amount
+    response["repayment_method"] = doc_data[0].repayment_method
+    response["total_payable_amount"] = doc_data[0].total_payable_amount
+    response["repayment_periods"] = doc_data[0].repayment_periods
+    response["repayment_amount"] = doc_data[0].repayment_amount
+    response["total_payable_interest"] = doc_data[0].total_payable_interest
+    response["status"] = doc_data[0].status
+
+    attachments = frappe.db.sql(
+        """ Select file_name, file_url,
+                                        Date_Format(creation,'%d/%m/%Y') as date_added
+                                        from `tabFile`  where `tabFile`.attached_to_doctype = "Loan Application"
+                                        and `tabFile`.attached_to_name = "{name}"
+                                        order by `tabFile`.creation
+                                    """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+    response["attachments"] = attachments
+
+    comments = frappe.db.sql(
+        """ Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Loan Application"
+                                        and `tabComment`.reference_name = "{name}"
+                                        and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
+                                    """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+    # dssss
+    response["comments"] = comments
+    proposed_pledge = frappe.db.get_list(
+        "Proposed Pledge",
+        filters={"parent": name},
+        order_by="idx",
+        fields=[
+            "idx",
+            "name",
+            "loan_security",
+            "loan_security_name",
+            "qty",
+            "loan_security_price",
+            "haircut",
+            "amount",
+            "post_haircut_amount",
+        ],
+    )
+
+    if proposed_pledge and doc_data:
+        response["expenses"] = proposed_pledge
+
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Loan Application" and disabled = 0 """,
+        as_dict=1,
+    )
+    response["print_formats"] = print_formats
+    pf_standard = {}
+    pf_standard["name"] = "Standard"
+    print_formats.append(pf_standard)
+    if doc_data:
+        return response
+    else:
+        return "لا يوجد"
+
+
+@frappe.whitelist()
+def address_query(link_doctype, link_name):
+    link_doctype = link_doctype
+    link_name = link_name
+
+    condition = ""
+    meta = frappe.get_meta("Address")
+    searchfields = meta.get_search_fields()
+    search_condition = ""
+
+    return frappe.db.sql(
+        """select
+			`tabAddress`.name, `tabAddress`.city, `tabAddress`.country
+		from
+			`tabAddress`, `tabDynamic Link`
+		where
+			`tabDynamic Link`.parent = `tabAddress`.name and
+			`tabDynamic Link`.parenttype = 'Address' and
+			`tabDynamic Link`.link_doctype = "{link_doctype}" and
+			`tabDynamic Link`.link_name = "{link_name}"
+	 """.format(
+            link_name=link_name, link_doctype=link_doctype
+        ),
+        as_dict=1,
+    )
+
+
+@frappe.whitelist()
+def address(name):
+    response = {}
+    doc_data = frappe.db.get_list(
+        "Address",
+        filters={"name": name},
+        fields=[
+            "name",
+            "address_title",
+            "address_type",
+            "address_line1",
+            "city",
+            "country",
+            "is_shipping_address",
+            "is_primary_address",
+            "longitude",
+            "latitude",
+        ],
+    )
+    if not doc_data:
+        return "لا يوجد"
+    response["name"] = doc_data[0].name
+    response["address_title"] = doc_data[0].address_title
+    response["address_type"] = doc_data[0].address_type
+    response["address_line1"] = doc_data[0].address_line1
+    response["city"] = doc_data[0].city
+    response["country"] = doc_data[0].country
+    response["is_shipping_address"] = doc_data[0].is_shipping_address
+    response["is_primary_address"] = doc_data[0].is_primary_address
+    response["longitude"] = doc_data[0].longitude
+    response["latitude"] = doc_data[0].latitude
+    response["docstatus"] = 0
+
+    attachments = frappe.db.sql(
+        """ Select file_name, file_url,
+                                        Date_Format(creation,'%d/%m/%Y') as date_added
+                                        from `tabFile`  where `tabFile`.attached_to_doctype = "Address"
+                                        and `tabFile`.attached_to_name = "{name}"
+                                        order by `tabFile`.creation
+                                    """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+    response["attachments"] = attachments
+
+    comments = frappe.db.sql(
+        """ Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Address"
+                                        and `tabComment`.reference_name = "{name}"
+                                        and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
+                                    """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+    # dssss
+    response["comments"] = comments
+    dynamic_link = frappe.db.get_list(
+        "Dynamic Link",
+        filters={"parent": name},
+        order_by="idx",
+        fields=[
+            "idx",
+            "name",
+            "link_doctype",
+            "link_name",
+            "link_title",
+        ],
+    )
+
+    if dynamic_link and doc_data:
+        response["reference"] = dynamic_link
+
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Address" and disabled = 0 """,
+        as_dict=1,
+    )
+    response["print_formats"] = print_formats
+    pf_standard = {}
+    pf_standard["name"] = "Standard"
+    print_formats.append(pf_standard)
+    if doc_data:
+        return response
+    else:
+        return "لا يوجد"
+
+
+@frappe.whitelist()
+def contact(name):
+    response = {}
+    doc_data = frappe.db.get_list(
+        "Contact",
+        filters={"name": name},
+        fields=[
+            "name",
+            "first_name",
+            "user",
+            "mobile_no",
+            "phone",
+            "email_id",
+            "is_primary_contact",
+        ],
+    )
+    if not doc_data:
+        return "لا يوجد"
+    response["name"] = doc_data[0].name
+    response["first_name"] = doc_data[0].first_name
+    response["user"] = doc_data[0].user
+    response["mobile_no"] = doc_data[0].mobile_no
+    response["phone"] = doc_data[0].phone
+    response["email_id"] = doc_data[0].email_id
+    response["is_primary_contact"] = doc_data[0].is_primary_contact
+    response["docstatus"] = 0
+
+    attachments = frappe.db.sql(
+        """ Select file_name, file_url,
+                                        Date_Format(creation,'%d/%m/%Y') as date_added
+                                        from `tabFile`  where `tabFile`.attached_to_doctype = "Contact"
+                                        and `tabFile`.attached_to_name = "{name}"
+                                        order by `tabFile`.creation
+                                    """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+    response["attachments"] = attachments
+
+    comments = frappe.db.sql(
+        """ Select creation, (Select `tabUser`.full_name from `tabUser` where `tabUser`.name = `tabComment`.owner) as owner, content
+                                        from `tabComment`  where `tabComment`.reference_doctype = "Contact"
+                                        and `tabComment`.reference_name = "{name}"
+                                        and `tabComment`.comment_type = "Comment"
+                                        order by `tabComment`.creation
+                                    """.format(
+            name=name
+        ),
+        as_dict=1,
+    )
+    # dssss
+    response["comments"] = comments
+
+    email_ids = frappe.db.get_list(
+        "Contact Email",
+        filters={"parent": name},
+        order_by="idx",
+        fields=[
+            "idx",
+            "name",
+            "email_id",
+            "is_primary",
+        ],
+    )
+
+    if email_ids and doc_data:
+        response["email_ids"] = email_ids
+
+    phone_nos = frappe.db.get_list(
+        "Contact Phone",
+        filters={"parent": name},
+        order_by="idx",
+        fields=[
+            "idx",
+            "name",
+            "phone",
+            "is_primary_phone",
+            "is_primary_mobile_no",
+        ],
+    )
+
+    if phone_nos and doc_data:
+        response["phone_nos"] = phone_nos
+
+    links = frappe.db.get_list(
+        "Dynamic Link",
+        filters={"parent": name},
+        order_by="idx",
+        fields=[
+            "idx",
+            "name",
+            "link_doctype",
+            "link_name",
+            "link_title",
+        ],
+    )
+
+    if links and doc_data:
+        response["links"] = links
+    print_formats = frappe.db.sql(
+        """ Select name from `tabPrint Format` where doc_type = "Contact" and disabled = 0 """,
+        as_dict=1,
+    )
+    response["print_formats"] = print_formats
+    pf_standard = {}
+    pf_standard["name"] = "Standard"
+    print_formats.append(pf_standard)
     if doc_data:
         return response
     else:

@@ -20,7 +20,6 @@ from frappe.utils import (
 from frappe.utils import add_to_date, now, nowdate
 from frappe.utils import cstr
 from frappe.utils.make_random import get_random
-import time
 
 
 @frappe.whitelist()
@@ -33,7 +32,6 @@ def general_service(
     filter5="%%",
     filter6="%%",
     filter7="%%",
-    filter8="%%",
     search_text="%%",
     cur_nam="%%",
     con_doc="%%",
@@ -625,12 +623,6 @@ def general_service(
             conditions["transaction_date"] = ["<=", filter6]
         if filter5 != "%%" and filter6 != "%%":
             conditions["transaction_date"] = ["between", [filter5, filter6]]
-        if filter7 != "%%" and filter8 == "%%":
-            conditions["delivery_date"] = [">=", filter7]
-        if filter8 != "%%" and filter7 == "%%":
-            conditions["delivery_date"] = ["<=", filter8]
-        if filter7 != "%%" and filter8 != "%%":
-            conditions["delivery_date"] = ["between", [filter7, filter8]]
 
         query = frappe.db.get_list(
             "Sales Order",
@@ -1055,47 +1047,6 @@ def general_service(
         else:
             return "لا يوجد !"
     '''
-
-    ########################### Journal Entry Full List & Search ############################
-    if doctype == "Journal Entry" and con_doc == "%%":
-        or_conditions = {}
-        conditions = {}
-        if search_text != "%%":
-            or_conditions["title"] = ["like", search_text]
-            or_conditions["name"] = ["like", search_text]
-        if filter1 != "%%":
-            conditions["voucher_type"] = filter1
-        if filter2 != "%%" and filter3 == "%%":
-            conditions["posting_date"] = [">=", filter2]
-        if filter3 != "%%" and filter2 == "%%":
-            conditions["posting_date"] = ["<=", filter3]
-        if filter2 != "%%" and filter3 != "%%":
-            conditions["posting_date"] = ["between", [filter2, filter3]]
-
-        query = frappe.db.get_list(
-            "Journal Entry",
-            or_filters=or_conditions,
-            filters=conditions,
-            fields=[
-                "name",
-                "docstatus",
-                "voucher_type",
-                "posting_date",
-                "total_debit",
-                "total_credit",
-                "mode_of_payment",
-                "cheque_no",
-                "cheque_date",
-                "remark",
-            ],
-            order_by="modified desc",
-            start=start,
-            page_length=page_length,
-        )
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
     ############################################ LEAD SOURCE ############################################
 
     ########################### Lead Source Full List & Search ############################
@@ -1561,17 +1512,12 @@ def general_service(
             return "لا يوجد !"
 
     ############################################ ACCOUNT ############################################
+
     ########################### Account Full List & Search ############################
     if doctype == "Account" and con_doc == "%%":
-        conditions = {"is_group": ["=", 0]}
-        or_conditions = {}
-        if filter1 != "%%":
-            conditions["account_type"] = filter1
-        if filter2 != "%%":
-            conditions["name"] = filter2
         query = frappe.db.get_list(
             "Account",
-            filters=conditions,
+            filters=[{"is_group": ["=", 0]}],
             or_filters=[
                 {"name": ["like", search_text]},
                 {"account_name": ["like", search_text]},
@@ -1592,6 +1538,7 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
+
     ############################################ ITEM ############################################
 
     ########################### Item Full List & Search ############################
@@ -2621,7 +2568,7 @@ def general_service(
     ############################################ ADDRESS ############################################
 
     ########################### Filtered Address List & Search ############################
-    if doctype == "Filtered Address" and con_doc == "%%":
+    if doctype == "Address" and con_doc == "%%":
         addresses = frappe.db.get_list(
             "Dynamic Link", filters={"link_name": cur_nam}, fields=["parent"]
         )
@@ -2662,7 +2609,7 @@ def general_service(
     ############################################ CONTACT ############################################
 
     ########################### Filtered Contact List & Search ############################
-    if doctype == "Filtered Contact" and con_doc == "%%":
+    if doctype == "Contact" and con_doc == "%%":
         contacts = frappe.db.get_list(
             "Dynamic Link", filters={"link_name": cur_nam}, fields=["parent"]
         )
@@ -2715,35 +2662,24 @@ def general_service(
         if filter2 != "%%":
             conditions["employee"] = filter2
         if filter3 != "%%":
-            query = frappe.db.get_list(
-                "Leave Application",
-                fields=[
-                    "name",
-                    "employee_name",
-                    "leave_approver_name",
-                    "leave_approver",
-                    "department",
-                    "leave_type",
-                    "from_date",
-                    "to_date",
-                    "total_leave_days",
-                    "status",
-                ],
-                order_by="modified desc",
-                start=start,
-                page_length=page_length,
-            )
-            response = []
-            # return query[0].from_date
-            for row in range(len(query)):
-                if (
-                    time.strptime(str(query[row].from_date), "%Y-%m-%d")
-                    <= time.strptime(filter3.split("T")[0], "%Y-%m-%d")
-                    <= time.strptime(str(query[row].to_date), "%Y-%m-%d")
-                ):
-                    response.append(query[row])
+            LeaveApplication = frappe.qb.DocType("Leave Application")
+            LeaveApplication2 = frappe.qb.DocType("Leave Application")
 
-            return response
+            query = (
+                frappe.qb.from_(LeaveApplication)
+                .inner_join(LeaveApplication2)
+                .on(LeaveApplication.name == LeaveApplication2.name)
+                .select(
+                    LeaveApplication.name,
+                    LeaveApplication.to_date,
+                    LeaveApplication.from_date,
+                )
+                .where(
+                    LeaveApplication.from_date[filter3 : LeaveApplication.to_date]
+                    & LeaveApplication.to_date[LeaveApplication.from_date : filter3]
+                )
+            ).run()
+            return query
 
         if filter4 != "%%":
             conditions["department"] = filter4
@@ -2855,9 +2791,7 @@ def general_service(
 
             query[x]["leave_approver_name"] = currency
             advance_account = frappe.db.get_value(
-                "Company",
-                {"name": query[x].company},
-                "default_employee_advance_account",
+                "Company", {"name": query[x].company}, "default_employee_advance_account"
             )
 
             query[x]["advance_account"] = advance_account
@@ -2865,6 +2799,7 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
+
 
     if doctype == "Attendance Request" and con_doc == "Employee":
 
@@ -3026,6 +2961,7 @@ def general_service(
         if filter3 != "%%" and filter4 != "%%":
             conditions["time"] = ["between", [filter3, filter4]]
 
+
         query = frappe.db.get_list(
             "Employee Checkin",
             or_filters=or_conditions,
@@ -3056,8 +2992,6 @@ def general_service(
                 "name",
             ],
             order_by="modified desc",
-            start=start,
-            page_length=page_length,
         )
         if query:
             return query
@@ -3072,8 +3006,6 @@ def general_service(
                 "name",
             ],
             order_by="modified desc",
-            start=start,
-            page_length=page_length,
         )
         if query:
             return query
@@ -3086,11 +3018,8 @@ def general_service(
             "Company",
             fields=[
                 "name",
-                "round_off_cost_center",
             ],
             order_by="modified desc",
-            start=start,
-            page_length=page_length,
         )
         if query:
             return query
@@ -3104,8 +3033,6 @@ def general_service(
                 "name",
             ],
             order_by="modified desc",
-            start=start,
-            page_length=page_length,
         )
         if query:
             return query
@@ -3122,8 +3049,6 @@ def general_service(
                 "full_name",
             ],
             order_by="modified desc",
-            start=start,
-            page_length=page_length,
         )
         if query:
             return query
@@ -3138,8 +3063,6 @@ def general_service(
                 "name",
             ],
             order_by="modified desc",
-            start=start,
-            page_length=page_length,
         )
         if query:
             return query
@@ -3154,8 +3077,6 @@ def general_service(
                 "name",
             ],
             order_by="modified desc",
-            start=start,
-            page_length=page_length,
         )
         if query:
             return query
@@ -3170,8 +3091,6 @@ def general_service(
                 "name",
             ],
             order_by="modified desc",
-            start=start,
-            page_length=page_length,
         )
         if query:
             return query
@@ -3186,8 +3105,6 @@ def general_service(
                 "name",
             ],
             order_by="modified desc",
-            start=start,
-            page_length=page_length,
         )
         if query:
             return query
@@ -3202,14 +3119,12 @@ def general_service(
             or_conditions["name"] = ["like", search_text]
         if filter1 != "%%":
             conditions["employee"] = filter1
-        if filter2 != "%%":
-            conditions["department"] = filter2
-        if filter3 != "%%" and filter4 == "%%":
-            conditions["from_date"] = [">=", filter3]
-        if filter4 != "%%" and filter3 == "%%":
-            conditions["from_date"] = ["<=", filter4]
-        if filter3 != "%%" and filter4 != "%%":
-            conditions["from_date"] = ["between", [filter3, filter4]]
+        if filter2 != "%%" and filter3 == "%%":
+            conditions["from_date"] = [">=", filter2]
+        if filter3 != "%%" and filter2 == "%%":
+            conditions["from_date"] = ["<=", filter3]
+        if filter2 != "%%" and filter3 != "%%":
+            conditions["from_date"] = ["between", [filter2, filter3]]
 
         query = frappe.db.get_list(
             "Attendance Request",
@@ -3233,6 +3148,7 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
+            
 
     ########################### Employee Advance Full List & Search ############################
     if doctype == "Employee Advance" and con_doc == "%%":
@@ -3269,567 +3185,4 @@ def general_service(
                 "status",
             ],
             order_by="modified desc",
-            start=start,
-            page_length=page_length,
-        )
-        for x in range(len(query)):
-
-            company = frappe.db.get_value(
-                "Employee", {"name": query[x].employee}, "company"
-            )
-
-            query[x]["company"] = company
-            advance_account = frappe.db.get_value(
-                "Company", {"name": company}, "default_employee_advance_account"
-            )
-
-            query[x]["advance_account"] = advance_account
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-
-    if doctype == "Payment Entry" and con_doc == "Employee Advance":
-
-        connections = frappe.db.sql(
-            """ select distinct `tabPayment Entry`.name as name, `tabPayment Entry`.party_name as party_name,
-                      `tabPayment Entry`.payment_type as payment_type,`tabPayment Entry`.mode_of_payment as mode_of_payment,`tabPayment Entry`.posting_date as posting_date,`tabPayment Entry`.base_paid_amount as base_paid_amount,
-                       `tabPayment Entry`.status as status
-                from `tabPayment Entry` join `tabPayment Entry Reference` on `tabPayment Entry`.name = `tabPayment Entry Reference`.parent
-                where  `tabPayment Entry Reference`.reference_name = '{cur_nam}'
-                and (`tabPayment Entry`.name like '%{search_text}%' ) LIMIT {start},{page_length}
-            """.format(
-                start=start,
-                page_length=page_length,
-                cur_nam=cur_nam,
-                search_text=search_text,
-            ),
-            as_dict=1,
-        )
-        if connections:
-            return connections
-        else:
-            return "لا يوجد روابط !"
-
-    if doctype == "Expense Claim" and con_doc == "Employee Advance":
-
-        connections = frappe.db.sql(
-            """ select distinct `tabExpense Claim`.name as name, `tabExpense Claim`.employee_name as employee_name,
-                      `tabExpense Claim`.employee as employee,`tabExpense Claim`.department as department,`tabExpense Claim`.posting_date as posting_date,`tabExpense Claim`.grand_total as grand_total,
-                       `tabExpense Claim`.status as status
-                from `tabExpense Claim` join `tabExpense Claim Advance` on `tabExpense Claim`.name = `tabExpense Claim Advance`.parent
-                where  `tabExpense Claim Advance`.employee_advance = '{cur_nam}'
-                and (`tabExpense Claim`.name like '%{search_text}%' ) LIMIT {start},{page_length}
-            """.format(
-                start=start,
-                page_length=page_length,
-                cur_nam=cur_nam,
-                search_text=search_text,
-            ),
-            as_dict=1,
-        )
-        if connections:
-            return connections
-        else:
-            return "لا يوجد روابط !"
-
-    ########################### Branch List & Search ############################
-    if doctype == "Task" and con_doc == "%%":
-        query = frappe.db.get_list(
-            "Task",
-            fields=[
-                "name",
-            ],
-            order_by="modified desc",
-            start=start,
-            page_length=page_length,
-        )
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-
-    ########################### Expense Claim Type List & Search ############################
-    if doctype == "Expense Claim Type" and con_doc == "%%":
-        query = frappe.db.get_list(
-            "Expense Claim Type",
-            fields=[
-                "name",
-            ],
-            order_by="modified desc",
-            start=start,
-            page_length=page_length,
-        )
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-
-    ########################### Expense Claim Full List & Search ############################
-    if doctype == "Expense Claim" and con_doc == "%%":
-        or_conditions = {}
-        conditions = {}
-        if search_text != "%%":
-            or_conditions["employee_name"] = ["like", search_text]
-            or_conditions["name"] = ["like", search_text]
-        if filter1 != "%%":
-            conditions["status"] = filter1
-        if filter2 != "%%":
-            conditions["employee"] = filter2
-        if filter3 != "%%":
-            conditions["department"] = filter3
-        if filter4 != "%%" and filter5 == "%%":
-            conditions["posting_date"] = [">=", filter4]
-        if filter5 != "%%" and filter4 == "%%":
-            conditions["posting_date"] = ["<=", filter5]
-        if filter4 != "%%" and filter5 != "%%":
-            conditions["posting_date"] = ["between", [filter4, filter5]]
-
-        query = frappe.db.get_list(
-            "Expense Claim",
-            or_filters=or_conditions,
-            filters=conditions,
-            fields=[
-                "name",
-                "employee_name",
-                "employee",
-                "department",
-                "posting_date",
-                "grand_total",
-                "status",
-            ],
-            order_by="modified desc",
-            start=start,
-            page_length=page_length,
-        )
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-
-    if doctype == "Payment Entry" and con_doc == "Expense Claim":
-
-        connections = frappe.db.sql(
-            """ select distinct `tabPayment Entry`.name as name, `tabPayment Entry`.party_name as party_name,
-                      `tabPayment Entry`.payment_type as payment_type,`tabPayment Entry`.mode_of_payment as mode_of_payment,`tabPayment Entry`.posting_date as posting_date,`tabPayment Entry`.base_paid_amount as base_paid_amount,
-                       `tabPayment Entry`.status as status
-                from `tabPayment Entry` join `tabPayment Entry Reference` on `tabPayment Entry`.name = `tabPayment Entry Reference`.parent
-                where  `tabPayment Entry Reference`.reference_name = '{cur_nam}'
-                and (`tabPayment Entry`.name like '%{search_text}%' ) LIMIT {start},{page_length}
-            """.format(
-                start=start,
-                page_length=page_length,
-                cur_nam=cur_nam,
-                search_text=search_text,
-            ),
-            as_dict=1,
-        )
-        if connections:
-            return connections
-        else:
-            return "لا يوجد روابط !"
-
-    if doctype == "Employee Advance" and con_doc == "Expense Claim":
-
-        connections = frappe.db.sql(
-            """ select distinct `tabEmployee Advance`.name as name, `tabEmployee Advance`.employee_name as employee_name,
-                      `tabEmployee Advance`.employee as employee,`tabEmployee Advance`.department as department,`tabEmployee Advance`.posting_date as posting_date,`tabEmployee Advance`.purpose as purpose,
-                       `tabEmployee Advance`.advance_amount as advance_amount, `tabEmployee Advance`.status as status
-                from `tabEmployee Advance` join `tabExpense Claim Advance` on `tabEmployee Advance`.name = `tabExpense Claim Advance`.employee_advance
-                where  `tabExpense Claim Advance`.parent = "{cur_nam}"
-                and (`tabEmployee Advance`.name like '%{search_text}%' ) LIMIT {start},{page_length}
-            """.format(
-                start=start,
-                page_length=page_length,
-                cur_nam=cur_nam,
-                search_text=search_text,
-            ),
-            as_dict=1,
-        )
-
-        if connections:
-            return connections
-        else:
-            return "لا يوجد روابط !"
-
-    ########################### Expense Claim Type List & Search ############################
-    if doctype == "Loan Type" and con_doc == "%%":
-        query = frappe.db.get_list(
-            "Loan Type",
-            fields=[
-                "name",
-                "rate_of_interest",
-                "is_term_loan",
-            ],
-            order_by="modified desc",
-            start=start,
-            page_length=page_length,
-        )
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-
-    ########################### Loan Application Full List & Search ############################
-    if doctype == "Loan Application" and con_doc == "%%":
-        or_conditions = {}
-        conditions = {}
-        if search_text != "%%":
-            or_conditions["employee_name"] = ["like", search_text]
-            or_conditions["name"] = ["like", search_text]
-        if filter1 != "%%":
-            conditions["status"] = filter1
-        if filter2 != "%%":
-            conditions["applicant_type"] = filter2
-        if filter3 != "%%":
-            conditions["applicant"] = filter3
-        if filter4 != "%%":
-            conditions["loan_type"] = filter4
-        if filter5 != "%%" and filter6 == "%%":
-            conditions["posting_date"] = [">=", filter5]
-        if filter6 != "%%" and filter5 == "%%":
-            conditions["posting_date"] = ["<=", filter6]
-        if filter5 != "%%" and filter6 != "%%":
-            conditions["posting_date"] = ["between", [filter5, filter6]]
-
-        query = frappe.db.get_list(
-            "Loan Application",
-            or_filters=or_conditions,
-            filters=conditions,
-            fields=[
-                "name",
-                "applicant_type",
-                "applicant_name",
-                "applicant",
-                "posting_date",
-                "loan_type",
-                "loan_amount",
-                "status",
-            ],
-            order_by="modified desc",
-            start=start,
-            page_length=page_length,
-        )
-
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-
-    ########################### Bank Account List & Search ############################
-    if doctype == "Bank Account" and con_doc == "%%":
-        query = frappe.db.get_list(
-            "Bank Account",
-            fields=["name"],
-            order_by="modified desc",
-            start=start,
-            page_length=page_length,
-        )
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-
-    if doctype == "Customer Visit" and con_doc == "%%":
-        or_conditions = {}
-        conditions = {}
-        if search_text != "%%":
-            or_conditions["employee_name"] = ["like", search_text]
-            or_conditions["name"] = ["like", search_text]
-        if filter1 != "%%":
-            conditions["customer"] = filter1
-        if filter2 != "%%":
-            conditions["customer_address"] = filter2
-        if filter3 != "%%" and filter4 == "%%":
-            conditions["posting_date"] = [">=", filter3]
-        if filter4 != "%%" and filter3 == "%%":
-            conditions["posting_date"] = ["<=", filter4]
-        if filter3 != "%%" and filter4 != "%%":
-            conditions["posting_date"] = ["between", [filter3, filter4]]
-        if filter5 != "%%":
-            conditions["owner"] = filter5
-
-        query = frappe.db.get_list(
-            "Customer Visit",
-            or_filters=or_conditions,
-            filters=conditions,
-            fields=[
-                "name",
-                "customer",
-                "customer_address",
-                "posting_date",
-                "time",
-                "owner",
-            ],
-            order_by="modified desc",
-            start=start,
-            page_length=page_length,
-        )
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-
-    if doctype == "Address" and con_doc == "%%":
-        or_conditions = {}
-        conditions = {}
-        if search_text != "%%":
-            or_conditions["address_title"] = ["like", search_text]
-            or_conditions["address_line1"] = ["like", search_text]
-            or_conditions["name"] = ["like", search_text]
-        if filter1 != "%%":
-            conditions["address_type"] = filter1
-        if filter2 != "%%" and filter3 != "%%":
-            address = frappe.qb.DocType("Address")
-            dynamic_link = frappe.qb.DocType("Dynamic Link")
-            q = (
-                frappe.qb.from_(address)
-                .join(dynamic_link)
-                .on(dynamic_link.parent == address.name)
-                .select(
-                    address.name,
-                    address.address_title,
-                    address.address_type,
-                    address.address_line1,
-                    address.city,
-                    address.country,
-                )
-                .where(dynamic_link.link_doctype == filter2)
-                .where(dynamic_link.link_name == filter3)
-            ).run(as_dict=True)
-            for x in range(len(q)):
-
-                link_doctype = frappe.db.get_value(
-                    "Dynamic Link",
-                    {
-                        "parent": q[x].name,
-                    },
-                    "link_doctype",
-                )
-                link_name = frappe.db.get_value(
-                    "Dynamic Link",
-                    {
-                        "parent": q[x].name,
-                    },
-                    "link_name",
-                )
-                q[x]["link_doctype"] = link_doctype
-                q[x]["link_name"] = link_name
-            return q
-        if filter2 != "%%":
-            address = frappe.qb.DocType("Address")
-            dynamic_link = frappe.qb.DocType("Dynamic Link")
-            q = (
-                frappe.qb.from_(address)
-                .inner_join(dynamic_link)
-                .on(dynamic_link.parent == address.name)
-                .select(
-                    address.name,
-                    address.address_title,
-                    address.address_type,
-                    address.address_line1,
-                    address.city,
-                    address.country,
-                )
-                .where(dynamic_link.link_doctype == filter2)
-            ).run(as_dict=True)
-            for x in range(len(q)):
-
-                link_doctype = frappe.db.get_value(
-                    "Dynamic Link",
-                    {
-                        "parent": q[x].name,
-                    },
-                    "link_doctype",
-                )
-                link_name = frappe.db.get_value(
-                    "Dynamic Link",
-                    {
-                        "parent": q[x].name,
-                    },
-                    "link_name",
-                )
-                q[x]["link_doctype"] = link_doctype
-                q[x]["link_name"] = link_name
-            return q
-        query = frappe.db.get_list(
-            "Address",
-            or_filters=or_conditions,
-            filters=conditions,
-            fields=[
-                "name",
-                "address_title",
-                "address_type",
-                "address_line1",
-                "city",
-                "country",
-            ],
-            order_by="modified desc",
-            start=start,
-            page_length=page_length,
-        )
-        # for x in range(len(query)):
-
-        #     link_doctype = frappe.db.get_value(
-        #         "Dynamic Link",
-        #         {
-        #             "parent": query[x].name,
-        #         },
-        #         "link_doctype",
-        #     )
-        #     link_name = frappe.db.get_value(
-        #         "Dynamic Link",
-        #         {
-        #             "parent": query[x].name,
-        #         },
-        #         "link_name",
-        #     )
-        #     query[x]["link_doctype"] = link_doctype
-        #     query[x]["link_name"] = link_name
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-
-    if doctype == "Contact" and con_doc == "%%":
-        or_conditions = {}
-        conditions = {}
-        if search_text != "%%":
-            or_conditions["mobile_no"] = ["like", search_text]
-            or_conditions["phone"] = ["like", search_text]
-            or_conditions["first_name"] = ["like", search_text]
-            or_conditions["email_id"] = ["like", search_text]
-            or_conditions["name"] = ["like", search_text]
-        if filter1 != "%%":
-            conditions["status"] = filter1
-        if filter2 != "%%" and filter3 != "%%":
-            address = frappe.qb.DocType("Contact")
-            dynamic_link = frappe.qb.DocType("Dynamic Link")
-            q = (
-                frappe.qb.from_(address)
-                .join(dynamic_link)
-                .on(dynamic_link.parent == address.name)
-                .select(
-                    address.name,
-                    address.first_name,
-                    address.user,
-                    address.mobile_no,
-                    address.phone,
-                    address.email_id,
-                )
-                .where(dynamic_link.link_doctype == filter2)
-                .where(dynamic_link.link_name == filter3)
-            ).run(as_dict=True)
-            for x in range(len(q)):
-
-                link_doctype = frappe.db.get_value(
-                    "Dynamic Link",
-                    {
-                        "parent": q[x].name,
-                    },
-                    "link_doctype",
-                )
-                link_name = frappe.db.get_value(
-                    "Dynamic Link",
-                    {
-                        "parent": q[x].name,
-                    },
-                    "link_name",
-                )
-                q[x]["link_doctype"] = link_doctype
-                q[x]["link_name"] = link_name
-            return q
-        if filter2 != "%%":
-            address = frappe.qb.DocType("Contact")
-            dynamic_link = frappe.qb.DocType("Dynamic Link")
-            q = (
-                frappe.qb.from_(address)
-                .inner_join(dynamic_link)
-                .on(dynamic_link.parent == address.name)
-                .select(
-                    address.name,
-                    address.first_name,
-                    address.user,
-                    address.mobile_no,
-                    address.phone,
-                    address.email_id,
-                )
-                .where(dynamic_link.link_doctype == filter2)
-            ).run(as_dict=True)
-            for x in range(len(q)):
-
-                link_doctype = frappe.db.get_value(
-                    "Dynamic Link",
-                    {
-                        "parent": q[x].name,
-                    },
-                    "link_doctype",
-                )
-                link_name = frappe.db.get_value(
-                    "Dynamic Link",
-                    {
-                        "parent": q[x].name,
-                    },
-                    "link_name",
-                )
-                q[x]["link_doctype"] = link_doctype
-                q[x]["link_name"] = link_name
-            return q
-        query = frappe.db.get_list(
-            "Contact",
-            or_filters=or_conditions,
-            filters=conditions,
-            fields=[
-                "name",
-                "first_name",
-                "user",
-                "mobile_no",
-                "phone",
-                "email_id",
-            ],
-            order_by="modified desc",
-            start=start,
-            page_length=page_length,
-        )
-        for x in range(len(query)):
-
-            link_doctype = frappe.db.get_value(
-                "Dynamic Link",
-                {
-                    "parent": query[x].name,
-                },
-                "link_doctype",
-            )
-            link_name = frappe.db.get_value(
-                "Dynamic Link",
-                {
-                    "parent": query[x].name,
-                },
-                "link_name",
-            )
-            query[x]["link_doctype"] = link_doctype
-            query[x]["link_name"] = link_name
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-
-    ########################### Asset Category Type List & Search ############################
-    if doctype == "Asset Category" and con_doc == "%%":
-        query = frappe.db.get_list(
-            "Asset Category",
-            fields=[
-                "name",
-                "asset_category_name",
-                "enable_cwip_accounting",
-            ],
-            order_by="modified desc",
-            start=start,
-            page_length=page_length,
-        )
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-
-
+         

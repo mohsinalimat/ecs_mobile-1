@@ -22,7 +22,6 @@ from frappe.utils import cstr
 from frappe.utils.make_random import get_random
 import time
 
-
 @frappe.whitelist()
 def general_service(
     doctype,
@@ -33,7 +32,6 @@ def general_service(
     filter5="%%",
     filter6="%%",
     filter7="%%",
-    filter8="%%",
     search_text="%%",
     cur_nam="%%",
     con_doc="%%",
@@ -85,7 +83,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
     '''
@@ -115,7 +113,7 @@ def general_service(
                 LIMIT {start},{page_length}
             """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
     '''
@@ -202,7 +200,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -235,7 +233,7 @@ def general_service(
                 LIMIT {start},{page_length}
             """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
     '''
@@ -323,7 +321,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -356,7 +354,7 @@ def general_service(
                 LIMIT {start},{page_length}
             """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
     '''
@@ -432,7 +430,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -462,7 +460,7 @@ def general_service(
                 LIMIT {start},{page_length}
             """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
     '''
@@ -625,12 +623,6 @@ def general_service(
             conditions["transaction_date"] = ["<=", filter6]
         if filter5 != "%%" and filter6 != "%%":
             conditions["transaction_date"] = ["between", [filter5, filter6]]
-        if filter7 != "%%" and filter8 == "%%":
-            conditions["delivery_date"] = [">=", filter7]
-        if filter8 != "%%" and filter7 == "%%":
-            conditions["delivery_date"] = ["<=", filter8]
-        if filter7 != "%%" and filter8 != "%%":
-            conditions["delivery_date"] = ["between", [filter7, filter8]]
 
         query = frappe.db.get_list(
             "Sales Order",
@@ -650,7 +642,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -683,7 +675,7 @@ def general_service(
                 LIMIT {start},{page_length}
             """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
     '''
@@ -858,7 +850,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -887,7 +879,7 @@ def general_service(
                 LIMIT {start},{page_length}
             """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
     '''
@@ -1016,7 +1008,7 @@ def general_service(
             query[x]["currency"] = currency
         """
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1051,7 +1043,7 @@ def general_service(
                 LIMIT {start},{page_length}
             """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
     '''
@@ -1078,7 +1070,6 @@ def general_service(
             filters=conditions,
             fields=[
                 "name",
-                "docstatus",
                 "voucher_type",
                 "posting_date",
                 "total_debit",
@@ -1093,7 +1084,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
     ############################################ LEAD SOURCE ############################################
@@ -1112,7 +1103,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1133,7 +1124,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1153,7 +1144,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1173,7 +1164,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1194,7 +1185,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1215,7 +1206,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1235,7 +1226,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1252,7 +1243,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1273,7 +1264,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1293,7 +1284,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1313,7 +1304,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1334,7 +1325,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1355,7 +1346,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1375,7 +1366,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1395,7 +1386,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1415,7 +1406,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1435,7 +1426,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1455,7 +1446,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1475,7 +1466,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1495,7 +1486,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1516,7 +1507,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1535,7 +1526,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1556,7 +1547,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1589,7 +1580,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
     ############################################ ITEM ############################################
@@ -1630,7 +1621,7 @@ def general_service(
         )
 
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1656,7 +1647,7 @@ def general_service(
                 LIMIT {start},{page_length}
             """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
     '''
@@ -1697,7 +1688,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1831,7 +1822,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -1861,7 +1852,7 @@ def general_service(
                 LIMIT {start},{page_length}
             """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
     '''
@@ -1906,7 +1897,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -2025,7 +2016,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -2055,7 +2046,7 @@ def general_service(
                 LIMIT {start},{page_length}
             """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
     '''
@@ -2101,7 +2092,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -2216,7 +2207,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -2259,7 +2250,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -2368,7 +2359,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -2525,7 +2516,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -2738,12 +2729,12 @@ def general_service(
             for row in range(len(query)):
                 if (
                     time.strptime(str(query[row].from_date), "%Y-%m-%d")
-                    <= time.strptime(filter3.split("T")[0], "%Y-%m-%d")
+                    <= time.strptime(filter3, "%Y-%m-%d")
                     <= time.strptime(str(query[row].to_date), "%Y-%m-%d")
                 ):
                     response.append(query[row])
 
-            return response
+            return len(response)
 
         if filter4 != "%%":
             conditions["department"] = filter4
@@ -2777,7 +2768,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return len(query)
         else:
             return "لا يوجد !"
             ########################### Attendance Connected With Leave Application & Search ############################
@@ -2862,7 +2853,7 @@ def general_service(
 
             query[x]["advance_account"] = advance_account
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -2988,7 +2979,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3005,7 +2996,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3044,7 +3035,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3054,13 +3045,14 @@ def general_service(
             "Gender",
             fields=[
                 "name",
+    
             ],
             order_by="modified desc",
             start=start,
-            page_length=page_length,
+            page_length=page_length
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3073,10 +3065,10 @@ def general_service(
             ],
             order_by="modified desc",
             start=start,
-            page_length=page_length,
+            page_length=page_length
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3090,10 +3082,10 @@ def general_service(
             ],
             order_by="modified desc",
             start=start,
-            page_length=page_length,
+            page_length=page_length
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
     ########################### Department Full List & Search ############################
@@ -3105,10 +3097,10 @@ def general_service(
             ],
             order_by="modified desc",
             start=start,
-            page_length=page_length,
+            page_length=page_length
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3123,10 +3115,10 @@ def general_service(
             ],
             order_by="modified desc",
             start=start,
-            page_length=page_length,
+            page_length=page_length
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3139,10 +3131,10 @@ def general_service(
             ],
             order_by="modified desc",
             start=start,
-            page_length=page_length,
+            page_length=page_length
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3155,10 +3147,10 @@ def general_service(
             ],
             order_by="modified desc",
             start=start,
-            page_length=page_length,
+            page_length=page_length
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3171,10 +3163,10 @@ def general_service(
             ],
             order_by="modified desc",
             start=start,
-            page_length=page_length,
+            page_length=page_length
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3187,10 +3179,10 @@ def general_service(
             ],
             order_by="modified desc",
             start=start,
-            page_length=page_length,
+            page_length=page_length
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3230,7 +3222,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3285,7 +3277,7 @@ def general_service(
 
             query[x]["advance_account"] = advance_account
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3342,10 +3334,10 @@ def general_service(
             ],
             order_by="modified desc",
             start=start,
-            page_length=page_length,
+            page_length=page_length
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3358,10 +3350,10 @@ def general_service(
             ],
             order_by="modified desc",
             start=start,
-            page_length=page_length,
+            page_length=page_length
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3403,7 +3395,7 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3463,10 +3455,10 @@ def general_service(
             ],
             order_by="modified desc",
             start=start,
-            page_length=page_length,
+            page_length=page_length
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3512,7 +3504,7 @@ def general_service(
         )
 
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3523,50 +3515,29 @@ def general_service(
             fields=["name"],
             order_by="modified desc",
             start=start,
-            page_length=page_length,
+            page_length=page_length
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
     if doctype == "Customer Visit" and con_doc == "%%":
-        or_conditions = {}
-        conditions = {}
-        if search_text != "%%":
-            or_conditions["employee_name"] = ["like", search_text]
-            or_conditions["name"] = ["like", search_text]
-        if filter1 != "%%":
-            conditions["customer"] = filter1
-        if filter2 != "%%":
-            conditions["customer_address"] = filter2
-        if filter3 != "%%" and filter4 == "%%":
-            conditions["posting_date"] = [">=", filter3]
-        if filter4 != "%%" and filter3 == "%%":
-            conditions["posting_date"] = ["<=", filter4]
-        if filter3 != "%%" and filter4 != "%%":
-            conditions["posting_date"] = ["between", [filter3, filter4]]
-        if filter5 != "%%":
-            conditions["owner"] = filter5
-
         query = frappe.db.get_list(
             "Customer Visit",
-            or_filters=or_conditions,
-            filters=conditions,
             fields=[
                 "name",
                 "customer",
                 "customer_address",
                 "posting_date",
                 "time",
-                "owner",
             ],
             order_by="modified desc",
             start=start,
-            page_length=page_length,
+            page_length=page_length
         )
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3615,7 +3586,7 @@ def general_service(
                 )
                 q[x]["link_doctype"] = link_doctype
                 q[x]["link_name"] = link_name
-            return q
+            return {"count": len(q)}
         if filter2 != "%%":
             address = frappe.qb.DocType("Address")
             dynamic_link = frappe.qb.DocType("Dynamic Link")
@@ -3651,7 +3622,7 @@ def general_service(
                 )
                 q[x]["link_doctype"] = link_doctype
                 q[x]["link_name"] = link_name
-            return q
+            return {"count": len(q)}
         query = frappe.db.get_list(
             "Address",
             or_filters=or_conditions,
@@ -3666,28 +3637,11 @@ def general_service(
             ],
             order_by="modified desc",
             start=start,
-            page_length=page_length,
+            page_length=page_length
         )
-        # for x in range(len(query)):
-
-        #     link_doctype = frappe.db.get_value(
-        #         "Dynamic Link",
-        #         {
-        #             "parent": query[x].name,
-        #         },
-        #         "link_doctype",
-        #     )
-        #     link_name = frappe.db.get_value(
-        #         "Dynamic Link",
-        #         {
-        #             "parent": query[x].name,
-        #         },
-        #         "link_name",
-        #     )
-        #     query[x]["link_doctype"] = link_doctype
-        #     query[x]["link_name"] = link_name
+        
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
 
@@ -3738,7 +3692,7 @@ def general_service(
                 )
                 q[x]["link_doctype"] = link_doctype
                 q[x]["link_name"] = link_name
-            return q
+            return {"count": len(q)}
         if filter2 != "%%":
             address = frappe.qb.DocType("Contact")
             dynamic_link = frappe.qb.DocType("Dynamic Link")
@@ -3774,7 +3728,7 @@ def general_service(
                 )
                 q[x]["link_doctype"] = link_doctype
                 q[x]["link_name"] = link_name
-            return q
+            return {"count": len(q)}
         query = frappe.db.get_list(
             "Contact",
             or_filters=or_conditions,
@@ -3788,8 +3742,6 @@ def general_service(
                 "email_id",
             ],
             order_by="modified desc",
-            start=start,
-            page_length=page_length,
         )
         for x in range(len(query)):
 
@@ -3810,9 +3762,10 @@ def general_service(
             query[x]["link_doctype"] = link_doctype
             query[x]["link_name"] = link_name
         if query:
-            return query
+            return {"count": len(query)}
         else:
             return "لا يوجد !"
+
 
     ########################### Asset Category Type List & Search ############################
     if doctype == "Asset Category" and con_doc == "%%":
@@ -3828,8 +3781,6 @@ def general_service(
             page_length=page_length,
         )
         if query:
-            return query
+            return len(query)
         else:
             return "لا يوجد !"
-
-

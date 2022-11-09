@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2022-11-02 11:44:45.625558",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "gps_is_mandatory_in_customer_creation",
+  "gps_is_mandatory_in_address_creation",
+  "gps_is_mandatory_in_sales_invoice_creation"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "gps_is_mandatory_in_customer_creation",
+   "fieldtype": "Check",
+   "label": "GPS Is Mandatory In Customer Creation"
+  },
+  {
+   "default": "0",
+   "fieldname": "gps_is_mandatory_in_address_creation",
+   "fieldtype": "Check",
+   "label": "GPS Is Mandatory In Address Creation"
+  },
+  {
+   "default": "0",
+   "fieldname": "gps_is_mandatory_in_sales_invoice_creation",
+   "fieldtype": "Check",
+   "label": "GPS Is Mandatory In Sales Invoice Creation"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2022-11-02 11:44:45.625558",
+ "modified_by": "Administrator",
+ "module": "Ecs Mobile",
+ "name": "Mobile Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}
