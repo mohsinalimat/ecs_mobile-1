@@ -2622,7 +2622,7 @@ def general_service(
 
     ########################### Filtered Address List & Search ############################
     if doctype == "Filtered Address" and con_doc == "%%":
-        addresses = frappe.db.get_list(
+        addresses = frappe.db.get_all(
             "Dynamic Link", filters={"link_name": cur_nam}, fields=["parent"]
         )
         result = []

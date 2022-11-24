@@ -27,7 +27,7 @@ from frappe.utils.make_random import get_random
 @frappe.whitelist()
 def lead(name):
     led = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Lead",
         filters={"name": name},
         fields=[
@@ -47,7 +47,7 @@ def lead(name):
             "campaign_name",
             "contact_by",
             "contact_date",
-            "notes",
+
             "request_type",
             "market_segment",
             "territory",
@@ -76,7 +76,7 @@ def lead(name):
         led["lead_owner"] = x.lead_owner
         led["contact_by"] = x.contact_by
         led["contact_date"] = x.contact_date
-        led["notes"] = x.notes
+
         led["docstatus"] = x.docstatus
 
     attachments = frappe.db.sql(
@@ -118,8 +118,8 @@ def lead(name):
 
     quotation_count = frappe.db.count("Quotation", filters={"party_name": name})
     opportunity_count = frappe.db.count("Opportunity", filters={"party_name": name})
-    # quotation_name = frappe.db.get_list('Quotation', filters={'party_name': name}, fields=['name'])
-    # opportunity_name = frappe.db.get_list('Opportunity', filters={'party_name': name}, fields=['name'])
+    # quotation_name = frappe.db.get_all('Quotation', filters={'party_name': name}, fields=['name'])
+    # opportunity_name = frappe.db.get_all('Opportunity', filters={'party_name': name}, fields=['name'])
 
     qtn_connections = {}
     opp_connections = {}
@@ -148,7 +148,7 @@ def lead(name):
 @frappe.whitelist()
 def opportunity(name):
     opp = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Opportunity",
         filters={"name": name},
         fields=[
@@ -200,7 +200,7 @@ def opportunity(name):
         opp["transaction_date"] = x.transaction_date
         opp["docstatus"] = x.docstatus
 
-    child_data = frappe.db.get_list(
+    child_data = frappe.db.get_all(
         "Opportunity Item",
         filters={"parent": name},
         order_by="idx",
@@ -262,8 +262,8 @@ def opportunity(name):
     sup_quotation_count = frappe.db.count(
         "Supplier Quotation", filters={"opportunity": name}
     )
-    # quotation_name = frappe.db.get_list('Quotation', filters={'opportunity': name}, fields=['name'])
-    # sup_quotation_name = frappe.db.get_list('Supplier Quotation', filters={'opportunity': name}, fields=['name'])
+    # quotation_name = frappe.db.get_all('Quotation', filters={'opportunity': name}, fields=['name'])
+    # sup_quotation_name = frappe.db.get_all('Supplier Quotation', filters={'opportunity': name}, fields=['name'])
 
     qtn_connections = {}
     sup_qtn_connections = {}
@@ -294,7 +294,7 @@ def opportunity(name):
 @frappe.whitelist()
 def quotation(name):
     qtn = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Quotation",
         filters={"name": name},
         fields=[
@@ -342,6 +342,7 @@ def quotation(name):
             "source",
             "order_lost_reason",
             "status",
+           
             "docstatus",
         ],
     )
@@ -349,6 +350,7 @@ def quotation(name):
     for x in doc_data:
         qtn["name"] = x.name
         qtn["quotation_to"] = x.quotation_to
+   
         qtn["party_name"] = x.party_name
         qtn["customer_name"] = x.customer_name
         qtn["transaction_date"] = x.transaction_date
@@ -408,7 +410,7 @@ def quotation(name):
         qtn["status"] = x.status
         qtn["docstatus"] = x.docstatus
 
-    child_data_1 = frappe.db.get_list(
+    child_data_1 = frappe.db.get_all(
         "Quotation Item",
         filters={"parent": name},
         order_by="idx",
@@ -454,7 +456,7 @@ def quotation(name):
         ],
     )
 
-    child_data_2 = frappe.db.get_list(
+    child_data_2 = frappe.db.get_all(
         "Sales Taxes and Charges",
         filters={"parent": name},
         order_by="idx",
@@ -477,7 +479,7 @@ def quotation(name):
         ],
     )
 
-    child_data_3 = frappe.db.get_list(
+    child_data_3 = frappe.db.get_all(
         "Payment Schedule",
         filters={"parent": name},
         order_by="idx",
@@ -546,7 +548,7 @@ def quotation(name):
     pf_standard["name"] = "Standard"
     print_formats.append(pf_standard)
 
-    sales_order_name = frappe.db.get_list(
+    sales_order_name = frappe.db.get_all(
         "Sales Order Item",
         filters={"prevdoc_docname": name},
         fields=["parent"],
@@ -575,10 +577,10 @@ def quotation(name):
 def customer(name):
     #
     cust = {}
-    quotation_validaty_days = frappe.db.get_single_value(
-        "Selling Settings", "default_valid_till"  # quotation
-    )
-    cust["quotation_validaty_days"] = quotation_validaty_days
+    # quotation_validaty_days = frappe.db.get_single_value(
+    #     "Selling Settings", "default_valid_till"  # quotation
+    # )
+    cust["quotation_validaty_days"] = 14
 
     balance = get_balance_on(
         account=None,
@@ -591,7 +593,7 @@ def customer(name):
         ignore_account_permission=False,
     )
     cust["balance"] = balance
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Customer",
         filters={"name": name},
         fields=[
@@ -670,7 +672,7 @@ def customer(name):
         else:
             cust["credit_days"] = 0
 
-    child_data = frappe.db.get_list(
+    child_data = frappe.db.get_all(
         "Customer Credit Limit",
         filters={"parent": name},
         order_by="idx",
@@ -729,12 +731,12 @@ def customer(name):
     delivery_note_count = frappe.db.count("Delivery Note", filters={"customer": name})
     sales_invoice_count = frappe.db.count("Sales Invoice", filters={"customer": name})
     payment_entry_count = frappe.db.count("Payment Entry", filters={"party": name})
-    # quotation_name = frappe.db.get_list('Quotation', filters={'party_name': name}, fields=['name'])
-    # opportunity_name = frappe.db.get_list('Opportunity', filters={'party_name': name}, fields=['name'])
-    # sales_order_name = frappe.db.get_list('Sales Order', filters={'customer': name}, fields=['name'])
-    # delivery_note_name = frappe.db.get_list('Delivery Note', filters={'customer': name}, fields=['name'])
-    # sales_invoice_name = frappe.db.get_list('Sales Invoice', filters={'customer': name}, fields=['name'])
-    # payment_entry_name = frappe.db.get_list('Payment Entry', filters={'party': name}, fields=['name'])
+    # quotation_name = frappe.db.get_all('Quotation', filters={'party_name': name}, fields=['name'])
+    # opportunity_name = frappe.db.get_all('Opportunity', filters={'party_name': name}, fields=['name'])
+    # sales_order_name = frappe.db.get_all('Sales Order', filters={'customer': name}, fields=['name'])
+    # delivery_note_name = frappe.db.get_all('Delivery Note', filters={'customer': name}, fields=['name'])
+    # sales_invoice_name = frappe.db.get_all('Sales Invoice', filters={'customer': name}, fields=['name'])
+    # payment_entry_name = frappe.db.get_all('Payment Entry', filters={'party': name}, fields=['name'])
 
     qtn_connections = {}
     opp_connections = {}
@@ -793,7 +795,7 @@ def customer_visit(name):
 
     response = {}
 
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Customer Visit",
         filters={"name": name},
         fields=[
@@ -877,7 +879,7 @@ def customer_visit(name):
 @frappe.whitelist()
 def sales_order(name):
     so = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Sales Order",
         filters={"name": name},
         fields=[
@@ -998,7 +1000,7 @@ def sales_order(name):
         so["in_words"] = x.in_words
         so["docstatus"] = x.docstatus
 
-    child_data_1 = frappe.db.get_list(
+    child_data_1 = frappe.db.get_all(
         "Sales Order Item",
         filters={"parent": name},
         order_by="idx",
@@ -1051,7 +1053,7 @@ def sales_order(name):
         ],
     )
 
-    child_data_2 = frappe.db.get_list(
+    child_data_2 = frappe.db.get_all(
         "Sales Taxes and Charges",
         filters={"parent": name},
         order_by="idx",
@@ -1074,7 +1076,7 @@ def sales_order(name):
         ],
     )
 
-    child_data_3 = frappe.db.get_list(
+    child_data_3 = frappe.db.get_all(
         "Payment Schedule",
         filters={"parent": name},
         order_by="idx",
@@ -1143,37 +1145,37 @@ def sales_order(name):
     pf_standard["name"] = "Standard"
     print_formats.append(pf_standard)
 
-    sales_invoice = frappe.db.get_list(
+    sales_invoice = frappe.db.get_all(
         "Sales Invoice Item",
         filters={"sales_order": name},
         fields=["parent"],
         group_by="parent",
     )
-    delivery_note = frappe.db.get_list(
+    delivery_note = frappe.db.get_all(
         "Delivery Note Item",
         filters={"against_sales_order": name},
         fields=["parent"],
         group_by="parent",
     )
-    material_request = frappe.db.get_list(
+    material_request = frappe.db.get_all(
         "Material Request Item",
         filters={"sales_order": name},
         fields=["parent"],
         group_by="parent",
     )
-    purchase_order = frappe.db.get_list(
+    purchase_order = frappe.db.get_all(
         "Purchase Order Item",
         filters={"sales_order": name},
         fields=["parent"],
         group_by="parent",
     )
-    quotation = frappe.db.get_list(
+    quotation = frappe.db.get_all(
         "Sales Order Item",
         filters={"parent": name, "prevdoc_docname": ["!=", ""]},
         fields=["prevdoc_docname"],
         group_by="prevdoc_docname",
     )
-    payment_entry = frappe.db.get_list(
+    payment_entry = frappe.db.get_all(
         "Payment Entry Reference",
         filters={"reference_name": name},
         fields=["parent"],
@@ -1242,7 +1244,7 @@ def sales_order(name):
 @frappe.whitelist()
 def sales_invoice(name):
     sinv = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Sales Invoice",
         filters={"name": name},
         fields=[
@@ -1373,7 +1375,7 @@ def sales_invoice(name):
         sinv["latitude"] = x.latitude
         sinv["docstatus"] = x.docstatus
 
-    child_data_1 = frappe.db.get_list(
+    child_data_1 = frappe.db.get_all(
         "Sales Invoice Item",
         filters={"parent": name},
         order_by="idx",
@@ -1414,7 +1416,7 @@ def sales_invoice(name):
         ],
     )
 
-    child_data_2 = frappe.db.get_list(
+    child_data_2 = frappe.db.get_all(
         "Sales Taxes and Charges",
         filters={"parent": name},
         order_by="idx",
@@ -1437,7 +1439,7 @@ def sales_invoice(name):
         ],
     )
 
-    child_data_3 = frappe.db.get_list(
+    child_data_3 = frappe.db.get_all(
         "Payment Schedule",
         filters={"parent": name},
         order_by="idx",
@@ -1506,7 +1508,7 @@ def sales_invoice(name):
     pf_standard["name"] = "Standard"
     print_formats.append(pf_standard)
 
-    sales_order = frappe.db.get_list(
+    sales_order = frappe.db.get_all(
         "Sales Invoice Item",
         filters={
             "sales_order": ["!=", ""],
@@ -1514,13 +1516,13 @@ def sales_invoice(name):
         },
         group_by="sales_order",
     )
-    delivery_note = frappe.db.get_list(
+    delivery_note = frappe.db.get_all(
         "Delivery Note Item",
         filters={"against_sales_invoice": name},
         fields=["parent"],
         group_by="parent",
     )
-    payment_entry = frappe.db.get_list(
+    payment_entry = frappe.db.get_all(
         "Payment Entry Reference",
         filters={"reference_name": name},
         fields=["parent"],
@@ -1564,7 +1566,7 @@ def sales_invoice(name):
 @frappe.whitelist()
 def payment_entry(name):
     pe = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Payment Entry",
         filters={"name": name},
         fields=[
@@ -1654,7 +1656,7 @@ def payment_entry(name):
 @frappe.whitelist()
 def journal_entry(name):
     response = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Journal Entry",
         filters={"name": name},
         fields=[
@@ -1734,7 +1736,7 @@ def journal_entry(name):
     )
 
     response["comments"] = comments
-    journal_entry_account = frappe.db.get_list(
+    journal_entry_account = frappe.db.get_all(
         "Journal Entry Account",
         filters={"parent": name},
         order_by="idx",
@@ -1793,7 +1795,7 @@ def journal_entry(name):
 @frappe.whitelist()
 def item(name):
     item_ = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Item",
         filters={"name": name},
         fields=[
@@ -1837,7 +1839,7 @@ def item(name):
         item_["purchase_uom"] = x.purchase_uom
         item_["docstatus"] = x.docstatus
 
-    child_data1 = frappe.db.get_list(
+    child_data1 = frappe.db.get_all(
         "UOM Conversion Detail",
         filters={"parent": name},
         order_by="idx",
@@ -1851,7 +1853,7 @@ def item(name):
     if child_data1 and doc_data:
         item_["uoms"] = child_data1
 
-    child_data2 = frappe.db.get_list(
+    child_data2 = frappe.db.get_all(
         "Item Price",
         filters={"item_code": name, "selling": 1},
         order_by="price_list",
@@ -1940,61 +1942,61 @@ def item(name):
     pf_standard["name"] = "Standard"
     print_formats.append(pf_standard)
 
-    quotation = frappe.db.get_list(
+    quotation = frappe.db.get_all(
         "Quotation Item",
         filters={"item_code": name},
         fields=["item_code"],
         group_by="parent",
     )
-    sales_order = frappe.db.get_list(
+    sales_order = frappe.db.get_all(
         "Sales Order Item",
         filters={"item_code": name},
         fields=["item_code"],
         group_by="parent",
     )
-    delivery_note = frappe.db.get_list(
+    delivery_note = frappe.db.get_all(
         "Delivery Note Item",
         filters={"item_code": name},
         fields=["item_code"],
         group_by="parent",
     )
-    sales_invoice = frappe.db.get_list(
+    sales_invoice = frappe.db.get_all(
         "Sales Invoice Item",
         filters={"item_code": name},
         fields=["item_code"],
         group_by="parent",
     )
-    material_request = frappe.db.get_list(
+    material_request = frappe.db.get_all(
         "Material Request Item",
         filters={"item_code": name},
         fields=["item_code"],
         group_by="parent",
     )
-    supplier_quotation = frappe.db.get_list(
+    supplier_quotation = frappe.db.get_all(
         "Supplier Quotation Item",
         filters={"item_code": name},
         fields=["item_code"],
         group_by="parent",
     )
-    purchase_order = frappe.db.get_list(
+    purchase_order = frappe.db.get_all(
         "Purchase Order Item",
         filters={"item_code": name},
         fields=["item_code"],
         group_by="parent",
     )
-    purchase_receipt = frappe.db.get_list(
+    purchase_receipt = frappe.db.get_all(
         "Purchase Receipt Item",
         filters={"item_code": name},
         fields=["item_code"],
         group_by="parent",
     )
-    purchase_invoice = frappe.db.get_list(
+    purchase_invoice = frappe.db.get_all(
         "Purchase Invoice Item",
         filters={"item_code": name},
         fields=["item_code"],
         group_by="parent",
     )
-    stock_entry = frappe.db.get_list(
+    stock_entry = frappe.db.get_all(
         "Stock Entry Detail",
         filters={"item_code": name},
         fields=["item_code"],
@@ -2097,7 +2099,7 @@ def item(name):
 @frappe.whitelist()
 def stock_entry(name):
     se = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Stock Entry",
         filters={"name": name},
         fields=[
@@ -2128,7 +2130,7 @@ def stock_entry(name):
         se["project"] = x.project
         se["docstatus"] = x.docstatus
 
-    child_data = frappe.db.get_list(
+    child_data = frappe.db.get_all(
         "Stock Entry Detail",
         filters={"parent": name},
         order_by="idx",
@@ -2203,7 +2205,7 @@ def stock_entry(name):
 @frappe.whitelist()
 def delivery_note(name):
     dn = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Delivery Note",
         filters={"name": name},
         fields=[
@@ -2316,7 +2318,7 @@ def delivery_note(name):
         dn["in_words"] = x.in_words
         dn["docstatus"] = x.docstatus
 
-    child_data_1 = frappe.db.get_list(
+    child_data_1 = frappe.db.get_all(
         "Delivery Note Item",
         filters={"parent": name},
         order_by="idx",
@@ -2356,7 +2358,7 @@ def delivery_note(name):
         ],
     )
 
-    child_data_2 = frappe.db.get_list(
+    child_data_2 = frappe.db.get_all(
         "Sales Taxes and Charges",
         filters={"parent": name},
         order_by="idx",
@@ -2379,7 +2381,7 @@ def delivery_note(name):
         ],
     )
 
-    child_data_3 = frappe.db.get_list(
+    child_data_3 = frappe.db.get_all(
         "Payment Schedule",
         filters={"parent": name},
         order_by="idx",
@@ -2457,7 +2459,7 @@ def delivery_note(name):
 @frappe.whitelist(allow_guest=True)
 def purchase_receipt(name):
     response = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Purchase Receipt",
         filters={"name": name},
         fields=[
@@ -2590,7 +2592,7 @@ def purchase_receipt(name):
     # dssss
     response["comments"] = comments
 
-    purchase_receipt_item_child_table = frappe.db.get_list(
+    purchase_receipt_item_child_table = frappe.db.get_all(
         "Purchase Receipt Item",
         filters={"parent": name},
         order_by="idx",
@@ -2631,7 +2633,7 @@ def purchase_receipt(name):
         ],
     )
 
-    child_table_taxes_and_charges = frappe.db.get_list(
+    child_table_taxes_and_charges = frappe.db.get_all(
         "Purchase Taxes and Charges",
         filters={"parent": name},
         order_by="idx",
@@ -2658,7 +2660,7 @@ def purchase_receipt(name):
         ],
     )
 
-    # child_pricing_rule_detail = frappe.db.get_list(
+    # child_pricing_rule_detail = frappe.db.get_all(
     #     "Pricing Rule Detail",
     #     filters={"parent": name},
     #     order_by="idx",
@@ -2691,14 +2693,14 @@ def purchase_receipt(name):
     pf_standard["name"] = "Standard"
     print_formats.append(pf_standard)
 
-    con_purchase_order = frappe.db.get_list(
+    con_purchase_order = frappe.db.get_all(
         "Purchase Receipt Item",
         filters={"parent": name, "purchase_order": ["!=", "null%"]},
     )
     count_purchase_order = len(con_purchase_order)
     purchase_orders = {}
 
-    con_purchase_invoice = frappe.db.get_list(
+    con_purchase_invoice = frappe.db.get_all(
         "Purchase Invoice Item",
         filters={"purchase_receipt": name},
         fields=["parent"],
@@ -2707,7 +2709,7 @@ def purchase_receipt(name):
     count_purchase_invoice = len(con_purchase_invoice)
     purchase_invoices = {}
 
-    con_purchase_receipt = frappe.db.get_list(
+    con_purchase_receipt = frappe.db.get_all(
         "Purchase Receipt",
         filters={"amended_from": name},
         fields=["name"],
@@ -2749,7 +2751,7 @@ def purchase_receipt(name):
 @frappe.whitelist()
 def default_tax_template():
     tax = {}
-    child_data = frappe.db.get_list(
+    child_data = frappe.db.get_all(
         "Sales Taxes and Charges",
         filters={"parent": "Default Tax Template"},
         fields=[
@@ -2766,14 +2768,14 @@ def default_tax_template():
 
 @frappe.whitelist(allow_guest=True)
 def filtered_address(name):
-    addresses = frappe.db.get_list(
+    addresses = frappe.db.get_all(
         "Dynamic Link", filters={"link_name": name}, fields=["parent"]
     )
     result = []
-    for item_dict in frappe.db.get_list(
+    for item_dict in frappe.db.get_all(
         "Dynamic Link", filters={"link_name": name}, fields=["parent"]
     ):
-        adddd = frappe.db.get_list(
+        adddd = frappe.db.get_all(
             "Address",
             filters={"name": item_dict.parent},
             fields=["name", "address_title", "address_line1", "city", "phone"],
@@ -2797,14 +2799,14 @@ def filtered_address(name):
 
 @frappe.whitelist()
 def filtered_contact(name):
-    contacts = frappe.db.get_list(
+    contacts = frappe.db.get_all(
         "Dynamic Link", filters={"link_name": name}, fields=["parent"]
     )
     result = []
-    for item_dict in frappe.db.get_list(
+    for item_dict in frappe.db.get_all(
         "Dynamic Link", filters={"link_name": name}, fields=["parent"]
     ):
-        adddd = frappe.db.get_list(
+        adddd = frappe.db.get_all(
             "Contact",
             filters={"name": item_dict.parent},
             fields=["name", "email_id", "phone", "mobile_no", "company_name"],
@@ -2839,7 +2841,7 @@ def supplier(name):
         ignore_account_permission=False,
     )
     supp["balance"] = balance
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Supplier",
         filters={"name": name},
         fields=[
@@ -2961,14 +2963,14 @@ def supplier(name):
     pinv_connections = {}
     pe_connections = {}
     #
-    # conn_request_for_quotation = frappe.db.get_list(
+    # conn_request_for_quotation = frappe.db.get_all(
     # "Request for Quotation Supplier",
     # filters={"supplier": name},
     # )
     # count_request_for_quotations =len(conn_request_for_quotation)
     # request_for_quotation = {}
     #
-    # conn_bank_account = frappe.db.get_list(
+    # conn_bank_account = frappe.db.get_all(
     # "Bank Account",
     # filters={"party":name},
     # )
@@ -2976,14 +2978,14 @@ def supplier(name):
     # bank_account = {}
     #
     #
-    # conn_pricing_rule = frappe.db.get_list(
+    # conn_pricing_rule = frappe.db.get_all(
     # "Pricing Rule",
     # filters={"supplier": name},
     # )
     # count_conn_pricing_rule = len(conn_pricing_rule)
     # pricing_rule = {}
     #
-    # conn_party_spcecific_item = frappe.db.get_list(
+    # conn_party_spcecific_item = frappe.db.get_all(
     # "Party Specific Item",
     # filters={"party": name}
     # )
@@ -3059,7 +3061,7 @@ def supplier(name):
 @frappe.whitelist(allow_guest=True)
 def supplier_quotation(name):
     response = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Supplier Quotation",
         filters={"name": name},
         fields=[
@@ -3186,7 +3188,7 @@ def supplier_quotation(name):
     )
     # dssss
     response["comments"] = comments
-    child_table_items = frappe.db.get_list(
+    child_table_items = frappe.db.get_all(
         "Supplier Quotation Item",
         filters={"parent": name},
         order_by="idx",
@@ -3239,7 +3241,7 @@ def supplier_quotation(name):
         ],
     )
 
-    child_table_taxes_and_charges = frappe.db.get_list(
+    child_table_taxes_and_charges = frappe.db.get_all(
         "Purchase Taxes and Charges",
         filters={"parent": name},
         order_by="idx",
@@ -3281,13 +3283,13 @@ def supplier_quotation(name):
     print_formats.append(pf_standard)
 
     quotation_count = frappe.db.count("Quotation", filters={"supplier_quotation": name})
-    purchase_order = frappe.db.get_list(
+    purchase_order = frappe.db.get_all(
         "Purchase Order Item",
         filters={"supplier_quotation": name},
         group_by="supplier_quotation",
     )
     purchase_order_count = len(purchase_order)
-    material_request = frappe.db.get_list(
+    material_request = frappe.db.get_all(
         "Supplier Quotation Item", filters={"parent": name}, group_by="material_request"
     )
     material_request_count = len(material_request)
@@ -3333,7 +3335,7 @@ def supplier_quotation(name):
 @frappe.whitelist(allow_guest=True)
 def purchase_order(name):
     response = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Purchase Order",
         filters={"name": name},
         fields={
@@ -3575,7 +3577,7 @@ def purchase_order(name):
     # dssss
     response["comments"] = comments
 
-    purchase_order_item_child_table = frappe.db.get_list(
+    purchase_order_item_child_table = frappe.db.get_all(
         "Purchase Order Item",
         filters={"parent": name},
         order_by="idx",
@@ -3652,7 +3654,7 @@ def purchase_order(name):
     )
     # s
 
-    child_table_taxes_and_charges = frappe.db.get_list(
+    child_table_taxes_and_charges = frappe.db.get_all(
         "Purchase Taxes and Charges",
         filters={"parent": name},
         order_by="idx",
@@ -3679,7 +3681,7 @@ def purchase_order(name):
         ],
     )
 
-    child_payment_schedule = frappe.db.get_list(
+    child_payment_schedule = frappe.db.get_all(
         "Payment Schedule",
         filters={"parent": name},
         order_by="idx",
@@ -3719,14 +3721,14 @@ def purchase_order(name):
     pf_standard = {}
     pf_standard["name"] = "Standard"
     print_formats.append(pf_standard)
-    purchase_receipt = frappe.db.get_list(
+    purchase_receipt = frappe.db.get_all(
         "Purchase Receipt Item",
         filters={"purchase_order": name},
     )
     count_purchase_receipt = len(purchase_receipt)
     purchase_receipts = {}
 
-    purchase_invoice = frappe.db.get_list(
+    purchase_invoice = frappe.db.get_all(
         "Purchase Invoice Item",
         filters={"purchase_order": name},
     )
@@ -3734,7 +3736,7 @@ def purchase_order(name):
     count_purchase_invoice = len(purchase_invoice)
     purchase_invoices = {}
 
-    payment_entire_connection = frappe.db.get_list(
+    payment_entire_connection = frappe.db.get_all(
         "Payment Entry Reference",
         filters={"reference_name": name},
         fields=["parent"],
@@ -3743,7 +3745,7 @@ def purchase_order(name):
     count_payment_entries = len(payment_entire_connection)
     payment_entries = {}
 
-    get_current_purchase_order_items = frappe.db.get_list(
+    get_current_purchase_order_items = frappe.db.get_all(
         "Purchase Order Item",
         filters={"material_request": ["!=", "null"], "parent": name},
         fields=[
@@ -3752,7 +3754,7 @@ def purchase_order(name):
     )
     count_current_purchase_order_items = len(get_current_purchase_order_items)
     material_requests = {}
-    get_supplier_quotations = frappe.db.get_list(
+    get_supplier_quotations = frappe.db.get_all(
         "Purchase Order Item",
         filters={"supplier_quotation": ["!=", "null"], "parent": name},
         fields=[
@@ -3761,7 +3763,7 @@ def purchase_order(name):
     )
     count_get_supplier_quotations = len(get_supplier_quotations)
     supplier_quotation = {}
-    # purchase_order_item = frappe.db.get_list("Purchase Order Item", filters={"material_request":})
+    # purchase_order_item = frappe.db.get_all("Purchase Order Item", filters={"material_request":})
     connections = []
     if count_purchase_receipt > 0 and doc_data:
         purchase_receipts["name"] = "Purchase Receipt"
@@ -3810,7 +3812,7 @@ def purchase_order(name):
 def purchase_invoice(name):
     response = {}
     # DocType
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Purchase Invoice",
         filters={"name": name},
         fields=[
@@ -4014,7 +4016,7 @@ def purchase_invoice(name):
     pf_standard["name"] = "Standard"
     print_formats.append(pf_standard)
     # Child Tables from here
-    purchase_invoice_item = frappe.db.get_list(
+    purchase_invoice_item = frappe.db.get_all(
         "Purchase Invoice Item",
         filters={"parent": name},
         order_by="idx",
@@ -4071,7 +4073,7 @@ def purchase_invoice(name):
         response["purchase_invoice_item"] = purchase_invoice_item
 
     """
-    child_pricing_rule_detail = frappe.db.get_list(
+    child_pricing_rule_detail = frappe.db.get_all(
         "Pricing Rule Detail",
         filters={"parent": name},
         order_by="idx",
@@ -4089,7 +4091,7 @@ def purchase_invoice(name):
     if child_pricing_rule_detail and doc_data:
         response["child_pricing_rule_detail"] = child_pricing_rule_detail
 
-    child_purchase_receipt_item_supplied = frappe.db.get_list(
+    child_purchase_receipt_item_supplied = frappe.db.get_all(
         "Purchase Receipt Item Supplied",
         filters={"parent": name},
         order_by="idx",
@@ -4118,7 +4120,7 @@ def purchase_invoice(name):
             "child_purchase_receipt_item_supplied"
         ] = child_purchase_receipt_item_supplied
     """
-    child_purchase_taxes_and_charges = frappe.db.get_list(
+    child_purchase_taxes_and_charges = frappe.db.get_all(
         "Purchase Taxes and Charges",
         filters={"parent": name},
         order_by="idx",
@@ -4147,7 +4149,7 @@ def purchase_invoice(name):
     if child_purchase_taxes_and_charges and doc_data:
         response["child_purchase_taxes_and_charges"] = child_purchase_taxes_and_charges
     """
-    child_purchase_invice_advance = frappe.db.get_list(
+    child_purchase_invice_advance = frappe.db.get_all(
         "Purchase Invoice Advance",
         filters={"parent": name},
         order_by="idx",
@@ -4167,7 +4169,7 @@ def purchase_invoice(name):
     if child_purchase_invice_advance and doc_data:
         response["child_purchase_invice_advance"] = child_purchase_invice_advance
 
-    child_advance_tax = frappe.db.get_list(
+    child_advance_tax = frappe.db.get_all(
         "Advance Tax",
         filters={"parent": name},
         order_by="idx",
@@ -4184,7 +4186,7 @@ def purchase_invoice(name):
     if child_advance_tax and doc_data:
         response["child_advance_tax"] = child_advance_tax
     """
-    child_payment_schedule = frappe.db.get_list(
+    child_payment_schedule = frappe.db.get_all(
         "Payment Schedule",
         filters={"parent": name},
         order_by="idx",
@@ -4210,7 +4212,7 @@ def purchase_invoice(name):
     if child_payment_schedule and doc_data:
         response["payment_schedule"] = child_payment_schedule
 
-    # child_payment_schedule = frappe.db.get_list(
+    # child_payment_schedule = frappe.db.get_all(
     #     "Payment Schedule",
     #     filters={"parent": name},
     #     order_by="idx",
@@ -4235,7 +4237,7 @@ def purchase_invoice(name):
     #     response["payment_schedule"]: child_payment_schedule
 
     # Connections
-    payment_entire_connection = frappe.db.get_list(
+    payment_entire_connection = frappe.db.get_all(
         "Payment Entry Reference",
         filters={"reference_name": name},
         fields=["parent"],
@@ -4244,7 +4246,7 @@ def purchase_invoice(name):
     count_payment_entries = len(payment_entire_connection)
     payment_entries = {}
 
-    purchase_invoice = frappe.db.get_list(
+    purchase_invoice = frappe.db.get_all(
         "Purchase Invoice",
         filters={"return_against": name},
     )
@@ -4252,19 +4254,19 @@ def purchase_invoice(name):
     count_purchase_invoice = len(purchase_invoice)
     purchase_invoices = {}
 
-    con_purchase_order = frappe.db.get_list(
+    con_purchase_order = frappe.db.get_all(
         "Purchase Invoice Item",
         filters={"parent": name},
     )
     count_purchase_order = len(con_purchase_order)
     purchase_orders = {}
 
-    # con_payment_requests = frappe.db.get_list(
+    # con_payment_requests = frappe.db.get_all(
     #      "Payment Request",
     #      filters={"reference_name": name},)
     # count_payment_requests = len(con_payment_requests)
     # payment_requests = {}
-    # get_current_purchase_order_items = frappe.db.get_list(
+    # get_current_purchase_order_items = frappe.db.get_all(
     #     "Purchase Order Item",
     #     filters={"parent": name},
     #     fields=[
@@ -4273,7 +4275,7 @@ def purchase_invoice(name):
     # )
     # count_current_purchase_order_items = len(get_current_purchase_order_items)
     # material_requests = {}
-    # get_supplier_quotations = frappe.db.get_list(
+    # get_supplier_quotations = frappe.db.get_all(
     #     "Purchase Order Item",
     #     filters={"parent": name},
     #     fields=[
@@ -4282,7 +4284,7 @@ def purchase_invoice(name):
     # )
     # count_get_supplier_quotations = len(get_supplier_quotations)
     # supplier_quotation = {}
-    # purchase_order_item = frappe.db.get_list("Purchase Order Item", filters={"material_request":})
+    # purchase_order_item = frappe.db.get_all("Purchase Order Item", filters={"material_request":})
     connections = []
     if count_purchase_order > 0 and doc_data:
         purchase_orders["name"] = "Purchase Order"
@@ -4331,7 +4333,7 @@ def purchase_invoice(name):
 @frappe.whitelist(allow_guest=True)
 def get_price_list(name):
     if str(name).lower() in ["buying", "buy", "1"]:
-        return frappe.db.get_list(
+        return frappe.db.get_all(
             "Price List",
             filters={"buying": 1},
             fields=[
@@ -4340,7 +4342,7 @@ def get_price_list(name):
             ],
         )
     elif str(name).lower() in ["selling", "sell", "0"]:
-        return frappe.db.get_list(
+        return frappe.db.get_all(
             "Price List",
             filters={"selling": 1},
             fields=[
@@ -4356,7 +4358,7 @@ def get_price_list(name):
 @frappe.whitelist(allow_guest=True)
 def material_request(name):
     response = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Material Request",
         filters={"name": name},
         fields=[
@@ -4415,7 +4417,7 @@ def material_request(name):
     # dssss
     response["comments"] = comments
 
-    material_request_item = frappe.db.get_list(
+    material_request_item = frappe.db.get_all(
         "Material Request Item",
         filters={"parent": name},
         order_by="idx",
@@ -4459,28 +4461,28 @@ def material_request(name):
     pf_standard["name"] = "Standard"
     print_formats.append(pf_standard)
 
-    con_material_request = frappe.db.get_list(
+    con_material_request = frappe.db.get_all(
         "Supplier Quotation Item",
         filters={"material_request": name},
     )
     count_material_request = len(con_material_request)
     supplier_quotation = {}
 
-    con_purchase_order = frappe.db.get_list(
+    con_purchase_order = frappe.db.get_all(
         "Purchase Order Item",
         filters={"material_request": name},
     )
     count_purchase_order = len(con_purchase_order)
     purchase_order = {}
 
-    con_purchase_receipt = frappe.db.get_list(
+    con_purchase_receipt = frappe.db.get_all(
         "Purchase Receipt Item",
         filters={"material_request": name},
     )
     count_purchase_receipt = len(con_purchase_receipt)
     purchase_receipt = {}
 
-    con_stock_entry = frappe.db.get_list(
+    con_stock_entry = frappe.db.get_all(
         "Stock Entry Detail",
         filters={"material_request": name},
     )
@@ -4527,7 +4529,7 @@ def material_request(name):
 @frappe.whitelist(allow_guest=True)
 def leave_application(name):
     response = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Leave Application",
         filters={"name": name},
         fields=[
@@ -4616,7 +4618,7 @@ def leave_application(name):
 @frappe.whitelist(allow_guest=True)
 def employee_checkin(name):
     response = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Employee Checkin",
         filters={"name": name},
         fields=[
@@ -4691,7 +4693,7 @@ def employee_checkin(name):
 @frappe.whitelist(allow_guest=True)
 def employee(name):
     response = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Employee",
         filters={"name": name},
         fields=[
@@ -4804,7 +4806,7 @@ def employee(name):
     pf_standard["name"] = "Standard"
     print_formats.append(pf_standard)
 
-    con_attendance_request = frappe.db.get_list(
+    con_attendance_request = frappe.db.get_all(
         "Attendance Request",
         filters={"employee": name},
     )
@@ -4821,7 +4823,7 @@ def employee(name):
         ] = "https://erpcloud.systems/files/attendance_request.png"
         connections.append(attendance_request)
 
-    con_leave_application = frappe.db.get_list(
+    con_leave_application = frappe.db.get_all(
         "Leave Application",
         filters={"employee": name},
     )
@@ -4836,7 +4838,7 @@ def employee(name):
         ] = "https://erpcloud.systems/files/leave_application.png"
         connections.append(leave_application)
 
-    con_employee_advance = frappe.db.get_list(
+    con_employee_advance = frappe.db.get_all(
         "Employee Advance",
         filters={"employee": name},
     )
@@ -4849,7 +4851,7 @@ def employee(name):
         employee_advance["icon"] = "https://erpcloud.systems/files/employee_advance.png"
         connections.append(employee_advance)
 
-    con_expense_claim = frappe.db.get_list("Expense Claim", filters={"employee": name})
+    con_expense_claim = frappe.db.get_all("Expense Claim", filters={"employee": name})
     count_con_expense_claim = len(con_expense_claim)
     expense_claim = {}
 
@@ -4859,7 +4861,7 @@ def employee(name):
         expense_claim["icon"] = "https://erpcloud.systems/files/expense_claim.png"
         connections.append(expense_claim)
 
-    con_employee_grievance = frappe.db.get_list(
+    con_employee_grievance = frappe.db.get_all(
         "Employee Grievance", filters={"raised_by": name}
     )
     count_con_employee_grievance = len(con_employee_grievance)
@@ -4884,7 +4886,7 @@ def employee(name):
 @frappe.whitelist(allow_guest=True)
 def attendance_request(name):
     response = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Attendance Request",
         filters={"name": name},
         fields=[
@@ -4961,7 +4963,7 @@ def attendance_request(name):
 @frappe.whitelist(allow_guest=True)
 def employee_advance(name):
     response = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Employee Advance",
         filters={"name": name},
         fields=[
@@ -5047,7 +5049,7 @@ def employee_advance(name):
     print_formats.append(pf_standard)
 
     connections = []
-    payment_entry_reference = frappe.db.get_list(
+    payment_entry_reference = frappe.db.get_all(
         "Payment Entry Reference", filters={"reference_name": name}
     )
     count_payment_entry_reference = len(payment_entry_reference)
@@ -5059,7 +5061,7 @@ def employee_advance(name):
         entry_reference["icon"] = "https://erpcloud.systems/files/payment_entry.png"
         connections.append(entry_reference)
 
-    con_expense_claim = frappe.db.get_list(
+    con_expense_claim = frappe.db.get_all(
         "Expense Claim Advance", filters={"employee_advance": name}
     )
     count_con_expense_claim = len(con_expense_claim)
@@ -5095,7 +5097,7 @@ def get_pending_amount(employee, posting_date):
 @frappe.whitelist(allow_guest=True)
 def expense_claim(name):
     response = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Expense Claim",
         filters={"name": name},
         fields=[
@@ -5180,7 +5182,7 @@ def expense_claim(name):
         ),
         as_dict=1,
     )
-    # expense_taxes_and_charges = frappe.db.get_list(
+    # expense_taxes_and_charges = frappe.db.get_all(
     #     "Expense Taxes And Charges",
     #     filters={"parent": name},
     #     order_by="idx",
@@ -5198,7 +5200,7 @@ def expense_claim(name):
 
     if expense_taxes_and_charges and doc_data:
         response["taxes"] = expense_taxes_and_charges
-    expense_claim_detail = frappe.db.get_list(
+    expense_claim_detail = frappe.db.get_all(
         "Expense Claim Detail",
         filters={"parent": name},
         order_by="idx",
@@ -5218,7 +5220,7 @@ def expense_claim(name):
     if expense_claim_detail and doc_data:
         response["expenses"] = expense_claim_detail
 
-        # expense_taxes_and_charges = frappe.db.get_list(
+        # expense_taxes_and_charges = frappe.db.get_all(
         #     "Expense Taxes And Charges",
         #     filters={"parent": name},
         #     order_by="idx",
@@ -5237,7 +5239,7 @@ def expense_claim(name):
         # if expense_taxes_and_charges and doc_data:
         #     response["taxes"] = expense_taxes_and_charges
 
-        expense_claim_advance = frappe.db.get_list(
+        expense_claim_advance = frappe.db.get_all(
             "Expense Claim Advance",
             filters={"parent": name},
             order_by="idx",
@@ -5265,7 +5267,7 @@ def expense_claim(name):
     print_formats.append(pf_standard)
 
     connections = []
-    payment_entry_reference = frappe.db.get_list(
+    payment_entry_reference = frappe.db.get_all(
         "Payment Entry Reference", filters={"reference_name": name}
     )
     count_payment_entry_reference = len(payment_entry_reference)
@@ -5277,7 +5279,7 @@ def expense_claim(name):
         entry_reference["icon"] = "https://erpcloud.systems/files/payment_entry.png"
         connections.append(entry_reference)
 
-    con_employee_advance = frappe.db.get_list(
+    con_employee_advance = frappe.db.get_all(
         "Expense Claim Advance",
         filters={"employee_advance": ["!=", "null"], "parent": name},
     )
@@ -5300,7 +5302,7 @@ def expense_claim(name):
 @frappe.whitelist(allow_guest=True)
 def loan_application(name):
     response = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Loan Application",
         filters={"name": name},
         fields=[
@@ -5372,7 +5374,7 @@ def loan_application(name):
     )
     # dssss
     response["comments"] = comments
-    proposed_pledge = frappe.db.get_list(
+    proposed_pledge = frappe.db.get_all(
         "Proposed Pledge",
         filters={"parent": name},
         order_by="idx",
@@ -5436,7 +5438,7 @@ def address_query(link_doctype, link_name):
 @frappe.whitelist()
 def address(name):
     response = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Address",
         filters={"name": name},
         fields=[
@@ -5492,7 +5494,7 @@ def address(name):
     )
     # dssss
     response["comments"] = comments
-    dynamic_link = frappe.db.get_list(
+    dynamic_link = frappe.db.get_all(
         "Dynamic Link",
         filters={"parent": name},
         order_by="idx",
@@ -5525,7 +5527,7 @@ def address(name):
 @frappe.whitelist()
 def contact(name):
     response = {}
-    doc_data = frappe.db.get_list(
+    doc_data = frappe.db.get_all(
         "Contact",
         filters={"name": name},
         fields=[
@@ -5576,7 +5578,7 @@ def contact(name):
     # dssss
     response["comments"] = comments
 
-    email_ids = frappe.db.get_list(
+    email_ids = frappe.db.get_all(
         "Contact Email",
         filters={"parent": name},
         order_by="idx",
@@ -5591,7 +5593,7 @@ def contact(name):
     if email_ids and doc_data:
         response["email_ids"] = email_ids
 
-    phone_nos = frappe.db.get_list(
+    phone_nos = frappe.db.get_all(
         "Contact Phone",
         filters={"parent": name},
         order_by="idx",
@@ -5607,7 +5609,7 @@ def contact(name):
     if phone_nos and doc_data:
         response["phone_nos"] = phone_nos
 
-    links = frappe.db.get_list(
+    links = frappe.db.get_all(
         "Dynamic Link",
         filters={"parent": name},
         order_by="idx",

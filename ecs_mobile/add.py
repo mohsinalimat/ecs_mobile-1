@@ -11,7 +11,6 @@ import requests
 @frappe.whitelist(allow_guest=True)
 def lead(**kwargs):
     lead = frappe.get_doc(kwargs["data"])
-
     lead.insert()
     lead_name = lead.name
     frappe.db.commit()
@@ -67,6 +66,7 @@ def customer(**kwargs):
 
     customer = frappe.new_doc("Customer")
     customer.customer_name = kwargs["data"].get("customer_name", None)
+    customer.lead_name = kwargs["data"].get("lead_name", None)
     customer.customer_type = kwargs["data"].get("customer_type", None)
     customer.customer_group = kwargs["data"].get("customer_group", None)
     customer.territory = kwargs["data"].get("territory", None)
