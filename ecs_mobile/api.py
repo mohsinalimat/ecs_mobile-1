@@ -133,16 +133,14 @@ def login(usr, pwd, url):
                 )
                 docs = {}
                 for x in allowed_documents:
-                    if x.docq == "Sales Invoice":
-                        docs["Sales Invoice"] = "https://erpcloud.systems/files/sales_invoice.png"
-                    if x.docq == "Purchase Invoice":
-                        docs[
-                            "Purchase Invoice"
-                        ] = "https://erpcloud.systems/files/purchase_invoice.png"
                     if x.docq == "Payment Entry":
                         docs["Payment Entry"] = "https://erpcloud.systems/files/payment_entry.png"
                     if x.docq == "Journal Entry":
                         docs["Journal Entry"] = "https://erpcloud.systems/files/journal_entry.png"
+                    if x.docq == "Sales Invoice":
+                        docs["Sales Invoice"] = "https://erpcloud.systems/files/sales_invoice.png"
+                    if x.docq == "Purchase Invoice":
+                        docs["Purchase Invoice"] = "https://erpcloud.systems/files/purchase_invoice.png"
 
                 Accounts["docs"] = docs
                 modules.append(Accounts)
@@ -163,21 +161,22 @@ def login(usr, pwd, url):
                         docs["Lead"] = "https://erpcloud.systems/files/lead.png"
                     if x.docq == "Opportunity":
                         docs["Opportunity"] = "https://erpcloud.systems/files/opportunity.png"
-                    if x.docq == "Quotation":
-                        docs["Quotation"] = "https://erpcloud.systems/files/quotation.png"
-                    if x.docq == "Sales Order":
-                        docs["Sales Order"] = "https://erpcloud.systems/files/sales_order.png"
                     if x.docq == "Customer":
                         docs["Customer"] = "https://erpcloud.systems/files/customer.png"
-
                     if x.docq == "Customer Visit":
-                        docs[
-                            "Customer Visit"
-                        ] = "https://erpcloud.systems/files/customer_visit.png"
+                        docs["Customer Visit"] = "https://erpcloud.systems/files/customer_visit.png"
                     if x.docq == "Address":
                         docs["Address"] = "https://erpcloud.systems/files/address.png"
                     if x.docq == "Contact":
                         docs["Contact"] = "https://erpcloud.systems/files/contact.png"
+                    if x.docq == "Quotation":
+                        docs["Quotation"] = "https://erpcloud.systems/files/quotation.png"
+                    if x.docq == "Sales Order":
+                        docs["Sales Order"] = "https://erpcloud.systems/files/sales_order.png"
+                    if x.docq == "Sales Invoice":
+                        docs["Sales Invoice"] = "https://erpcloud.systems/files/sales_invoice.png"
+                    if x.docq == "Payment Entry":
+                        docs["Payment Entry"] = "https://erpcloud.systems/files/payment_entry.png"
 
                 Selling["docs"] = docs
                 modules.append(Selling)
@@ -198,17 +197,13 @@ def login(usr, pwd, url):
                     if x.docq == "Supplier":
                         docs["Supplier"] = "https://erpcloud.systems/files/supplier.png"
                     if x.docq == "Supplier Quotation":
-                        docs[
-                            "Supplier Quotation"
-                        ] = "https://erpcloud.systems/files/supplier_quotation.png"
+                        docs["Supplier Quotation"] = "https://erpcloud.systems/files/supplier_quotation.png"
                     if x.docq == "Purchase Order":
-                        docs[
-                            "Purchase Order"
-                        ] = "https://erpcloud.systems/files/purchase_order.png"
+                        docs["Purchase Order"] = "https://erpcloud.systems/files/purchase_order.png"
                     if x.docq == "Purchase Invoice":
-                        docs[
-                            "Purchase Invoice"
-                        ] = "https://erpcloud.systems/files/purchase_invoice.png"
+                        docs["Purchase Invoice"] = "https://erpcloud.systems/files/purchase_invoice.png"
+                    if x.docq == "Payment Entry":
+                        docs["Payment Entry"] = "https://erpcloud.systems/files/payment_entry.png"
 
                 Buying["docs"] = docs
                 modules.append(Buying)
@@ -229,13 +224,9 @@ def login(usr, pwd, url):
                     if x.docq == "Item":
                         docs["Item"] = "https://erpcloud.systems/files/item.png"
                     if x.docq == "Material Request":
-                        docs[
-                            "Material Request"
-                        ] = "https://erpcloud.systems/files/material_request.png"
+                        docs["Material Request"] = "https://erpcloud.systems/files/material_request.png"
                     if x.docq == "Purchase Order":
-                        docs[
-                            "Purchase Receipt"
-                        ] = "https://erpcloud.systems/files/purchase_receipt.png"
+                        docs["Purchase Receipt"] = "https://erpcloud.systems/files/purchase_receipt.png"
                     if x.docq == "Stock Entry":
                         docs["Stock Entry"] = "https://erpcloud.systems/files/stock_entry.png"
                     if x.docq == "Delivery Note":
@@ -260,34 +251,22 @@ def login(usr, pwd, url):
                     if x.docq == "Employee":
                         docs["Employee"] = "https://erpcloud.systems/files/hr.png"
                     if x.docq == "Leave Application":
-                        docs[
-                            "Leave Application"
-                        ] = "https://erpcloud.systems/files/leave_application.png"
+                        docs["Leave Application"] = "https://erpcloud.systems/files/leave_application.png"
                     if x.docq == "Employee Checkin":
-                        docs[
-                            "Employee Checkin"
-                        ] = "https://erpcloud.systems/files/employee_checkin.png"
+                        docs["Employee Checkin"] = "https://erpcloud.systems/files/employee_checkin.png"
                     if x.docq == "Attendance Request":
-                        docs[
-                            "Attendance Request"
-                        ] = "https://erpcloud.systems/files/attendance_request.png"
+                        docs["Attendance Request"] = "https://erpcloud.systems/files/attendance_request.png"
                     if x.docq == "Employee Advance":
-                        docs[
-                            "Employee Advance"
-                        ] = "https://erpcloud.systems/files/employee_advance.png"
+                        docs["Employee Advance"] = "https://erpcloud.systems/files/employee_advance.png"
                     if x.docq == "Expense Claim":
                         docs["Expense Claim"] = "https://erpcloud.systems/files/expense_claim.png"
                     if x.docq == "Loan Application":
-                        docs[
-                            "Loan Application"
-                        ] = "https://erpcloud.systems/files/loan_application.png"
-                    if x.docq == "Employee Grievance":
-                        docs[
-                            "Employee Grievance"
-                        ] = "https://erpcloud.systems/files/employee_grievance.png"
+                        docs["Loan Application"] = "https://erpcloud.systems/files/loan_application.png"
 
                 HR["docs"] = docs
                 modules.append(HR)
+
+                
         default_tax = frappe.db.get_all(
             "Sales Taxes and Charges Template",
             filters={
