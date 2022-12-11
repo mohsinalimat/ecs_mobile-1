@@ -2153,6 +2153,7 @@ def stock_entry(name):
             "project",
             "actual_qty",
             "transferred_qty",
+            "basic_rate",
         ],
     )
 

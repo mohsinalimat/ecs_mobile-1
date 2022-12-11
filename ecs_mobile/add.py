@@ -46,7 +46,6 @@ def opportunity(**kwargs):
 @frappe.whitelist(allow_guest=True)
 def quotation(**kwargs):
     quotation = frappe.get_doc(kwargs["data"])
-
     quotation.insert()
     quotation_name = quotation.name
     frappe.db.commit()
@@ -63,7 +62,6 @@ def quotation(**kwargs):
 
 @frappe.whitelist(allow_guest=True)
 def customer(**kwargs):
-
     customer = frappe.new_doc("Customer")
     customer.customer_name = kwargs["data"].get("customer_name", None)
     customer.lead_name = kwargs["data"].get("lead_name", None)
@@ -294,27 +292,8 @@ def item(**kwargs):
 
 
 @frappe.whitelist(allow_guest=True)
-def material_request(**kwargs):
-    material_request = frappe.get_doc(kwargs["data"])
-
-    material_request.insert()
-    material_request_name = material_request.name
-    frappe.db.commit()
-    if material_request_name:
-        message = frappe.response["message"] = {
-            "success_key": True,
-            "message": "تم اضافة المعاملة بنجاح!",
-            "material_request": material_request_name,
-        }
-        return message
-    else:
-        return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
-
-
-@frappe.whitelist(allow_guest=True)
 def stock_entry(**kwargs):
     stock_entry = frappe.get_doc(kwargs["data"])
-
     stock_entry.insert()
     stock_entry_name = stock_entry.name
     frappe.db.commit()
@@ -333,7 +312,6 @@ def stock_entry(**kwargs):
 @frappe.whitelist(allow_guest=True)
 def delivery_note(**kwargs):
     delivery_note = frappe.get_doc(kwargs["data"])
-
     delivery_note.insert()
     delivery_note_name = delivery_note.name
     frappe.db.commit()
@@ -351,7 +329,6 @@ def delivery_note(**kwargs):
 @frappe.whitelist(allow_guest=True)
 def purchase_receipt(**kwargs):
     purchase_receipt = frappe.get_doc(kwargs["data"])
-
     purchase_receipt.insert()
     purchase_receipt_name = purchase_receipt.name
     frappe.db.commit()
@@ -613,7 +590,6 @@ def supplier_quotation(**kwargs):
 @frappe.whitelist(allow_guest=True)
 def purchase_order(**kwargs):
     p_order = frappe.get_doc(kwargs["data"])
-
     p_order.insert()
     purchase_order_name = p_order.name
     frappe.db.commit()
@@ -667,7 +643,6 @@ def purchsae_receipt(**kwargs):
 @frappe.whitelist(allow_guest=True)
 def material_request(**kwargs):
     material_request_data = frappe.get_doc(kwargs["data"])
-
     material_request_data.insert()
     material_request_data_name = material_request_data.name
     frappe.db.commit()
