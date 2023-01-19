@@ -97,228 +97,228 @@ def login(usr, pwd, url):
             login_manager.authenticate(user=usr, pwd=pwd)
             login_manager.post_login()
 
+
+            api_generate = generate_keys(frappe.session.user)
+            user = frappe.get_doc("User", frappe.session.user)
+
+            allowed_modules = frappe.db.sql(
+                """ select `tabMobile user Modules`.modules as modq 
+            from `tabMobile user Modules` join `tabMobile User` on `tabMobile user Modules`.parent = `tabMobile User`.name 
+            where `tabMobile User`.user = '{user}' or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' order by `tabMobile user Modules`.idx """.format(
+                    user=usr
+                ),
+                as_dict=1,
+            )
+
+            modules = []
+
+            for module in allowed_modules:
+                if module.modq == "Accounts":
+                    Accounts = {}
+
+                    Accounts["Accounts"] = "https://erpcloud.systems/files/accounts.png"
+                    allowed_documents = frappe.db.sql(
+                        """ select `tabMobile User Documents`.document_name as docq 
+                                                from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
+                                                where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' and `tabMobile User Documents`.modules ='selling' order by `tabMobile User Documents`.idx  """.format(
+                            user=usr
+                        ),
+                        as_dict=1,
+                    )
+                    docs = {}
+                    for x in allowed_documents:
+                        if x.docq == "Payment Entry":
+                            docs["Payment Entry"] = "https://erpcloud.systems/files/payment_entry.png"
+                        if x.docq == "Journal Entry":
+                            docs["Journal Entry"] = "https://erpcloud.systems/files/journal_entry.png"
+                        if x.docq == "Sales Invoice":
+                            docs["Sales Invoice"] = "https://erpcloud.systems/files/sales_invoice.png"
+                        if x.docq == "Purchase Invoice":
+                            docs["Purchase Invoice"] = "https://erpcloud.systems/files/purchase_invoice.png"
+
+                    Accounts["docs"] = docs
+                    modules.append(Accounts)
+                if module.modq == "Selling":
+                    Selling = {}
+                    Selling["Selling"] = "https://erpcloud.systems/files/selling.png"
+                    allowed_documents = frappe.db.sql(
+                        """ select `tabMobile User Documents`.document_name as docq 
+                                                from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
+                                                where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' and `tabMobile User Documents`.modules ='selling' order by `tabMobile User Documents`.idx  """.format(
+                            user=usr
+                        ),
+                        as_dict=1,
+                    )
+                    docs = {}
+                    for x in allowed_documents:
+                        if x.docq == "Lead":
+                            docs["Lead"] = "https://erpcloud.systems/files/lead.png"
+                        if x.docq == "Opportunity":
+                            docs["Opportunity"] = "https://erpcloud.systems/files/opportunity.png"
+                        if x.docq == "Customer":
+                            docs["Customer"] = "https://erpcloud.systems/files/customer.png"
+                        if x.docq == "Customer Visit":
+                            docs["Customer Visit"] = "https://erpcloud.systems/files/customer_visit.png"
+                        if x.docq == "Address":
+                            docs["Address"] = "https://erpcloud.systems/files/address.png"
+                        if x.docq == "Contact":
+                            docs["Contact"] = "https://erpcloud.systems/files/contact.png"
+                        if x.docq == "Quotation":
+                            docs["Quotation"] = "https://erpcloud.systems/files/quotation.png"
+                        if x.docq == "Sales Order":
+                            docs["Sales Order"] = "https://erpcloud.systems/files/sales_order.png"
+                        if x.docq == "Sales Invoice":
+                            docs["Sales Invoice"] = "https://erpcloud.systems/files/sales_invoice.png"
+                        if x.docq == "Payment Entry":
+                            docs["Payment Entry"] = "https://erpcloud.systems/files/payment_entry.png"
+
+                    Selling["docs"] = docs
+                    modules.append(Selling)
+
+                if module.modq == "Buying":
+                    Buying = {}
+                    Buying["Buying"] = "https://erpcloud.systems/files/buying.png"
+                    allowed_documents = frappe.db.sql(
+                        """ select `tabMobile User Documents`.document_name as docq 
+                                                from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
+                                                where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' and `tabMobile User Documents`.modules ='buying' order by `tabMobile User Documents`.idx  """.format(
+                            user=usr
+                        ),
+                        as_dict=1,
+                    )
+                    docs = {}
+                    for x in allowed_documents:
+                        if x.docq == "Supplier":
+                            docs["Supplier"] = "https://erpcloud.systems/files/supplier.png"
+                        if x.docq == "Supplier Quotation":
+                            docs["Supplier Quotation"] = "https://erpcloud.systems/files/supplier_quotation.png"
+                        if x.docq == "Purchase Order":
+                            docs["Purchase Order"] = "https://erpcloud.systems/files/purchase_order.png"
+                        if x.docq == "Purchase Invoice":
+                            docs["Purchase Invoice"] = "https://erpcloud.systems/files/purchase_invoice.png"
+                        if x.docq == "Payment Entry":
+                            docs["Payment Entry"] = "https://erpcloud.systems/files/payment_entry.png"
+
+                    Buying["docs"] = docs
+                    modules.append(Buying)
+
+                if module.modq == "Stock":
+                    Stock = {}
+                    Stock["Stock"] = "https://erpcloud.systems/files/stock.png"
+                    allowed_documents = frappe.db.sql(
+                        """ select `tabMobile User Documents`.document_name as docq 
+                                                from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
+                                                where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' and `tabMobile User Documents`.modules ='stock' order by `tabMobile User Documents`.idx  """.format(
+                            user=usr
+                        ),
+                        as_dict=1,
+                    )
+                    docs = {}
+                    for x in allowed_documents:
+                        if x.docq == "Item":
+                            docs["Item"] = "https://erpcloud.systems/files/item.png"
+                        if x.docq == "Material Request":
+                            docs["Material Request"] = "https://erpcloud.systems/files/material_request.png"
+                        if x.docq == "Purchase Order":
+                            docs["Purchase Receipt"] = "https://erpcloud.systems/files/purchase_receipt.png"
+                        if x.docq == "Stock Entry":
+                            docs["Stock Entry"] = "https://erpcloud.systems/files/stock_entry.png"
+                        if x.docq == "Delivery Note":
+                            docs["Delivery Note"] = "https://erpcloud.systems/files/delivery_note.png"
+
+                    Stock["docs"] = docs
+                    modules.append(Stock)
+
+                if module.modq == "HR":
+                    HR = {}
+                    HR["HR"] = "https://erpcloud.systems/files/hr.png"
+                    allowed_documents = frappe.db.sql(
+                        """ select `tabMobile User Documents`.document_name as docq 
+                                                from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
+                                                where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' and `tabMobile User Documents`.modules ='hr' order by `tabMobile User Documents`.idx  """.format(
+                            user=usr
+                        ),
+                        as_dict=1,
+                    )
+                    docs = {}
+                    for x in allowed_documents:
+                        if x.docq == "Employee":
+                            docs["Employee"] = "https://erpcloud.systems/files/hr.png"
+                        if x.docq == "Leave Application":
+                            docs["Leave Application"] = "https://erpcloud.systems/files/leave_application.png"
+                        if x.docq == "Employee Checkin":
+                            docs["Employee Checkin"] = "https://erpcloud.systems/files/employee_checkin.png"
+                        if x.docq == "Attendance Request":
+                            docs["Attendance Request"] = "https://erpcloud.systems/files/attendance_request.png"
+                        if x.docq == "Employee Advance":
+                            docs["Employee Advance"] = "https://erpcloud.systems/files/employee_advance.png"
+                        if x.docq == "Expense Claim":
+                            docs["Expense Claim"] = "https://erpcloud.systems/files/expense_claim.png"
+                        if x.docq == "Loan Application":
+                            docs["Loan Application"] = "https://erpcloud.systems/files/loan_application.png"
+
+                    HR["docs"] = docs
+                    modules.append(HR)
+
+                    
+            default_tax = frappe.db.get_all(
+                "Sales Taxes and Charges Template",
+                filters={
+                    "is_default": 1,
+                },
+                fields=[
+                    "name",
+                ],
+            )
+
+            taxes = frappe.db.get_all(
+                "Sales Taxes and Charges",
+                filters={
+                    "parent": default_tax[0]["name"],
+                },
+                fields=[
+                    "charge_type",
+                    "description",
+                    "account_head",
+                ],
+            )
+            company = frappe.db.get_all(
+                "Company",
+                fields=[
+                    "name",
+                    "default_currency",
+                    "country",
+                    "default_selling_terms",
+                    "default_buying_terms",
+                ],
+            )
+            doc_perm = frappe.db.get_all("Custom DocPerm")
+            user_role = frappe.get_roles(frappe.session.user)
+            user_permissions = frappe.defaults.get_user_permissions(str(frappe.session.user))
+            mobile_settings = frappe.get_doc("Mobile Settings")
+            frappe.response["message"] = {
+                "success_key": True,
+                "domain_status": y["message"],
+                "message": "Authentication Success",
+                "sid": frappe.session.sid,
+                "api_key": user.api_key,
+                "api_secret": api_generate,
+                "email": user.email,
+                "modules": modules,
+                "user_type": user.role_profile_name,
+                "user_role": user_role,
+                "mobile_settings": mobile_settings,
+                "user_permissions": doc_perm,
+                "default_tax_template": taxes,
+                "company_defaults": company,
+            }
+
         except frappe.exceptions.AuthenticationError:
             frappe.clear_messages()
             frappe.local.response["message"] = {
-                "success_key": True,
+                "success_key": False,
                 "message": "اسم المستخدم او كلمة المرور غير صحيحة !",
             }
-
-        api_generate = generate_keys(frappe.session.user)
-        user = frappe.get_doc("User", frappe.session.user)
-
-        allowed_modules = frappe.db.sql(
-            """ select `tabMobile user Modules`.modules as modq 
-        from `tabMobile user Modules` join `tabMobile User` on `tabMobile user Modules`.parent = `tabMobile User`.name 
-        where `tabMobile User`.user = '{user}' or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' order by `tabMobile user Modules`.idx """.format(
-                user=usr
-            ),
-            as_dict=1,
-        )
-
-        modules = []
-
-        for module in allowed_modules:
-            if module.modq == "Accounts":
-                Accounts = {}
-
-                Accounts["Accounts"] = "https://erpcloud.systems/files/accounts.png"
-                allowed_documents = frappe.db.sql(
-                    """ select `tabMobile User Documents`.document_name as docq 
-                                            from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
-                                            where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' and `tabMobile User Documents`.modules ='selling' order by `tabMobile User Documents`.idx  """.format(
-                        user=usr
-                    ),
-                    as_dict=1,
-                )
-                docs = {}
-                for x in allowed_documents:
-                    if x.docq == "Payment Entry":
-                        docs["Payment Entry"] = "https://erpcloud.systems/files/payment_entry.png"
-                    if x.docq == "Journal Entry":
-                        docs["Journal Entry"] = "https://erpcloud.systems/files/journal_entry.png"
-                    if x.docq == "Sales Invoice":
-                        docs["Sales Invoice"] = "https://erpcloud.systems/files/sales_invoice.png"
-                    if x.docq == "Purchase Invoice":
-                        docs["Purchase Invoice"] = "https://erpcloud.systems/files/purchase_invoice.png"
-
-                Accounts["docs"] = docs
-                modules.append(Accounts)
-            if module.modq == "Selling":
-                Selling = {}
-                Selling["Selling"] = "https://erpcloud.systems/files/selling.png"
-                allowed_documents = frappe.db.sql(
-                    """ select `tabMobile User Documents`.document_name as docq 
-                                            from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
-                                            where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' and `tabMobile User Documents`.modules ='selling' order by `tabMobile User Documents`.idx  """.format(
-                        user=usr
-                    ),
-                    as_dict=1,
-                )
-                docs = {}
-                for x in allowed_documents:
-                    if x.docq == "Lead":
-                        docs["Lead"] = "https://erpcloud.systems/files/lead.png"
-                    if x.docq == "Opportunity":
-                        docs["Opportunity"] = "https://erpcloud.systems/files/opportunity.png"
-                    if x.docq == "Customer":
-                        docs["Customer"] = "https://erpcloud.systems/files/customer.png"
-                    if x.docq == "Customer Visit":
-                        docs["Customer Visit"] = "https://erpcloud.systems/files/customer_visit.png"
-                    if x.docq == "Address":
-                        docs["Address"] = "https://erpcloud.systems/files/address.png"
-                    if x.docq == "Contact":
-                        docs["Contact"] = "https://erpcloud.systems/files/contact.png"
-                    if x.docq == "Quotation":
-                        docs["Quotation"] = "https://erpcloud.systems/files/quotation.png"
-                    if x.docq == "Sales Order":
-                        docs["Sales Order"] = "https://erpcloud.systems/files/sales_order.png"
-                    if x.docq == "Sales Invoice":
-                        docs["Sales Invoice"] = "https://erpcloud.systems/files/sales_invoice.png"
-                    if x.docq == "Payment Entry":
-                        docs["Payment Entry"] = "https://erpcloud.systems/files/payment_entry.png"
-
-                Selling["docs"] = docs
-                modules.append(Selling)
-
-            if module.modq == "Buying":
-                Buying = {}
-                Buying["Buying"] = "https://erpcloud.systems/files/buying.png"
-                allowed_documents = frappe.db.sql(
-                    """ select `tabMobile User Documents`.document_name as docq 
-                                            from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
-                                            where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' and `tabMobile User Documents`.modules ='buying' order by `tabMobile User Documents`.idx  """.format(
-                        user=usr
-                    ),
-                    as_dict=1,
-                )
-                docs = {}
-                for x in allowed_documents:
-                    if x.docq == "Supplier":
-                        docs["Supplier"] = "https://erpcloud.systems/files/supplier.png"
-                    if x.docq == "Supplier Quotation":
-                        docs["Supplier Quotation"] = "https://erpcloud.systems/files/supplier_quotation.png"
-                    if x.docq == "Purchase Order":
-                        docs["Purchase Order"] = "https://erpcloud.systems/files/purchase_order.png"
-                    if x.docq == "Purchase Invoice":
-                        docs["Purchase Invoice"] = "https://erpcloud.systems/files/purchase_invoice.png"
-                    if x.docq == "Payment Entry":
-                        docs["Payment Entry"] = "https://erpcloud.systems/files/payment_entry.png"
-
-                Buying["docs"] = docs
-                modules.append(Buying)
-
-            if module.modq == "Stock":
-                Stock = {}
-                Stock["Stock"] = "https://erpcloud.systems/files/stock.png"
-                allowed_documents = frappe.db.sql(
-                    """ select `tabMobile User Documents`.document_name as docq 
-                                            from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
-                                            where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' and `tabMobile User Documents`.modules ='stock' order by `tabMobile User Documents`.idx  """.format(
-                        user=usr
-                    ),
-                    as_dict=1,
-                )
-                docs = {}
-                for x in allowed_documents:
-                    if x.docq == "Item":
-                        docs["Item"] = "https://erpcloud.systems/files/item.png"
-                    if x.docq == "Material Request":
-                        docs["Material Request"] = "https://erpcloud.systems/files/material_request.png"
-                    if x.docq == "Purchase Order":
-                        docs["Purchase Receipt"] = "https://erpcloud.systems/files/purchase_receipt.png"
-                    if x.docq == "Stock Entry":
-                        docs["Stock Entry"] = "https://erpcloud.systems/files/stock_entry.png"
-                    if x.docq == "Delivery Note":
-                        docs["Delivery Note"] = "https://erpcloud.systems/files/delivery_note.png"
-
-                Stock["docs"] = docs
-                modules.append(Stock)
-
-            if module.modq == "HR":
-                HR = {}
-                HR["HR"] = "https://erpcloud.systems/files/hr.png"
-                allowed_documents = frappe.db.sql(
-                    """ select `tabMobile User Documents`.document_name as docq 
-                                            from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
-                                            where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' and `tabMobile User Documents`.modules ='hr' order by `tabMobile User Documents`.idx  """.format(
-                        user=usr
-                    ),
-                    as_dict=1,
-                )
-                docs = {}
-                for x in allowed_documents:
-                    if x.docq == "Employee":
-                        docs["Employee"] = "https://erpcloud.systems/files/hr.png"
-                    if x.docq == "Leave Application":
-                        docs["Leave Application"] = "https://erpcloud.systems/files/leave_application.png"
-                    if x.docq == "Employee Checkin":
-                        docs["Employee Checkin"] = "https://erpcloud.systems/files/employee_checkin.png"
-                    if x.docq == "Attendance Request":
-                        docs["Attendance Request"] = "https://erpcloud.systems/files/attendance_request.png"
-                    if x.docq == "Employee Advance":
-                        docs["Employee Advance"] = "https://erpcloud.systems/files/employee_advance.png"
-                    if x.docq == "Expense Claim":
-                        docs["Expense Claim"] = "https://erpcloud.systems/files/expense_claim.png"
-                    if x.docq == "Loan Application":
-                        docs["Loan Application"] = "https://erpcloud.systems/files/loan_application.png"
-
-                HR["docs"] = docs
-                modules.append(HR)
-
-                
-        default_tax = frappe.db.get_all(
-            "Sales Taxes and Charges Template",
-            filters={
-                "is_default": 1,
-            },
-            fields=[
-                "name",
-            ],
-        )
-
-        taxes = frappe.db.get_all(
-            "Sales Taxes and Charges",
-            filters={
-                "parent": default_tax[0]["name"],
-            },
-            fields=[
-                "charge_type",
-                "description",
-                "account_head",
-            ],
-        )
-        company = frappe.db.get_all(
-            "Company",
-            fields=[
-                "name",
-                "default_currency",
-                "country",
-                "default_selling_terms",
-                "default_buying_terms",
-            ],
-        )
-        doc_perm = frappe.db.get_all("Custom DocPerm")
-        user_role = frappe.get_roles(frappe.session.user)
-        user_permissions = frappe.defaults.get_user_permissions(str(frappe.session.user))
-        mobile_settings = frappe.get_doc("Mobile Settings")
-        frappe.response["message"] = {
-            "success_key": True,
-            "domain_status": y["message"],
-            "message": "Authentication Success",
-            "sid": frappe.session.sid,
-            "api_key": user.api_key,
-            "api_secret": api_generate,
-            "email": user.email,
-            "modules": modules,
-            "user_type": user.role_profile_name,
-            "user_role": user_role,
-            "mobile_settings": mobile_settings,
-            "user_permissions": doc_perm,
-            "default_tax_template": taxes,
-            "company_defaults": company,
-        }
-
         return
 
 

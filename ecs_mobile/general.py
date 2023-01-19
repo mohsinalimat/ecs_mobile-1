@@ -3831,5 +3831,88 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
+    ################################# Free Items ########################
+    if doctype == "Free Items" and con_doc == "%%":
+        conditions = {}
+        conditions1 = {}
+        if search_text != "%%":
+            conditions1["name"] = ["like", search_text]
+            conditions1["item_name"] = ["like", search_text]
+            conditions1["item_code"] = ["like", search_text]
+        if filter1 != "%%":
+            conditions["item_group"] = filter1
+        if filter2 != "%%":
+            conditions["brand"] = filter2
+        if filter3 != "%%":
+            conditions["stock_uom"] = filter3
+        query = frappe.db.get_list(
+            "Free Items",
+            or_filters=conditions1,
+            filters=conditions,
+            fields=[
+                "name",
+                "item_code",
+                "item_name",
+                "item_group",
+                "stock_uom as uom",
+                "image",
+            ],
+            order_by="modified desc",
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
 
 
+
+
+@frappe.whitelist()
+def get_user_default_warehouse():
+    user_id = frappe.session.user
+    warehouse = frappe.db.get_all(
+        "User Permission",
+        fields=["for_value"],
+        filters={
+            "user": user_id,
+            "allow": "Warehouse",
+            "is_default": True,
+        }
+    )
+    if warehouse:
+        warehouse = warehouse[0]
+    else:
+        response = frappe.response["message"] = {
+        "error_message": "please set a default warehouse in the user perissions"
+        }
+        return response
+
+
+    response = frappe.response["message"] = {
+        "default_warehouse": warehouse["for_value"]
+    }
+    return response
+
+
+@frappe.whitelist()
+def get_item_uoms(item_code):
+    try:
+        item = frappe.get_doc("Item", item_code)
+        uoms = []
+        for uom in item.uoms:
+            uoms.append(dict(
+                name=uom.name,
+                uom=uom.uom,
+                conversion_factor=uom.conversion_factor
+            ))
+        response = frappe.response["message"] = uoms
+        return response
+
+    except:
+        response = frappe.response["message"] = {
+            "success": False,
+            "error": "Can't found an item with the provided item code"
+        }
+        return response

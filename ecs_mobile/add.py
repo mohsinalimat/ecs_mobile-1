@@ -7,7 +7,7 @@ import json, ast
 from frappe import _
 import requests
 
-
+import frappe
 @frappe.whitelist(allow_guest=True)
 def lead(**kwargs):
     lead = frappe.get_doc(kwargs["data"])
@@ -206,8 +206,9 @@ def sales_order(**kwargs):
 @frappe.whitelist(allow_guest=True)
 def sales_invoice(**kwargs):
     sales_invoice = frappe.get_doc(kwargs["data"])
-
-    sales_invoice.insert()
+    for item in sales_invoice.free_items:
+        item.amount = item.rate*item.qty
+    sales_invoice.insert(ignore_mandatory=True)
     sales_invoice_name = sales_invoice.name
     frappe.db.commit()
     if sales_invoice_name:
@@ -1028,4 +1029,5 @@ def contact(**kwargs):
         return message
     else:
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
+
 

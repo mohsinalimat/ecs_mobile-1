@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "creation": "2021-10-30 10:57:07.092312",
  "doctype": "DocType",
@@ -50,7 +51,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-02-01 10:57:18.022700",
+ "modified": "2022-12-13 12:50:14.165367",
  "modified_by": "Administrator",
  "module": "Ecs Mobile",
  "name": "Mobile User",
@@ -71,6 +72,7 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "user",
  "track_changes": 1
 }

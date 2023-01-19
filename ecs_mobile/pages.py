@@ -1302,6 +1302,8 @@ def sales_invoice(name):
             "longitude",
             "latitude",
             "docstatus",
+            "select",
+            "total_free_items",
         ],
     )
 
@@ -1310,6 +1312,8 @@ def sales_invoice(name):
         sinv["customer"] = x.customer
         sinv["customer_name"] = x.customer_name
         sinv["posting_date"] = x.posting_date
+        sinv["discount_type"] = x.select
+        sinv["total_free_items"] = x.total_free_items
         sinv["due_date"] = x.due_date
         sinv["status"] = x.status
         sinv["is_return"] = x.is_return
@@ -1461,7 +1465,46 @@ def sales_invoice(name):
             "base_payment_amount",
         ],
     )
+    child_data_4 = frappe.db.get_all(
+        "Free Items",
+        filters={"parent": name},
+        fields=[
+            "idx",
+                "name",
+                "item_code",
+                "item_name",
+                "description",
+                "item_group",
+                "brand",
+                "image",
+                "qty",
+                "stock_uom",
+                "uom",
+                "conversion_factor",
+                "stock_qty",
+                "price_list_rate",
+                "base_price_list_rate",
+                "margin_type",
+                "margin_rate_or_amount",
+                "rate_with_margin",
+                "discount_percentage",
+                "discount_amount",
+                "base_rate_with_margin",
+                "rate",
+                "net_rate",
+                "amount",
+                "item_tax_template",
+                "net_amount",
+                "base_rate",
+                "base_net_rate",
+                "base_amount",
+                "base_net_amount",
+                "warehouse",
+                "actual_qty",
+                "delivered_qty"
 
+            ],
+    )
     if child_data_1 and doc_data:
         sinv["items"] = child_data_1
 
@@ -1470,6 +1513,9 @@ def sales_invoice(name):
 
     if child_data_3 and doc_data:
         sinv["payment_schedule"] = child_data_3
+
+    if child_data_4 and doc_data:
+        sinv["free_items"] = child_data_4    
 
     attachments = frappe.db.sql(
         """ Select file_name, file_url,
@@ -5637,4 +5683,5 @@ def contact(name):
         return response
     else:
         return "لا يوجد"
+
 
