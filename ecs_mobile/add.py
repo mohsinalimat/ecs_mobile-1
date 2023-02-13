@@ -7,7 +7,7 @@ import json, ast
 from frappe import _
 import requests
 
-import frappe
+
 @frappe.whitelist(allow_guest=True)
 def lead(**kwargs):
     lead = frappe.get_doc(kwargs["data"])
@@ -205,10 +205,19 @@ def sales_order(**kwargs):
 
 @frappe.whitelist(allow_guest=True)
 def sales_invoice(**kwargs):
+    if kwargs["data"]["select"]:
+        if kwargs["data"]["select"] == "عرض":
+            total_free_items = 0
+            for i in kwargs["data"]["free_items"]:
+                amount = float(i["rate"]) * float(i["qty"])
+                total_free_items += amount
+    
+    kwargs["data"]["total_free_items"] = total_free_items
+                
     sales_invoice = frappe.get_doc(kwargs["data"])
-    for item in sales_invoice.free_items:
-        item.amount = item.rate*item.qty
-    sales_invoice.insert(ignore_mandatory=True)
+    
+                
+    sales_invoice.insert()
     sales_invoice_name = sales_invoice.name
     frappe.db.commit()
     if sales_invoice_name:
@@ -292,7 +301,7 @@ def item(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة الصنف . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def stock_entry(**kwargs):
     stock_entry = frappe.get_doc(kwargs["data"])
     stock_entry.insert()
@@ -361,137 +370,6 @@ def comment(**kwargs):
     else:
         return "حدث خطأ ولم نتمكن من اضافة التعليق . برجاء المحاولة مرة اخري!"
 
-
-@frappe.whitelist(allow_guest=True)
-def add_item_list(**kwargs):
-    start = 0
-    page_length = 20
-    try:
-        if kwargs["search_text"]:
-            items = frappe.db.sql(
-                """ select tabItem.name as name ,
-                                                     tabItem.item_code as item_code, 
-                                                     tabItem.item_name as item_name, 
-                                                     tabItem.item_group as item_group, 
-                                                     tabItem.stock_uom as stock_uom, 
-                                                     tabItem.image as image,
-                                                     tabItem.sales_uom as sales_uom,
-                                                     ifnull((select max(price_list_rate)  from `tabItem Price` where item_code = tabItem.name and price_list = '{price_list}'),0) as price_list_rate,
-                                                     ifnull((select distinct `tabItem Tax Template Detail`.tax_rate from `tabItem Tax Template Detail` join `tabItem Tax` 
-                                                     where `tabItem Tax Template Detail`.parent = `tabItem Tax`.item_tax_template and `tabItem Tax`.parent = `tabItem`.name),0) as tax_percent
-                                                     from tabItem  where tabItem.disabled = 0 and tabItem.name like '%{item}%' or tabItem.item_name like '%{item}%' LIMIT {start},{page_length}""".format(
-                    start=kwargs["start"],
-                    page_length=kwargs["page_length"],
-                    price_list=kwargs["price_list"],
-                    item=kwargs["search_text"],
-                ),
-                as_dict=1,
-            )
-            result = []
-            for item_dict in items:
-                if item_dict.tax_percent > 0 and item_dict.price_list_rate > 0:
-                    net_rate = item_dict.price_list_rate * (
-                        1 + (item_dict.tax_percent / 100)
-                    )
-                    vat_value = net_rate - item_dict.price_list_rate
-                    data = {
-                        "name": item_dict.name,
-                        "item_code": item_dict.item_code,
-                        "item_name": item_dict.item_name,
-                        "item_group": item_dict.item_group,
-                        "uom": item_dict.stock_uom,
-                        "stock_uom": item_dict.stock_uom,
-                        "image": item_dict.image,
-                        "sales_uom": item_dict.sales_uom,
-                        "price_list_rate": item_dict.price_list_rate,
-                        "tax_percent": item_dict.tax_percent,
-                        "net_rate": net_rate,
-                        "vat_value": vat_value,
-                    }
-                    result.append(data)
-                else:
-                    data = {
-                        "name": item_dict.name,
-                        "item_code": item_dict.item_code,
-                        "item_name": item_dict.item_name,
-                        "item_group": item_dict.item_group,
-                        "uom": item_dict.stock_uom,
-                        "stock_uom": item_dict.stock_uom,
-                        "image": item_dict.image,
-                        "sales_uom": item_dict.sales_uom,
-                        "price_list_rate": item_dict.price_list_rate,
-                        "tax_percent": item_dict.tax_percent,
-                        "net_rate": item_dict.price_list_rate,
-                    }
-                    result.append(data)
-
-            if items:
-                return result
-            else:
-                return "لا يوجد منتجات !"
-
-    except:
-        items = frappe.db.sql(
-            """ select tabItem.name as name,
-                                         tabItem.item_code as item_code,
-                                         tabItem.item_name as item_name, 
-                                         tabItem.item_group as item_group, 
-                                         tabItem.stock_uom as stock_uom, 
-                                         tabItem.image as image,
-                                         tabItem.sales_uom as sales_uom,
-                                         ifnull((select max(price_list_rate) from `tabItem Price` where item_code = tabItem.name and price_list = '{price_list}'),0) as price_list_rate,
-                                         ifnull((select distinct `tabItem Tax Template Detail`.tax_rate from `tabItem Tax Template Detail` join `tabItem Tax` 
-                                         where `tabItem Tax Template Detail`.parent = `tabItem Tax`.item_tax_template and `tabItem Tax`.parent = `tabItem`.name),0) as tax_percent
-                                         from tabItem where tabItem.disabled = 0 LIMIT {start},{page_length} """.format(
-                start=kwargs["start"],
-                page_length=kwargs["page_length"],
-                price_list=kwargs["price_list"],
-            ),
-            as_dict=1,
-        )
-
-        result = []
-        for item_dict in items:
-            if item_dict.tax_percent > 0 and item_dict.price_list_rate > 0:
-                net_rate = item_dict.price_list_rate * (
-                    1 + (item_dict.tax_percent / 100)
-                )
-                vat_value = net_rate - item_dict.price_list_rate
-                data = {
-                    "name": item_dict.name,
-                    "item_code": item_dict.item_code,
-                    "item_name": item_dict.item_name,
-                    "item_group": item_dict.item_group,
-                    "uom": item_dict.stock_uom,
-                    "stock_uom": item_dict.stock_uom,
-                    "image": item_dict.image,
-                    "sales_uom": item_dict.sales_uom,
-                    "price_list_rate": item_dict.price_list_rate,
-                    "tax_percent": item_dict.tax_percent,
-                    "net_rate": net_rate,
-                    "vat_value": vat_value,
-                }
-                result.append(data)
-            else:
-                data = {
-                    "name": item_dict.name,
-                    "item_code": item_dict.item_code,
-                    "item_name": item_dict.item_name,
-                    "item_group": item_dict.item_group,
-                    "uom": item_dict.stock_uom,
-                    "stock_uom": item_dict.stock_uom,
-                    "image": item_dict.image,
-                    "sales_uom": item_dict.sales_uom,
-                    "price_list_rate": item_dict.price_list_rate,
-                    "tax_percent": item_dict.tax_percent,
-                    "net_rate": item_dict.price_list_rate,
-                }
-                result.append(data)
-
-        if items:
-            return result
-        else:
-            return "لا يوجد منتجات !"
 
 
 @frappe.whitelist(allow_guest=True)

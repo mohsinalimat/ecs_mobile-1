@@ -156,6 +156,7 @@ def opportunity(name):
             "opportunity_from",
             "party_name",
             "customer_name",
+            "governorate",
             "source",
             "opportunity_type",
             "status",
@@ -603,6 +604,7 @@ def customer(name):
             "customer_type",
             "customer_group",
             "territory",
+            "governorate",
             "market_segment",
             "industry",
             "tax_id",
@@ -610,7 +612,7 @@ def customer(name):
             "customer_primary_address",
             "primary_address",
             "customer_primary_contact",
-            "mobile_no",
+            "mobile2",
             "email_id",
             "default_currency",
             "default_price_list",
@@ -632,6 +634,8 @@ def customer(name):
         cust["market_segment"] = x.market_segment
         cust["industry"] = x.industry
         cust["tax_id"] = x.tax_id
+        cust["governorate"] = x.governorate
+        cust["mobile2"] = x.mobile2
         cust["customer_primary_address"] = x.customer_primary_address
         cust["address_line1"] = frappe.db.get_value(
             "Address", x.customer_primary_address, "address_line1"

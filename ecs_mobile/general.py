@@ -141,7 +141,7 @@ def general_service(
     ########################### Opportunities Connected With Lead & Search ############################
     if doctype == "Opportunity" and con_doc == "Lead":
         connections = frappe.db.sql(
-            """ select name,opportunity_from,customer_name,transaction_date,opportunity_type,sales_stage,status 
+            """ select name,opportunity_from,customer_name,transaction_date,opportunity_type,sales_stage,status
                 from `tabOpportunity` where `party_name` = '{cur_nam}'
                 and (`tabOpportunity`.name like '%{search_text}%' or `tabOpportunity`.customer_name like '%{search_text}%' or `tabOpportunity`.party_name like '%{search_text}%' or `tabOpportunity`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
             """.format(
@@ -392,7 +392,7 @@ def general_service(
         if search_text != "%%":
             conditions1["name"] = ["like", search_text]
             conditions1["customer_name"] = ["like", search_text]
-            conditions1["mobile_no"] = ["like", search_text]
+            conditions1["mobile2"] = ["like", search_text]
         if filter1 != "%%":
             conditions["customer_group"] = filter1
         if filter2 != "%%":
@@ -417,7 +417,7 @@ def general_service(
                 "customer_group",
                 "customer_type",
                 "territory",
-                "mobile_no",
+                "mobile2",
                 "tax_id",
                 "customer_primary_address",
                 "customer_primary_contact",
@@ -488,7 +488,7 @@ def general_service(
     ########################### Opportunities Connected With Customer & Search ############################
     if doctype == "Opportunity" and con_doc == "Customer":
         connections = frappe.db.sql(
-            """ select name,opportunity_from,customer_name,transaction_date,opportunity_type,sales_stage,status 
+            """ select name,opportunity_from,customer_name,transaction_date,opportunity_type,sales_stage,status
                  from `tabOpportunity` where `party_name` = '{cur_nam}'
                 and (`tabOpportunity`.name like '%{search_text}%' or `tabOpportunity`.customer_name like '%{search_text}%' or `tabOpportunity`.party_name like '%{search_text}%' or `tabOpportunity`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
             """.format(
@@ -508,7 +508,7 @@ def general_service(
     if doctype == "Sales Order" and con_doc == "Customer":
         connections = frappe.db.sql(
             """ select name,customer_name,customer_address,transaction_date,currency,grand_total,status
-                from `tabSales Order` where `customer` = '{cur_nam}' 
+                from `tabSales Order` where `customer` = '{cur_nam}'
                 and (`tabSales Order`.name like '%{search_text}%' or `tabSales Order`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
             """.format(
                 start=start,
@@ -2109,7 +2109,7 @@ def general_service(
     if doctype == "Supplier Quotation" and con_doc == "Supplier":
         connections = frappe.db.sql(
             """ select distinct `tabSupplier Quotation`.name as name,`tabSupplier Quotation`.supplier as supplier,
-                       `tabSupplier Quotation`.transaction_date as transaction_date, `tabSupplier Quotation`.valid_till as valid_till, 
+                       `tabSupplier Quotation`.transaction_date as transaction_date, `tabSupplier Quotation`.valid_till as valid_till,
                        `tabSupplier Quotation`.total as total,`tabSupplier Quotation`.grand_total as grand_total,
                        `tabSupplier Quotation`.currency as currency, `tabSupplier Quotation`.status as status
                 from `tabSupplier Quotation` join `tabSupplier` on `tabSupplier`.name = `tabSupplier Quotation`.supplier
@@ -2289,7 +2289,7 @@ def general_service(
     if doctype == "Purchase Order" and con_doc == "Supplier Quotation":
         connections = frappe.db.sql(
             """ select distinct `tabPurchase Order`.name as name,`tabPurchase Order`.supplier as supplier,
-                `tabPurchase Order`.currency as currency, `tabPurchase Order`.transaction_date as transaction_date, 
+                `tabPurchase Order`.currency as currency, `tabPurchase Order`.transaction_date as transaction_date,
                 `tabPurchase Order`.status as status, `tabPurchase Order`.set_warehouse as set_warehouse,
                 `tabPurchase Order`.grand_total as grand_total
                 from `tabPurchase Order` join `tabPurchase Order Item` on `tabPurchase Order`.name = `tabPurchase Order Item`.parent
@@ -2375,7 +2375,7 @@ def general_service(
     if doctype == "Purchase Receipt" and con_doc == "Purchase Order":
         connections = frappe.db.sql(
             """ select distinct `tabPurchase Receipt`.name as name,`tabPurchase Receipt`.supplier as supplier,
-                       `tabPurchase Receipt`.set_warehouse as set_warehouse, `tabPurchase Receipt`.currency as currency, 
+                       `tabPurchase Receipt`.set_warehouse as set_warehouse, `tabPurchase Receipt`.currency as currency,
                        `tabPurchase Receipt`.posting_date as posting_date,`tabPurchase Receipt`.grand_total as grand_total,`tabPurchase Receipt`.status as status
                 from `tabPurchase Receipt` join `tabPurchase Receipt Item` on `tabPurchase Receipt`.name = `tabPurchase Receipt Item`.parent
                 where `tabPurchase Receipt Item`.purchase_order = '{cur_nam}'
@@ -2441,7 +2441,7 @@ def general_service(
             """ select distinct `tabSupplier Quotation`.name as name,`tabSupplier Quotation`.supplier as supplier,
                        `tabSupplier Quotation`.currency as currency,
                        `tabSupplier Quotation`.grand_total as grand_total,
-                       `tabSupplier Quotation`.transaction_date as transaction_date, 
+                       `tabSupplier Quotation`.transaction_date as transaction_date,
                        `tabSupplier Quotation`.valid_till as valid_till,
                        `tabSupplier Quotation`.status as status
                 from `tabSupplier Quotation` join `tabPurchase Order Item` on `tabSupplier Quotation`.name = `tabPurchase Order Item`.supplier_quotation
@@ -3867,8 +3867,6 @@ def general_service(
             return "لا يوجد !"
 
 
-
-
 @frappe.whitelist()
 def get_user_default_warehouse():
     user_id = frappe.session.user
@@ -3879,16 +3877,15 @@ def get_user_default_warehouse():
             "user": user_id,
             "allow": "Warehouse",
             "is_default": True,
-        }
+        },
     )
     if warehouse:
         warehouse = warehouse[0]
     else:
         response = frappe.response["message"] = {
-        "error_message": "please set a default warehouse in the user perissions"
+            "error_message": "please set a default warehouse in the user perissions"
         }
         return response
-
 
     response = frappe.response["message"] = {
         "default_warehouse": warehouse["for_value"]
@@ -3902,17 +3899,159 @@ def get_item_uoms(item_code):
         item = frappe.get_doc("Item", item_code)
         uoms = []
         for uom in item.uoms:
-            uoms.append(dict(
-                name=uom.name,
-                uom=uom.uom,
-                conversion_factor=uom.conversion_factor
-            ))
+            uoms.append(
+                dict(
+                    name=uom.name, uom=uom.uom, conversion_factor=uom.conversion_factor
+                )
+            )
         response = frappe.response["message"] = uoms
         return response
 
     except:
         response = frappe.response["message"] = {
             "success": False,
-            "error": "Can't found an item with the provided item code"
+            "error": "Can't found an item with the provided item code",
         }
         return response
+
+
+@frappe.whitelist()
+def get_item_list(allow_sales=None, allow_purchase=None, search_text="%%", price_list="%%", start=0, page_length=5):
+    conditions = ""
+    if allow_purchase is not None:
+        conditions += f" and tabItem.is_purchase_item = {allow_purchase} "
+
+    if allow_sales is not None:
+        conditions += f" and tabItem.is_sales_item = {allow_sales}"
+
+    if search_text != "%%":
+        items = frappe.db.sql(
+            f""" select tabItem.name as name ,
+                                                    tabItem.item_code as item_code,
+                                                    tabItem.is_sales_item,
+                                                    tabItem.is_purchase_item,
+                                                    tabItem.item_name as item_name, 
+                                                    tabItem.item_group as item_group, 
+                                                    tabItem.stock_uom as stock_uom, 
+                                                    tabItem.image as image,
+                                                    tabItem.sales_uom as sales_uom,
+                                                    ifnull((select max(price_list_rate)  from `tabItem Price` where item_code = tabItem.name and price_list = '{price_list}'),0) as price_list_rate,
+                                                    ifnull((select distinct `tabItem Tax Template Detail`.tax_rate from `tabItem Tax Template Detail` join `tabItem Tax` 
+                                                    where `tabItem Tax Template Detail`.parent = `tabItem Tax`.item_tax_template and `tabItem Tax`.parent = `tabItem`.name),0) as tax_percent
+                                                    from tabItem
+                                                    where tabItem.name like '%{search_text}%'
+                                                    or tabItem.item_name like '%{search_text}%'
+                                                    {conditions}
+                                                    and tabItem.disabled = 0
+                                                    LIMIT {start}, {page_length}""",as_dict=True)
+        result = []
+        for item_dict in items:
+            if item_dict.tax_percent > 0 and item_dict.price_list_rate > 0:
+                net_rate = item_dict.price_list_rate * (
+                    1 + (item_dict.tax_percent / 100)
+                )
+                vat_value = net_rate - item_dict.price_list_rate
+                data = {
+                    "name": item_dict.name,
+                    "item_code": item_dict.item_code,
+                    "item_name": item_dict.item_name,
+                    "item_group": item_dict.item_group,
+                    "allow_sales": item_dict.is_sales_item,
+                    "allow_purchase": item_dict.is_purchase_item,
+                    "uom": item_dict.stock_uom,
+                    "stock_uom": item_dict.stock_uom,
+                    "image": item_dict.image,
+                    "sales_uom": item_dict.sales_uom,
+                    "price_list_rate": item_dict.price_list_rate,
+                    "tax_percent": item_dict.tax_percent,
+                    "net_rate": net_rate,
+                    "vat_value": vat_value,
+                }
+                result.append(data)
+            else:
+                data = {
+                    "name": item_dict.name,
+                    "item_code": item_dict.item_code,
+                    "item_name": item_dict.item_name,
+                    "item_group": item_dict.item_group,
+                    "allow_sales": item_dict.is_sales_item,
+                    "allow_purchase": item_dict.is_purchase_item,
+                    "uom": item_dict.stock_uom,
+                    "stock_uom": item_dict.stock_uom,
+                    "image": item_dict.image,
+                    "sales_uom": item_dict.sales_uom,
+                    "price_list_rate": item_dict.price_list_rate,
+                    "tax_percent": item_dict.tax_percent,
+                    "net_rate": item_dict.price_list_rate,
+                }
+                result.append(data)
+
+        if items:
+            return result
+        else:
+            return "لا يوجد منتجات !"
+    else:
+        items = frappe.db.sql(
+            f""" select tabItem.name as name,
+                                        tabItem.item_code as item_code,
+                                        tabItem.item_name as item_name,
+                                        tabItem.is_sales_item,
+                                        tabItem.is_purchase_item, 
+                                        tabItem.item_group as item_group, 
+                                        tabItem.stock_uom as stock_uom, 
+                                        tabItem.image as image,
+                                        tabItem.sales_uom as sales_uom,
+                                        ifnull((select max(price_list_rate) from `tabItem Price` where item_code = tabItem.name and price_list = '{price_list}'),0) as price_list_rate,
+                                        ifnull((select distinct `tabItem Tax Template Detail`.tax_rate from `tabItem Tax Template Detail` join `tabItem Tax` 
+                                        where `tabItem Tax Template Detail`.parent = `tabItem Tax`.item_tax_template and `tabItem Tax`.parent = `tabItem`.name),0) as tax_percent
+                                        from tabItem 
+                                        where tabItem.disabled = 0 
+                                        {conditions}
+                                        LIMIT {start},{page_length} """,as_dict=True)
+
+        result = []
+        for item_dict in items:
+            if item_dict.tax_percent > 0 and item_dict.price_list_rate > 0:
+                net_rate = item_dict.price_list_rate * (
+                    1 + (item_dict.tax_percent / 100)
+                )
+                vat_value = net_rate - item_dict.price_list_rate
+                data = {
+                    "name": item_dict.name,
+                    "item_code": item_dict.item_code,
+                    "item_name": item_dict.item_name,
+                    "allow_sales": item_dict.is_sales_item,
+                    "allow_purchase": item_dict.is_purchase_item,
+                    "item_group": item_dict.item_group,
+                    "uom": item_dict.stock_uom,
+                    "stock_uom": item_dict.stock_uom,
+                    "image": item_dict.image,
+                    "sales_uom": item_dict.sales_uom,
+                    "price_list_rate": item_dict.price_list_rate,
+                    "tax_percent": item_dict.tax_percent,
+                    "net_rate": net_rate,
+                    "vat_value": vat_value,
+                }
+                result.append(data)
+            else:
+                data = {
+                    "name": item_dict.name,
+                    "item_code": item_dict.item_code,
+                    "item_name": item_dict.item_name,
+                    "allow_sales": item_dict.is_sales_item,
+                    "allow_purchase": item_dict.is_purchase_item,
+                    "item_group": item_dict.item_group,
+                    "uom": item_dict.stock_uom,
+                    "stock_uom": item_dict.stock_uom,
+                    "image": item_dict.image,
+                    "sales_uom": item_dict.sales_uom,
+                    "price_list_rate": item_dict.price_list_rate,
+                    "tax_percent": item_dict.tax_percent,
+                    "net_rate": item_dict.price_list_rate,
+                }
+                result.append(data)
+
+        if items:
+            return result
+        else:
+            return "لا يوجد منتجات !"
