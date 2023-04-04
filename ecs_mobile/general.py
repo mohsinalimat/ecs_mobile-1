@@ -6,6 +6,7 @@ import random
 import datetime
 import json, ast
 from erpnext.accounts.utils import get_balance_on
+
 from frappe.utils import (
     flt,
     getdate,
@@ -22,7 +23,12 @@ from frappe.utils import cstr
 from frappe.utils.make_random import get_random
 import time
 
+# Exception Imports
+from frappe.exceptions import DoesNotExistError
 
+# local imports
+from .doc_connections import project_connections
+from .helpers import order_by
 @frappe.whitelist()
 def general_service(
     doctype,
@@ -39,7 +45,530 @@ def general_service(
     con_doc="%%",
     start=0,
     page_length=20,
+    sort_field=None,
+    sort_type=None
 ):
+    from .helpers import remove_html_tags
+
+    if doctype == "DocType" and con_doc == "%%":
+        query = frappe.db.get_list(
+            "DocType",
+            filters={"istable": False},
+            fields=["name"],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+    
+    if doctype == "Party Type" and con_doc == "%%":
+        query = frappe.db.get_list(
+            "Party Type",
+            fields=["name"],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+
+    
+    if doctype == "Workflow State" and con_doc == "%%":
+        query = frappe.db.get_list(
+            "Workflow State",
+            fields=["name"],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+    
+    if doctype == "Workflow Action Master" and con_doc == "%%":
+        query = frappe.db.get_list(
+            "Workflow Action Master",
+            fields=["name"],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+
+    if doctype == "Workflow" and con_doc == "%%":
+        query = frappe.db.get_list(
+            "Workflow",
+            fields=["name"],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+
+    if doctype == "Mobile Report" and con_doc == "%%":
+        conditions = {}
+
+        if filter1 != "%%":
+            conditions["module"] = filter1
+        if filter2 != "%%":
+            conditions["report_name"] = filter2
+
+        query = frappe.db.get_list(
+            "Mobile Report",
+            filters=conditions,
+            fields=[
+                "name",
+                "report_name",
+                "module",
+            ],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+        
+    if doctype == "Email Template" and con_doc == "%%":
+        conditions = {}
+
+        if filter1 != "%%":
+            conditions["module"] = filter1
+        if filter2 != "%%":
+            conditions["report_name"] = filter2
+
+        query = frappe.db.get_list(
+            "Email Template",
+            filters=conditions,
+            fields=[
+                "name",
+                "subject"
+            ],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+        
+    if doctype == "Role" and con_doc == "%%":
+        conditions = {}
+        if filter1 != "%%":
+            conditions["module"] = filter1
+        if filter2 != "%%":
+            conditions["report_name"] = filter2
+            
+        query = frappe.db.get_list(
+            "Role",
+            filters=conditions,
+            fields=[
+                "name",
+            ],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+        
+    
+
+    # ----------------- Activity Type List View ------------------#
+    if doctype == "Activity Type" and con_doc == "%%":
+        activity_type = frappe.db.get_all("Activity Type", 
+            fields=[
+                "name",
+                "activity_type",
+                "costing_rate",
+                "billing_rate",
+                "disabled"
+            ]
+        )
+        if activity_type:
+            return activity_type
+        else:
+            return "لا يوجد !"
+    # ---------------- END Activity Type List View -------------------#
+
+    # ----------------- Project Type List View ------------------#
+    if doctype == "Project Type" and con_doc == "%%":
+        project_type = frappe.db.get_all("Project Type", 
+            fields=[
+                "name",
+                "project_type",
+                "description"
+            ]
+        )
+        if project_type:
+            return project_type
+        else:
+            return "لا يوجد !"
+    # ---------------- END Project Type List View -------------------#
+
+     # ----------------- Department List View ------------------#
+    if doctype == "Department" and con_doc == "%%":
+        conditions = {}
+        conditions1 = {}
+        if search_text != "%%":
+            conditions1["name"] = ["like", search_text]
+            conditions1["department_name"] = ["like", search_text]
+
+        if filter1 != "%%":
+            conditions["company"] = filter1
+        if filter2 != "%%":
+            conditions["parent_department"] = filter2
+      
+
+        if filter4 != "%%" and filter5 == "%%":
+            conditions["creation"] = [">=", filter4]
+        if filter5 != "%%" and filter4 == "%%":
+            conditions["creation"] = ["<=", filter5]
+        if filter4 != "%%" and filter5 != "%%":
+            conditions["creation"] = ["between", [filter4, filter5]]
+
+        query = frappe.db.get_list(
+            "Department",
+            or_filters=conditions1,
+            filters=conditions,
+            fields=[
+                "name",
+                "department_name",
+                "company",
+                "parent_department",
+                "is_group",
+                "disabled"
+            ],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            
+            return query
+        else:
+            return "لا يوجد !"
+
+    # ----------------- END Department List View ------------------#
+
+
+    # ----------------- Task Type List View ------------------#
+    if doctype == "Task Type" and con_doc == "%%":
+        task_types = frappe.db.get_all("Task Type", 
+            fields=[
+                "name",
+                "description"
+            ]
+        )
+        if task_types:
+            return task_types
+        else:
+            return "لا يوجد !"
+    # ---------------- Task Type List View -------------------#
+
+
+    # ----------------- Issue List View ------------------#
+    if doctype == "Issue" and con_doc == "%%":
+        conditions = {}
+        conditions1 = {}
+        if search_text != "%%":
+            conditions1["name"] = ["like", search_text]
+            conditions1["subject"] = ["like", search_text]
+
+        if filter1 != "%%":
+            conditions["status"] = filter1
+        if filter2 != "%%":
+            conditions["priority"] = filter2
+      
+
+        if filter4 != "%%" and filter5 == "%%":
+            conditions["creation"] = [">=", filter4]
+        if filter5 != "%%" and filter4 == "%%":
+            conditions["creation"] = ["<=", filter5]
+        if filter4 != "%%" and filter5 != "%%":
+            conditions["creation"] = ["between", [filter4, filter5]]
+
+        query = frappe.db.get_list(
+            "Issue",
+            or_filters=conditions1,
+            filters=conditions,
+            fields=[
+                "name",
+                "subject",
+                "status",
+                "customer",
+                "priority",
+                "issue_type",
+                "description"
+            ],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            for issue in query:
+                issue["description"] = remove_html_tags(issue["description"])
+            return query
+        else:
+            return "لا يوجد !"
+
+    # ----------------- END Issue List View ------------------#
+    # ------------------ BOM list view ---------------- #
+    if doctype == "BOM" and con_doc == "%%":
+        conditions = {}
+        conditions1 = {}
+        if search_text != "%%":
+            conditions1["name"] = ["like", search_text]
+            conditions1["item"] = ["like", search_text]
+
+        if filter1 != "%%":
+            conditions["is_active"] = filter1
+        if filter2 != "%%":
+            conditions["is_default"] = filter2
+        if filter3 != "%%":
+            conditions["currency"] = filter3
+
+        if filter4 != "%%" and filter5 == "%%":
+            conditions["creation"] = [">=", filter4]
+        if filter5 != "%%" and filter4 == "%%":
+            conditions["creation"] = ["<=", filter5]
+        if filter4 != "%%" and filter5 != "%%":
+            conditions["creation"] = ["between", [filter4, filter5]]
+
+        query = frappe.db.get_list(
+            "BOM",
+            or_filters=conditions1,
+            filters=conditions,
+            fields=[
+                "name",
+                "item",
+                "item_name",
+                "uom",
+                "quantity",
+                "project",
+                "set_rate_of_sub_assembly_item_based_on_bom",
+                "allow_alternative_item",
+                "is_default",
+                "currency",
+                "rm_cost_as_per",
+                "with_operations",
+                "inspection_required",
+            ],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+# ------------------ End BOM list view ---------------- #
+
+
+    # ----------------------------------------- Project List ---------------------------------------- #
+    if doctype == "Project" and con_doc == "%%":
+        conditions = {}
+        conditions1 = {}
+        if search_text != "%%":
+            conditions1["name"] = ["like", search_text]
+            conditions1["project_name"] = ["like", search_text]
+
+        if filter1 != "%%":
+            conditions["priority"] = filter1
+        if filter2 != "%%":
+            conditions["status"] = filter2
+        if filter3 != "%%":
+            conditions["project_type"] = filter3
+
+        if filter4 != "%%" and filter5 == "%%":
+            conditions["creation"] = [">=", filter4]
+        if filter5 != "%%" and filter4 == "%%":
+            conditions["creation"] = ["<=", filter5]
+        if filter4 != "%%" and filter5 != "%%":
+            conditions["creation"] = ["between", [filter4, filter5]]
+
+        if filter6 != "%%":
+            conditions["department"] = filter6
+
+        query = frappe.db.get_list(
+            "Project",
+            or_filters=conditions1,
+            filters=conditions,
+            fields=[
+                "name",
+                "project_name",
+                "priority",
+                "status",
+                "expected_start_date",
+                "expected_end_date",
+                "project_type",
+                "is_active",
+                "department",
+                "percent_complete_method",
+                "percent_complete",
+                "notes",
+                "customer",
+            ],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+    # ---------------------------------------- End Project List --------------------------------------#
+
+
+
+    # ----------------------------------------- Task List ----------------------------------------#
+    if doctype == "Task" and con_doc == "%%":
+        conditions = {}
+        conditions1 = {}
+        if search_text != "%%":
+            conditions1["name"] = ["like", search_text]
+            conditions1["subject"] = ["like", search_text]
+
+        if filter1 != "%%":
+            conditions["project"] = filter1
+        if filter2 != "%%":
+            conditions["status"] = filter2
+        if filter3 != "%%":
+            conditions["priority"] = filter3
+
+        query = frappe.db.get_list(
+            "Task",
+            or_filters=conditions1,
+            filters=conditions,
+            fields=[
+                "name",
+                "subject",
+                "project",
+                "priority",
+                "status",
+                "type",
+                "color",
+                "exp_start_date",
+                "exp_end_date",
+                "progress",
+                "expected_time",
+                "description",
+                "department",
+                "company",
+            ],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+
+            for task in query:
+                task["description"] = remove_html_tags(str(task["description"]))
+                depends_on = frappe.db.get_all(
+                    "Task Depends On",
+                    filters={"parent": task["name"]},
+                    fields=["task", "project", "subject"],
+                )
+                task["depends_on"] = depends_on
+            return query
+        else:
+            return "لا يوجد !"
+    # ---------------------------------------- End Task List --------------------------------------#
+
+
+
+    # ----------------------------------------- Timesheet List ----------------------------------------#
+    if doctype == "Timesheet" and con_doc == "%%":
+        conditions = {}
+        conditions1 = {}
+        if search_text != "%%":
+            conditions1["title"] = ["like", search_text]
+
+        if filter1 != "%%":
+            conditions["parent_project"] = filter1
+
+        if filter2 != "%%":
+            conditions["customer"] = filter2
+
+        if filter3 != "%%":
+            conditions["status"] = filter3
+
+        if filter4 != "%%" and filter5 == "%%":
+            conditions["start_date"] = [">=", filter4]
+        if filter5 != "%%" and filter4 == "%%":
+            conditions["end_date"] = ["<=", filter5]
+
+        query = frappe.db.get_list(
+            "Timesheet",
+            or_filters=conditions1,
+            filters=conditions,
+            fields=[
+                "name",
+                "docstatus",
+                "title",
+                "customer",
+                "currency",
+                "exchange_rate",
+                "status",
+                "parent_project",
+                "employee",
+                "employee_name",
+                "department",
+                "start_date",
+                "end_date",
+                "total_hours",
+                "total_billable_hours",
+                "base_total_billable_amount",
+                "base_total_billed_amount",
+                "base_total_costing_amount",
+                "total_billed_hours",
+                "total_billable_amount",
+                "total_billed_amount",
+                "total_costing_amount",
+                "per_billed",
+                "note",
+            ],
+            order_by="`tabTimesheet`.modified desc",
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+
+            for timesheet in query:
+                timesheet["note"] = remove_html_tags(str(timesheet["note"]))
+                time_logs = frappe.db.get_all(
+                    "Timesheet Detail",
+                    filters={"parent": timesheet["name"]},
+                    fields=[
+                        "activity_type",
+                        "from_time",
+                        "to_time",
+                        "project",
+                        "project_name",
+                    ],
+                )
+                timesheet["time_logs"] = time_logs
+            return query
+        else:
+            return "لا يوجد !"
+    # ---------------------------------------- End Timesheet List --------------------------------------#
+
 
     ############################################ LEAD ############################################
 
@@ -66,7 +595,7 @@ def general_service(
             conditions["creation"] = ["<=", filter5]
         if filter4 != "%%" and filter5 != "%%":
             conditions["creation"] = ["between", [filter4, filter5]]
-
+        
         query = frappe.db.get_list(
             "Lead",
             or_filters=conditions1,
@@ -80,7 +609,7 @@ def general_service(
                 "market_segment",
                 "status",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -88,37 +617,7 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
-    '''
-
-    if doctype == "Lead" and con_doc == '%%':
-        conditions = ""
-        if search_text != '%%':
-            conditions += " and (`tabLead`.name like '%{search_text}%' or `tabLead`.lead_name like '%{search_text}%' or `tabLead`.company_name like '%{search_text}%' or `tabLead`.mobile_no like '%{search_text}%') ".format(
-                search_text=search_text)
-        if filter1 != '%%':
-            conditions += " and `tabLead`.status = '{filter1}' ".format(filter1=filter1)
-        if filter2 != '%%':
-            conditions += " and `tabLead`.lead_owner = '{filter2}' ".format(filter2=filter2)
-        if filter3 != '%%':
-            conditions += " and `tabLead`.organization_lead = '{filter3}' ".format(filter3=filter3)
-        if filter4 != '%%':
-            conditions += " and Date_Format(`tabLead`.creation,'%Y-%m-%d') >= '{filter4}' ".format(filter4=filter4)
-        if filter5 != '%%':
-            conditions += " and Date_Format(`tabLead`.creation,'%Y-%m-%d') <= '{filter5}' ".format(filter5=filter5)
-
-        query = frappe.db.sql(
-            """ select name, lead_name, company_name, territory, source, market_segment, status
-                from `tabLead`
-                where `tabLead`.docstatus in (0, 1, 2)
-                {conditions}
-                order by modified desc
-                LIMIT {start},{page_length}
-            """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-    '''
+   
     ########################### Quotations Connected With Lead & Search ############################
     if doctype == "Quotation" and con_doc == "Lead":
         connections = frappe.db.sql(
@@ -141,7 +640,7 @@ def general_service(
     ########################### Opportunities Connected With Lead & Search ############################
     if doctype == "Opportunity" and con_doc == "Lead":
         connections = frappe.db.sql(
-            """ select name,opportunity_from,customer_name,transaction_date,opportunity_type,sales_stage,status 
+            """ select name,opportunity_from,customer_name,transaction_date,opportunity_type,sales_stage,status
                 from `tabOpportunity` where `party_name` = '{cur_nam}'
                 and (`tabOpportunity`.name like '%{search_text}%' or `tabOpportunity`.customer_name like '%{search_text}%' or `tabOpportunity`.party_name like '%{search_text}%' or `tabOpportunity`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
             """.format(
@@ -183,7 +682,7 @@ def general_service(
             conditions["transaction_date"] = ["<=", filter6]
         if filter5 != "%%" and filter6 != "%%":
             conditions["transaction_date"] = ["between", [filter5, filter6]]
-
+        
         query = frappe.db.get_list(
             "Opportunity",
             or_filters=conditions1,
@@ -197,7 +696,7 @@ def general_service(
                 "sales_stage",
                 "status",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -206,39 +705,7 @@ def general_service(
         else:
             return "لا يوجد !"
 
-    '''
-    if doctype == "Opportunity" and con_doc == '%%':
-        conditions = ""
-        if search_text != '%%':
-            conditions += " and (`tabOpportunity`.name like '%{search_text}%' or `tabOpportunity`.customer_name like '%{search_text}%' or `tabOpportunity`.party_name like '%{search_text}%') ".format(
-                search_text=search_text)
-        if filter1 != '%%':
-            conditions += " and `tabOpportunity`.status = '{filter1}' ".format(filter1=filter1)
-        if filter2 != '%%':
-            conditions += " and `tabOpportunity`.opportunity_from = '{filter2}' ".format(filter2=filter2)
-        if filter3 != '%%':
-            conditions += " and `tabOpportunity`.party_name = '{filter3}' ".format(filter3=filter3)
-        if filter4 != '%%':
-            conditions += " and `tabOpportunity`.opportunity_type = '{filter4}' ".format(filter4=filter4)
-        if filter5 != '%%':
-            conditions += " and `tabOpportunity`.transaction_date >= '{filter5}' ".format(filter5=filter5)
-        if filter6 != '%%':
-            conditions += " and `tabOpportunity`.transaction_date <= '{filter6}' ".format(filter6=filter6)
 
-        query = frappe.db.sql(
-            """ select name, opportunity_from, customer_name, transaction_date,
-                   opportunity_type, sales_stage, status
-                from `tabOpportunity`
-                where `tabOpportunity`.docstatus in (0, 1, 2)
-                {conditions}
-                order by modified desc
-                LIMIT {start},{page_length}
-            """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-    '''
     ########################### Quotations Connected With Opportunity & Search ############################
     if doctype == "Quotation" and con_doc == "Opportunity":
         connections = frappe.db.sql(
@@ -318,7 +785,7 @@ def general_service(
                 "status",
                 "currency",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -327,39 +794,7 @@ def general_service(
         else:
             return "لا يوجد !"
 
-    '''
-    if doctype == "Quotation" and con_doc == '%%':
-        conditions = ""
-        if search_text != '%%':
-            conditions += " and (`tabQuotation`.name like '%{search_text}%' or `tabQuotation`.customer_name like '%{search_text}%' or `tabQuotation`.party_name like '%{search_text}%') ".format(
-                search_text=search_text)
-        if filter1 != '%%':
-            conditions += " and `tabQuotation`.status = '{filter1}' ".format(filter1=filter1)
-        if filter2 != '%%':
-            conditions += " and `tabQuotation`.quotation_to = '{filter2}' ".format(filter2=filter2)
-        if filter3 != '%%':
-            conditions += " and `tabQuotation`.customer_name = '{filter3}' ".format(filter3=filter3)
-        if filter4 != '%%':
-            conditions += " and `tabQuotation`.order_type = '{filter4}' ".format(filter4=filter4)
-        if filter5 != '%%':
-            conditions += " and `tabQuotation`.transaction_date >= '{filter5}' ".format(filter5=filter5)
-        if filter6 != '%%':
-            conditions += " and `tabQuotation`.transaction_date <= '{filter6}' ".format(filter6=filter6)
 
-        query = frappe.db.sql(
-            """ select name, quotation_to, customer_name, transaction_date, grand_total,
-                   status
-                from `tabQuotation`
-                where `tabQuotation`.docstatus in (0, 1, 2)
-                {conditions}
-                order by modified desc
-                LIMIT {start},{page_length}
-            """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-    '''
 
     ########################### Sales Orders Connected With Quotation & Search ############################
     if doctype == "Sales Order" and con_doc == "Quotation":
@@ -427,7 +862,7 @@ def general_service(
                 "default_sales_partner",
                 "default_currency",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -436,36 +871,7 @@ def general_service(
         else:
             return "لا يوجد !"
 
-    '''
-    if doctype == "Customer" and con_doc == '%%':
-        conditions = ""
-        if search_text != '%%':
-            conditions += " and (`tabCustomer`.name like '%{search_text}%' or `tabCustomer`.customer_name like '%{search_text}%' or `tabCustomer`.mobile_no like '%{search_text}%') ".format(
-                search_text=search_text)
-        if filter1 != '%%':
-            conditions += " and `tabCustomer`.customer_group = '{filter1}' ".format(filter1=filter1)
-        if filter2 != '%%':
-            conditions += " and `tabCustomer`.territory = '{filter2}' ".format(filter2=filter2)
-        if filter3 != '%%':
-            conditions += " and `tabCustomer`.customer_type = '{filter3}' ".format(filter3=filter3)
-        if filter4 != '%%':
-            conditions += " and Date_Format(`tabCustomer`.creation,'%Y-%m-%d') >= '{filter4}' ".format(filter4=filter4)
-        if filter5 != '%%':
-            conditions += " and Date_Format(`tabCustomer`.creation,'%Y-%m-%d') <= '{filter5}' ".format(filter5=filter5)
-
-        query = frappe.db.sql(
-            """ select name,customer_name,customer_group,customer_type,territory,mobile_no,tax_id,customer_primary_address,customer_primary_contact,default_currency,default_price_list,payment_terms,default_sales_partner
-                from `tabCustomer`
-                where `tabCustomer`.disabled = 0
-                {conditions}
-                order by modified desc
-                LIMIT {start},{page_length}
-            """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-    '''
+ 
     ########################### Quotations Connected With Customer & Search ############################
     if doctype == "Quotation" and con_doc == "Customer":
         connections = frappe.db.sql(
@@ -488,7 +894,7 @@ def general_service(
     ########################### Opportunities Connected With Customer & Search ############################
     if doctype == "Opportunity" and con_doc == "Customer":
         connections = frappe.db.sql(
-            """ select name,opportunity_from,customer_name,transaction_date,opportunity_type,sales_stage,status 
+            """ select name,opportunity_from,customer_name,transaction_date,opportunity_type,sales_stage,status
                  from `tabOpportunity` where `party_name` = '{cur_nam}'
                 and (`tabOpportunity`.name like '%{search_text}%' or `tabOpportunity`.customer_name like '%{search_text}%' or `tabOpportunity`.party_name like '%{search_text}%' or `tabOpportunity`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
             """.format(
@@ -508,7 +914,7 @@ def general_service(
     if doctype == "Sales Order" and con_doc == "Customer":
         connections = frappe.db.sql(
             """ select name,customer_name,customer_address,transaction_date,currency,grand_total,status
-                from `tabSales Order` where `customer` = '{cur_nam}' 
+                from `tabSales Order` where `customer` = '{cur_nam}'
                 and (`tabSales Order`.name like '%{search_text}%' or `tabSales Order`.customer_address like '%{search_text}%') LIMIT {start},{page_length}
             """.format(
                 start=start,
@@ -645,7 +1051,7 @@ def general_service(
                 "status",
                 "currency",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -653,40 +1059,6 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
-
-    '''
-    if doctype == "Sales Order" and con_doc == '%%':
-        conditions = ""
-        if search_text != '%%':
-            conditions += " and (`tabSales Order`.name like '%{search_text}%' or `tabSales Order`.customer_name like '%{search_text}%' or `tabSales Order`.customer like '%{search_text}%') ".format(
-                search_text=search_text)
-        if filter1 != '%%':
-            conditions += " and `tabSales Order`.status = '{filter1}' ".format(filter1=filter1)
-        if filter2 != '%%':
-            conditions += " and `tabSales Order`.customer = '{filter2}' ".format(filter2=filter2)
-        if filter3 != '%%':
-            conditions += " and `tabSales Order`.delivery_status = '{filter3}' ".format(filter3=filter3)
-        if filter4 != '%%':
-            conditions += " and `tabSales Order`.billing_status = '{filter4}' ".format(filter4=filter4)
-        if filter5 != '%%':
-            conditions += " and `tabSales Order`.transaction_date >= '{filter5}' ".format(filter5=filter5)
-        if filter6 != '%%':
-            conditions += " and `tabSales Order`.transaction_date <= '{filter6}' ".format(filter6=filter6)
-
-        query = frappe.db.sql(
-            """ select name, customer_name, customer_address, transaction_date,
-                   grand_total, status
-                from `tabSales Order`
-                where `tabSales Order`.docstatus in (0, 1, 2)
-                {conditions}
-                order by modified desc
-                LIMIT {start},{page_length}
-            """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-    '''
 
     ########################### Sales Invoices Connected With Sales Order & Search ############################
     if doctype == "Sales Invoice" and con_doc == "Sales Order":
@@ -840,6 +1212,7 @@ def general_service(
         if filter3 != "%%" and filter4 != "%%":
             conditions["posting_date"] = ["between", [filter3, filter4]]
 
+        
         query = frappe.db.get_list(
             "Sales Invoice",
             or_filters=conditions1,
@@ -853,7 +1226,7 @@ def general_service(
                 "status",
                 "currency",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -862,35 +1235,6 @@ def general_service(
         else:
             return "لا يوجد !"
 
-    '''
-    if doctype == "Sales Invoice" and con_doc == '%%':
-        conditions = ""
-        if search_text != '%%':
-            conditions += " and (`tabSales Invoice`.name like '%{search_text}%' or `tabSales Invoice`.customer_name like '%{search_text}%' or `tabSales Invoice`.customer like '%{search_text}%') ".format(
-                search_text=search_text)
-        if filter1 != '%%':
-            conditions += " and `tabSales Invoice`.status = '{filter1}' ".format(filter1=filter1)
-        if filter2 != '%%':
-            conditions += " and `tabSales Invoice`.customer = '{filter2}' ".format(filter2=filter2)
-        if filter3 != '%%':
-            conditions += " and `tabSales Invoice`.posting_date >= '{filter3}' ".format(filter3=filter3)
-        if filter4 != '%%':
-            conditions += " and `tabSales Invoice`.posting_date <= '{filter4}' ".format(filter4=filter4)
-
-        query = frappe.db.sql(
-            """ select name, customer_name, customer_address, posting_date, grand_total,
-                   status
-                from `tabSales Invoice`
-                where `tabSales Invoice`.docstatus in (0, 1, 2)
-                {conditions}
-                order by modified desc
-                LIMIT {start},{page_length}
-            """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-    '''
 
     ########################### Sales Orders Connected With Sales Invoice & Search ############################
     if doctype == "Sales Order" and con_doc == "Sales Invoice":
@@ -1003,7 +1347,7 @@ def general_service(
                 "status",
                 "company",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -1020,41 +1364,7 @@ def general_service(
         else:
             return "لا يوجد !"
 
-    '''
-    if doctype == "Payment Entry" and con_doc == '%%':
-        conditions = ""
-        if search_text != '%%':
-            conditions += " and (`tabPayment Entry`.name like '%{search_text}%' or `tabPayment Entry`.party_name like '%{search_text}%' or `tabPayment Entry`.party like '%{search_text}%') ".format(
-                search_text=search_text)
-        if filter1 != '%%':
-            conditions += " and `tabPayment Entry`.status = '{filter1}' ".format(filter1=filter1)
-        if filter2 != '%%':
-            conditions += " and `tabPayment Entry`.payment_type = '{filter2}' ".format(filter2=filter2)
-        if filter3 != '%%':
-            conditions += " and `tabPayment Entry`.mode_of_payment = '{filter3}' ".format(filter3=filter3)
-        if filter4 != '%%':
-            conditions += " and `tabPayment Entry`.party_type = '{filter4}' ".format(filter4=filter4)
-        if filter5 != '%%':
-            conditions += " and `tabPayment Entry`.party = '{filter5}' ".format(filter5=filter5)
-        if filter6 != '%%':
-            conditions += " and `tabPayment Entry`.posting_date >= '{filter6}' ".format(filter6=filter6)
-        if filter7 != '%%':
-            conditions += " and `tabPayment Entry`.posting_date <= '{filter7}' ".format(filter7=filter7)
-
-        query = frappe.db.sql(
-            """ select name, party_name, payment_type, mode_of_payment, posting_date,
-                   paid_amount, status
-                from `tabPayment Entry`
-                where `tabPayment Entry`.docstatus in (0, 1, 2)
-                {conditions}
-                order by modified desc
-                LIMIT {start},{page_length}
-            """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-    '''
+  
 
     ########################### Journal Entry Full List & Search ############################
     if doctype == "Journal Entry" and con_doc == "%%":
@@ -1088,7 +1398,7 @@ def general_service(
                 "cheque_date",
                 "remark",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -1624,7 +1934,7 @@ def general_service(
                 "stock_uom as uom",
                 "image",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -1634,32 +1944,7 @@ def general_service(
         else:
             return "لا يوجد !"
 
-    '''
-    if doctype == "Item" and con_doc == '%%':
-        conditions = ""
-        if search_text != '%%':
-            conditions += " and (`tabItem`.name like '%{search_text}%' or `tabItem`.item_name like '%{search_text}%' or `tabItem`.item_code like '%{search_text}%') ".format(search_text=search_text)
-        if filter1 != '%%':
-            conditions += " and `tabItem`.item_group = '{filter1}' ".format(filter1=filter1)
-        if filter2 != '%%':
-            conditions += " and `tabItem`.brand = '{filter2}' ".format(filter2=filter2)
-        if filter3 != '%%':
-            conditions += " and `tabItem`.is_stock_item = '{filter3}' ".format(filter3=filter3)
-        if filter4 != '%%':
-            conditions += " and `tabItem`.stock_uom = '{filter4}' ".format(filter4=filter4)
-        query = frappe.db.sql(
-            """ select name, item_name, item_group, stock_uom, image
-                from `tabItem`
-                where `tabItem`.disabled = 0
-                {conditions}
-                order by modified desc
-                LIMIT {start},{page_length}
-            """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-    '''
+  
     ############################################ MATERIAL REQUEST ############################################
 
     ########################### Material Request Full List & Search ############################
@@ -1692,7 +1977,7 @@ def general_service(
                 "set_warehouse",
                 "status",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -1826,7 +2111,7 @@ def general_service(
                 "to_warehouse",
                 "docstatus",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -1835,36 +2120,7 @@ def general_service(
         else:
             return "لا يوجد !"
 
-    '''
-    if doctype == "Stock Entry" and con_doc == '%%':
-        conditions = ""
-        if search_text != '%%':
-            conditions += " and (`tabStock Entry`.name like '%{search_text}%' or `tabStock Entry`.title like '%{search_text}%') ".format(search_text=search_text)
-        if filter1 != '%%':
-            conditions += " and `tabStock Entry`.docstatus = '{filter1}' ".format(filter1=filter1)
-        if filter2 != '%%':
-            conditions += " and `tabStock Entry`.stock_entry_type = '{filter2}' ".format(filter2=filter2)
-        if filter3 != '%%':
-            conditions += " and `tabStock Entry`.posting_date >= '{filter3}' ".format(filter3=filter3)
-        if filter4 != '%%':
-            conditions += " and `tabStock Entry`.posting_date <= '{filter4}' ".format(filter4=filter4)
-        if filter5 != '%%':
-            conditions += " and `tabStock Entry`.from_warehouse = '{filter5}' ".format(filter5=filter5)
-        if filter6 != '%%':
-            conditions += " and `tabStock Entry`.to_warehouse = '{filter6}' ".format(filter6=filter6)
-        query = frappe.db.sql(
-            """ select name, stock_entry_type, posting_date, from_warehouse, to_warehouse, docstatus
-                from `tabStock Entry`
-                where `tabStock Entry`.docstatus in (0, 1, 2)
-                {conditions}
-                order by modified desc
-                LIMIT {start},{page_length}
-            """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-    '''
+
     ############################################ PURCHASE RECEIPT ############################################
 
     ########################### Purchase Receipt Full List & Search ############################
@@ -1901,7 +2157,7 @@ def general_service(
                 "status",
                 "currency",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -2020,7 +2276,7 @@ def general_service(
                 "status",
                 "currency",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -2029,36 +2285,6 @@ def general_service(
         else:
             return "لا يوجد !"
 
-    '''
-    if doctype == "Delivery Note" and con_doc == '%%':
-        conditions = ""
-        if search_text != '%%':
-            conditions += " and (`taDelivery Note`.name like '%{search_text}%' or `taDelivery Note`.title like '%{search_text}%' or `tabDelivery Note`.customer_name like '%{search_text}%' or `tabDelivery Note`.customer like '%{search_text}%') ".format(
-                search_text=search_text)
-        if filter1 != '%%':
-            conditions += " and `tabDelivery Note`.status = '{filter1}' ".format(filter1=filter1)
-        if filter2 != '%%':
-            conditions += " and `tabDelivery Note`.customer = '{filter2}' ".format(filter2=filter2)
-        if filter3 != '%%':
-            conditions += " and `tabDelivery Note`.posting_date >= '{filter3}' ".format(filter3=filter3)
-        if filter4 != '%%':
-            conditions += " and `tabDelivery Note`.posting_date <= '{filter4}' ".format(filter4=filter4)
-        if filter5 != '%%':
-            conditions += " and `tabDelivery Note`.set_warehouse = '{filter5}' ".format(filter5=filter5)
-
-        query = frappe.db.sql(
-            """ select name, customer, territory, posting_date, set_warehouse, status
-                from `tabDelivery Note`
-                where `tabDelivery Note`.docstatus in (0, 1, 2)
-                {conditions}
-                order by modified desc
-                LIMIT {start},{page_length}
-            """.format(conditions=conditions, start=start, page_length=page_length), as_dict=1)
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
-    '''
     ############################################ SUPPLIER ############################################
 
     ########################### Supplier Full List & Search ############################
@@ -2096,7 +2322,7 @@ def general_service(
                 "mobile_no",
                 "default_currency",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -2109,7 +2335,7 @@ def general_service(
     if doctype == "Supplier Quotation" and con_doc == "Supplier":
         connections = frappe.db.sql(
             """ select distinct `tabSupplier Quotation`.name as name,`tabSupplier Quotation`.supplier as supplier,
-                       `tabSupplier Quotation`.transaction_date as transaction_date, `tabSupplier Quotation`.valid_till as valid_till, 
+                       `tabSupplier Quotation`.transaction_date as transaction_date, `tabSupplier Quotation`.valid_till as valid_till,
                        `tabSupplier Quotation`.total as total,`tabSupplier Quotation`.grand_total as grand_total,
                        `tabSupplier Quotation`.currency as currency, `tabSupplier Quotation`.status as status
                 from `tabSupplier Quotation` join `tabSupplier` on `tabSupplier`.name = `tabSupplier Quotation`.supplier
@@ -2254,7 +2480,7 @@ def general_service(
                 "status",
                 "currency",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -2289,7 +2515,7 @@ def general_service(
     if doctype == "Purchase Order" and con_doc == "Supplier Quotation":
         connections = frappe.db.sql(
             """ select distinct `tabPurchase Order`.name as name,`tabPurchase Order`.supplier as supplier,
-                `tabPurchase Order`.currency as currency, `tabPurchase Order`.transaction_date as transaction_date, 
+                `tabPurchase Order`.currency as currency, `tabPurchase Order`.transaction_date as transaction_date,
                 `tabPurchase Order`.status as status, `tabPurchase Order`.set_warehouse as set_warehouse,
                 `tabPurchase Order`.grand_total as grand_total
                 from `tabPurchase Order` join `tabPurchase Order Item` on `tabPurchase Order`.name = `tabPurchase Order Item`.parent
@@ -2363,7 +2589,7 @@ def general_service(
                 "status",
                 "currency",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -2375,7 +2601,7 @@ def general_service(
     if doctype == "Purchase Receipt" and con_doc == "Purchase Order":
         connections = frappe.db.sql(
             """ select distinct `tabPurchase Receipt`.name as name,`tabPurchase Receipt`.supplier as supplier,
-                       `tabPurchase Receipt`.set_warehouse as set_warehouse, `tabPurchase Receipt`.currency as currency, 
+                       `tabPurchase Receipt`.set_warehouse as set_warehouse, `tabPurchase Receipt`.currency as currency,
                        `tabPurchase Receipt`.posting_date as posting_date,`tabPurchase Receipt`.grand_total as grand_total,`tabPurchase Receipt`.status as status
                 from `tabPurchase Receipt` join `tabPurchase Receipt Item` on `tabPurchase Receipt`.name = `tabPurchase Receipt Item`.parent
                 where `tabPurchase Receipt Item`.purchase_order = '{cur_nam}'
@@ -2441,7 +2667,7 @@ def general_service(
             """ select distinct `tabSupplier Quotation`.name as name,`tabSupplier Quotation`.supplier as supplier,
                        `tabSupplier Quotation`.currency as currency,
                        `tabSupplier Quotation`.grand_total as grand_total,
-                       `tabSupplier Quotation`.transaction_date as transaction_date, 
+                       `tabSupplier Quotation`.transaction_date as transaction_date,
                        `tabSupplier Quotation`.valid_till as valid_till,
                        `tabSupplier Quotation`.status as status
                 from `tabSupplier Quotation` join `tabPurchase Order Item` on `tabSupplier Quotation`.name = `tabPurchase Order Item`.supplier_quotation
@@ -2520,7 +2746,7 @@ def general_service(
                 "status",
                 "currency",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -2729,7 +2955,7 @@ def general_service(
                     "total_leave_days",
                     "status",
                 ],
-                order_by="modified desc",
+                order_by=order_by(sort_field, sort_type),
                 start=start,
                 page_length=page_length,
             )
@@ -2772,7 +2998,7 @@ def general_service(
                 "total_leave_days",
                 "status",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -2838,7 +3064,7 @@ def general_service(
                 "company",
                 "status",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -2983,7 +3209,7 @@ def general_service(
             "Leave Type",
             filters=conditions,
             fields=["name", "leave_type_name"],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3000,7 +3226,7 @@ def general_service(
             fields=[
                 "name",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3039,7 +3265,34 @@ def general_service(
                 "shift",
                 "device_id",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+
+    #################################### Driver ########################
+    if doctype == "Driver" and con_doc == "%%":
+        or_conditions = {}
+        conditions = {}
+        if search_text != "%%":
+            or_conditions["name"] = ["like", search_text]
+            or_conditions["full_name"] = ["like", search_text]
+
+
+        query = frappe.db.get_list(
+            "Driver",
+            or_filters=or_conditions,
+            fields=[
+                "name",
+                "full_name",
+                "employee",
+                "status",
+            ],
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3055,7 +3308,7 @@ def general_service(
             fields=[
                 "name",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3071,7 +3324,7 @@ def general_service(
             fields=[
                 "name",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3088,7 +3341,7 @@ def general_service(
                 "name",
                 "round_off_cost_center",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3103,7 +3356,7 @@ def general_service(
             fields=[
                 "name",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3121,7 +3374,7 @@ def general_service(
                 "email",
                 "full_name",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3137,7 +3390,7 @@ def general_service(
             fields=[
                 "name",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3153,7 +3406,7 @@ def general_service(
             fields=[
                 "name",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3169,7 +3422,7 @@ def general_service(
             fields=[
                 "name",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3185,7 +3438,7 @@ def general_service(
             fields=[
                 "name",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3225,7 +3478,7 @@ def general_service(
                 "reason",
                 "docstatus",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3268,7 +3521,7 @@ def general_service(
                 "advance_amount",
                 "status",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3340,7 +3593,7 @@ def general_service(
             fields=[
                 "name",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3356,7 +3609,7 @@ def general_service(
             fields=[
                 "name",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3398,7 +3651,7 @@ def general_service(
                 "grand_total",
                 "status",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3461,7 +3714,7 @@ def general_service(
                 "rate_of_interest",
                 "is_term_loan",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3506,7 +3759,7 @@ def general_service(
                 "loan_amount",
                 "status",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3521,7 +3774,7 @@ def general_service(
         query = frappe.db.get_list(
             "Bank Account",
             fields=["name"],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3561,7 +3814,7 @@ def general_service(
                 "time",
                 "owner",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3664,7 +3917,7 @@ def general_service(
                 "city",
                 "country",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3787,28 +4040,28 @@ def general_service(
                 "phone",
                 "email_id",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
-        for x in range(len(query)):
+        # for x in range(len(query)):
 
-            link_doctype = frappe.db.get_value(
-                "Dynamic Link",
-                {
-                    "parent": query[x].name,
-                },
-                "link_doctype",
-            )
-            link_name = frappe.db.get_value(
-                "Dynamic Link",
-                {
-                    "parent": query[x].name,
-                },
-                "link_name",
-            )
-            query[x]["link_doctype"] = link_doctype
-            query[x]["link_name"] = link_name
+        #     link_doctype = frappe.db.get_value(
+        #         "Dynamic Link",
+        #         {
+        #             "parent": query[x].name,
+        #         },
+        #         "link_doctype",
+        #     )
+        #     link_name = frappe.db.get_value(
+        #         "Dynamic Link",
+        #         {
+        #             "parent": query[x].name,
+        #         },
+        #         "link_name",
+        #     )
+        #     query[x]["link_doctype"] = link_doctype
+        #     query[x]["link_name"] = link_name
         if query:
             return query
         else:
@@ -3823,7 +4076,7 @@ def general_service(
                 "asset_category_name",
                 "enable_cwip_accounting",
             ],
-            order_by="modified desc",
+            order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
@@ -3831,5 +4084,451 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
+    ##########################    Bin DocType   ####################################
+    if doctype == "Bin" and con_doc == "%%":
+        conditions1 = {}
+        if search_text != "%%":
+            conditions1["warehouse"] = ["like", search_text]
+        query = frappe.db.get_list(
+            "Bin",
+            or_filters=conditions1,
+            fields=[
+                "warehouse",
+                "item_code",
+                "reserved_qty",
+                "actual_qty",
+                "ordered_qty",
+                "indented_qty",
+                "planned_qty",
+                "projected_qty",
+                "reserved_qty_for_production",
+                "reserved_qty_for_sub_contract",
+                "stock_uom",
+                "valuation_rate",
+                "stock_value",
+            ],
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+    ########################     Notification Log    ################################
+    if doctype == "Notification Log" and con_doc == "%%":
+        conditions = {"for_user": frappe.session.user}
+        if filter1 != "%%":
+            conditions["read"] = filter1
+        query = frappe.db.get_list(
+            "Notification Log",
+            filters=conditions,
+            fields=[
+                "name",
+                "for_user",
+                "from_user",
+                "document_name",
+                "document_type",
+                "read",
+                "subject",
+                "email_content",
+                "type",
+            ],
+            start=start,
+            page_length=page_length,
+        )
+
+        if query:
+            from .helpers import remove_html_tags
+
+            for notification in query:
+                notification["subject"] = remove_html_tags(notification["subject"])
+                notification["email_content"] = remove_html_tags(
+                    str(notification["email_content"])
+                )
+
+            return query
+        else:
+            return "لا يوجد !"
+
+    # ------------------------------ Project Connections ------------------------------#
+
+    if doctype == "Task" and con_doc == "Project" and cur_nam != "%%":
+
+        response = project_connections.task(
+            cur_nam,
+            search_text,
+            filter1,
+            filter2,
+            filter3,
+            filter4,
+            filter5,
+            filter6,
+            filter7,
+            start,
+            page_length
+        )
+        return response
+
+    if doctype=="Timesheet" and con_doc=="Project" and cur_nam != "%%":
+        response = project_connections.timesheet(
+            cur_nam,
+            search_text,
+            filter2,
+            filter3,
+            filter4,
+            filter5,
+            start,
+            page_length
+        )
+        return response
+
+    if doctype=="Sales Invoice" and con_doc=="Project" and cur_nam != "%%":
+        response = project_connections.sales_invoice(
+            cur_nam,
+            search_text,
+            filter2,
+            filter3,
+            filter4,
+            filter5,
+            start,
+            page_length
+        )
+        return response
 
 
+    if doctype=="Purchase Invoice" and con_doc=="Project" and cur_nam != "%%":
+        response = project_connections.purchase_invoice(
+            cur_nam,
+            search_text,
+            filter1,
+            filter2,
+            filter3,
+            filter4,
+            filter5,
+            start,
+            page_length
+        )
+        return response
+
+    if doctype=="Stock Entry" and con_doc=="Project" and cur_nam != "%%":
+        response = project_connections.stock_entry(
+            cur_nam,
+            search_text,
+            filter1,
+            filter2,
+            filter3,
+            filter4,
+            filter5,
+            filter6,
+            start,
+            page_length
+        )
+        return response
+
+    if doctype == "Material Request" and con_doc == "Project" and cur_nam != "%%":
+        response = project_connections.material_request(
+            cur_nam,
+            search_text,
+            filter1,
+            filter2,
+            filter3,
+            filter4,
+            filter5,
+            start,
+            page_length
+        )
+        return response
+
+    if doctype == "Sales Order" and con_doc == "Project" and cur_nam != "%%":
+        response = project_connections.sales_order(
+            cur_nam,
+            search_text,
+            filter1,
+            filter2,
+            filter3,
+            filter4,
+            filter5,
+            filter6.
+            filter7,
+            filter8,
+            start,
+            page_length
+        )
+        return response
+
+    if doctype == "Delivery Note" and con_doc == "Project" and cur_nam != "%%":
+        response = project_connections.delivery_note(
+            cur_nam,
+            search_text,
+            filter1,
+            filter2,
+            filter3,
+            filter4,
+            filter5,
+            filter6.
+            filter7,
+            filter8,
+            start,
+            page_length
+        )
+        return response
+
+    if doctype == "Issue" and con_doc == "Project" and cur_nam != "%%":
+        response = project_connections.issue(
+            cur_nam,
+            search_text,
+            filter1,
+            filter2,
+            filter3,
+            filter4,
+            start,
+            page_length
+        )
+        return response
+
+    if doctype == "Expense Claim" and con_doc == "Project" and cur_nam != "%%":
+        response = project_connections.expense_claim(
+            cur_nam,
+            search_text,
+            filter1,
+            filter2,
+            filter3,
+            filter4,
+            filter5,
+            start,
+            page_length
+        )
+        return response
+
+    if doctype == "BOM" and con_doc == "Project" and cur_nam != "%%":
+        response = project_connections.bom(
+            cur_nam,
+            start,
+            page_length
+        )
+        return response
+
+    
+    # ------------------------ End Project Connections ------------------------- #
+
+@frappe.whitelist(methods=["GET"])
+def get_actual_qty(item_code=None, warehouse=None):
+    if not (item_code and warehouse):
+        response = frappe.response["message"] = {
+            "success_key": False,
+            "message": "Please Provide a warehouse and an item code",
+        }
+        return response
+
+    try:
+        query = frappe.db.sql(
+            f"""
+            SELECT actual_qty
+            FROM `tabBin`
+            WHERE warehouse =  '{warehouse}'
+            AND item_code = '{item_code}'
+        """
+        )
+        if query:
+            response = frappe.response["message"] = {
+                "success_key": True,
+                "actual_qty": query[0][0],
+            }
+            return response
+        else:
+            response = frappe.response["message"] = {
+                "success_key": False,
+                "message": "There is no actual quantity for the provided information",
+            }
+        return response
+
+    except:
+        response = frappe.response["message"] = {
+            "success_key": False,
+            "message": "Something Went Wrong Please Try Again",
+        }
+        return response
+
+
+@frappe.whitelist(methods=["GET"])
+def get_item_uoms(item_code):
+    try:
+        item = frappe.get_doc("Item", item_code)
+        uoms = []
+        for uom in item.uoms:
+            uoms.append(
+                dict(
+                    name=uom.name, uom=uom.uom, conversion_factor=uom.conversion_factor
+                )
+            )
+        response = frappe.response["message"] = uoms
+        return response
+
+    except:
+        response = frappe.response["message"] = {
+            "success": False,
+            "error": "Can't found an item with the provided item code",
+        }
+        return response
+
+
+@frappe.whitelist(methods=["GET"])
+def get_item_list(allow_sales=None, allow_purchase=None, search_text="%%", price_list="%%", start=0, page_length=5):
+    conditions = ""
+    if allow_purchase is not None:
+        conditions += f" and tabItem.is_purchase_item = {allow_purchase} "
+
+    if allow_sales is not None:
+        conditions += f" and tabItem.is_sales_item = {allow_sales}"
+
+    if search_text != "%%":
+        items = frappe.db.sql(
+            f""" select tabItem.name as name ,
+                                                    tabItem.item_code as item_code,
+                                                    tabItem.is_sales_item,
+                                                    tabItem.is_purchase_item,
+                                                    tabItem.item_name as item_name,
+                                                    tabItem.item_group as item_group,
+                                                    tabItem.stock_uom as stock_uom,
+                                                    tabItem.image as image,
+                                                    tabItem.sales_uom as sales_uom,
+                                                    ifnull((select max(price_list_rate)  from `tabItem Price` where item_code = tabItem.name and price_list = '{price_list}'),0) as price_list_rate,
+                                                    ifnull((select distinct `tabItem Tax Template Detail`.tax_rate from `tabItem Tax Template Detail` join `tabItem Tax`
+                                                    where `tabItem Tax Template Detail`.parent = `tabItem Tax`.item_tax_template and `tabItem Tax`.parent = `tabItem`.name),0) as tax_percent
+                                                    from tabItem
+                                                    where tabItem.name like '%{search_text}%'
+                                                    or tabItem.item_name like '%{search_text}%'
+                                                    {conditions}
+                                                    and tabItem.disabled = 0
+                                                    LIMIT {start}, {page_length}""",as_dict=True)
+        result = []
+        for item_dict in items:
+            if item_dict.tax_percent > 0 and item_dict.price_list_rate > 0:
+                net_rate = item_dict.price_list_rate * (
+                    1 + (item_dict.tax_percent / 100)
+                )
+                vat_value = net_rate - item_dict.price_list_rate
+                data = {
+                    "name": item_dict.name,
+                    "item_code": item_dict.item_code,
+                    "item_name": item_dict.item_name,
+                    "item_group": item_dict.item_group,
+                    "allow_sales": item_dict.is_sales_item,
+                    "allow_purchase": item_dict.is_purchase_item,
+                    "uom": item_dict.stock_uom,
+                    "stock_uom": item_dict.stock_uom,
+                    "image": item_dict.image,
+                    "sales_uom": item_dict.sales_uom,
+                    "price_list_rate": item_dict.price_list_rate,
+                    "tax_percent": item_dict.tax_percent,
+                    "net_rate": net_rate,
+                    "vat_value": vat_value,
+                }
+                result.append(data)
+            else:
+                data = {
+                    "name": item_dict.name,
+                    "item_code": item_dict.item_code,
+                    "item_name": item_dict.item_name,
+                    "item_group": item_dict.item_group,
+                    "allow_sales": item_dict.is_sales_item,
+                    "allow_purchase": item_dict.is_purchase_item,
+                    "uom": item_dict.stock_uom,
+                    "stock_uom": item_dict.stock_uom,
+                    "image": item_dict.image,
+                    "sales_uom": item_dict.sales_uom,
+                    "price_list_rate": item_dict.price_list_rate,
+                    "tax_percent": item_dict.tax_percent,
+                    "net_rate": item_dict.price_list_rate,
+                }
+                result.append(data)
+
+        if items:
+            return result
+        else:
+            return "لا يوجد منتجات !"
+    else:
+        items = frappe.db.sql(
+            f""" select tabItem.name as name,
+                                        tabItem.item_code as item_code,
+                                        tabItem.item_name as item_name,
+                                        tabItem.is_sales_item,
+                                        tabItem.is_purchase_item,
+                                        tabItem.item_group as item_group,
+                                        tabItem.stock_uom as stock_uom,
+                                        tabItem.image as image,
+                                        tabItem.sales_uom as sales_uom,
+                                        ifnull((select max(price_list_rate) from `tabItem Price` where item_code = tabItem.name and price_list = '{price_list}'),0) as price_list_rate,
+                                        ifnull((select distinct `tabItem Tax Template Detail`.tax_rate from `tabItem Tax Template Detail` join `tabItem Tax`
+                                        where `tabItem Tax Template Detail`.parent = `tabItem Tax`.item_tax_template and `tabItem Tax`.parent = `tabItem`.name),0) as tax_percent
+                                        from tabItem
+                                        where tabItem.disabled = 0
+                                        {conditions}
+                                        LIMIT {start},{page_length} """,as_dict=True)
+
+        result = []
+        for item_dict in items:
+            if item_dict.tax_percent > 0 and item_dict.price_list_rate > 0:
+                net_rate = item_dict.price_list_rate * (
+                    1 + (item_dict.tax_percent / 100)
+                )
+                vat_value = net_rate - item_dict.price_list_rate
+                data = {
+                    "name": item_dict.name,
+                    "item_code": item_dict.item_code,
+                    "item_name": item_dict.item_name,
+                    "allow_sales": item_dict.is_sales_item,
+                    "allow_purchase": item_dict.is_purchase_item,
+                    "item_group": item_dict.item_group,
+                    "uom": item_dict.stock_uom,
+                    "stock_uom": item_dict.stock_uom,
+                    "image": item_dict.image,
+                    "sales_uom": item_dict.sales_uom,
+                    "price_list_rate": item_dict.price_list_rate,
+                    "tax_percent": item_dict.tax_percent,
+                    "net_rate": net_rate,
+                    "vat_value": vat_value,
+                }
+                result.append(data)
+            else:
+                data = {
+                    "name": item_dict.name,
+                    "item_code": item_dict.item_code,
+                    "item_name": item_dict.item_name,
+                    "allow_sales": item_dict.is_sales_item,
+                    "allow_purchase": item_dict.is_purchase_item,
+                    "item_group": item_dict.item_group,
+                    "uom": item_dict.stock_uom,
+                    "stock_uom": item_dict.stock_uom,
+                    "image": item_dict.image,
+                    "sales_uom": item_dict.sales_uom,
+                    "price_list_rate": item_dict.price_list_rate,
+                    "tax_percent": item_dict.tax_percent,
+                    "net_rate": item_dict.price_list_rate,
+                }
+                result.append(data)
+
+        if items:
+            return result
+        else:
+            return "لا يوجد منتجات !"
+
+
+
+@frappe.whitelist(methods=["GET"])
+def get_reports(module):
+    mobile_user = frappe.db.get_all("Mobile User", filters={"user": frappe.session.user})
+    if not mobile_user:
+        frappe.throw("The logged in user is not a mobile user.", frappe.exceptions.ValidationError)
+    
+    mobile_user_id = mobile_user[0]["name"]
+    mobile_reports = frappe.db.get_all(
+        "Mobile Reports Table",
+        filters={"parent": mobile_user_id, "module": module},
+        fields=["report_name"]
+    )
+
+    if mobile_reports:
+        return mobile_reports
+        
+    frappe.throw("There is no reports to show", frappe.exceptions.DoesNotExistError)

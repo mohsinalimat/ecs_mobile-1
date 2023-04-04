@@ -12,98 +12,12 @@ current_user = frappe.session.user
 
 
 @frappe.whitelist(allow_guest=True)
-def login1(usr, pwd):
+def login(usr, pwd):
+
     try:
         login_manager = frappe.auth.LoginManager()
         login_manager.authenticate(user=usr, pwd=pwd)
         login_manager.post_login()
-
-    except frappe.exceptions.AuthenticationError:
-        frappe.clear_messages()
-        frappe.local.response["message"] = {
-            "success_key": true,
-            "message": "اسم المستخدم او كلمة المرور غير صحيحة !",
-        }
-
-        return
-
-    api_generate = generate_keys(frappe.session.user)
-    user = frappe.get_doc("User", frappe.session.user)
-    allowed_modules = frappe.db.sql(
-        """ select `tabMobile user Modules`.modules as modq 
-    from `tabMobile user Modules` join `tabMobile User` on `tabMobile user Modules`.parent = `tabMobile User`.name 
-    where `tabMobile User`.user = '{user}' or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' order by `tabMobile user Modules`.idx """.format(
-            user=usr
-        ),
-        as_dict=1,
-    )
-    allowed_documents = frappe.db.sql(
-        """ select `tabMobile User Documents`.modules as modq ,
-                                        `tabMobile User Documents`.document_name as docq 
-                                        from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
-                                        where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' order by `tabMobile User Documents`.idx  """.format(
-            user=usr
-        ),
-        as_dict=1,
-    )
-    modules = {}
-    documents = {}
-    for module in allowed_modules:
-        # modules = {module.modq:"Yes"}
-        # modules.update()
-        # modules.[module.modq]= 34
-        modules.update({module.modq: "Yes"})
-
-    for document in allowed_documents:
-        documents.update({document.docq: document.modq})
-
-    frappe.response["message"] = {
-        "success_key": True,
-        "message": "Authentication Success",
-        "sid": frappe.session.sid,
-        "api_key": user.api_key,
-        "api_secret": api_generate,
-        "email": user.email,
-        "modules": modules,
-        "documents": documents,
-        "user_type": user.role_profile_name,
-    }
-
-    return
-
-
-current_date = datetime.datetime.today().strftime("%Y-%m-%d")
-current_user = frappe.session.user
-
-
-@frappe.whitelist(allow_guest=True)
-def login(usr, pwd, url):
-
-    ## Check for active domain
-    link = "https://erpcloud.systems/api/method/ecs_ecs.api.check_domain?url=" + url
-    f = requests.get(link)
-    y = json.loads(f.text)
-
-    if y["message"] == "Domain Is Inactive":
-        frappe.local.response["message"] = {
-            "message": "This Domain Is Not Allowed. Please Contact info@erpcloud.systems",
-        }
-        frappe.throw("This Domain Is Not Allowed. Please Contact info@erpcloud.systems")
-        # return "This Domain Is Not Allowed. Please Contact info@erpcloud.systems"
-
-    elif y["message"] == "Domain Is Active":
-        try:
-            login_manager = frappe.auth.LoginManager()
-            login_manager.authenticate(user=usr, pwd=pwd)
-            login_manager.post_login()
-
-        except frappe.exceptions.AuthenticationError:
-            frappe.clear_messages()
-            frappe.local.response["message"] = {
-                "success_key": True,
-                "message": "اسم المستخدم او كلمة المرور غير صحيحة !",
-            }
-
         api_generate = generate_keys(frappe.session.user)
         user = frappe.get_doc("User", frappe.session.user)
 
@@ -119,6 +33,38 @@ def login(usr, pwd, url):
         modules = []
 
         for module in allowed_modules:
+            if module.modq == "Projects":
+                Projects = {}
+
+                Projects["Projects"] = "https://erpcloud.systems/files/accounts.png"
+                allowed_documents = frappe.db.sql(
+                    """ select
+                            `tabMobile User Documents`.document_name as docq 
+                            from `tabMobile User Documents`
+                            join `tabMobile User`
+                                on `tabMobile User Documents`.parent = `tabMobile User`.name 
+                            where `tabMobile User`.user = '{user}'
+                                or `tabMobile User`.username = '{user}'
+                                or `tabMobile User`.mobile_no = '{user}'
+                                and `tabMobile User Documents`.modules ='projects'
+                                order by `tabMobile User Documents`.idx  """
+                                .format(user=usr), as_dict=True
+                )
+
+                docs = {}
+                for x in allowed_documents:
+                    if x.docq == "Task":
+                        docs["Task"] = "https://erpcloud.systems/files/payment_entry.png"
+
+                    if x.docq == "Timesheet":
+                        docs["Timesheet"] = "https://erpcloud.systems/files/journal_entry.png"
+
+                    if x.docq == "Project":
+                        docs["Project"] = "https://erpcloud.systems/files/sales_invoice.png"
+                    
+                Projects["docs"] = docs
+                modules.append(Projects)
+
             if module.modq == "Accounts":
                 Accounts = {}
 
@@ -144,6 +90,7 @@ def login(usr, pwd, url):
 
                 Accounts["docs"] = docs
                 modules.append(Accounts)
+
             if module.modq == "Selling":
                 Selling = {}
                 Selling["Selling"] = "https://erpcloud.systems/files/selling.png"
@@ -220,6 +167,7 @@ def login(usr, pwd, url):
                     as_dict=1,
                 )
                 docs = {}
+                docs["Stock Reports"] = "https://erpcloud.systems/files/delivery_note.png"
                 for x in allowed_documents:
                     if x.docq == "Item":
                         docs["Item"] = "https://erpcloud.systems/files/item.png"
@@ -231,6 +179,8 @@ def login(usr, pwd, url):
                         docs["Stock Entry"] = "https://erpcloud.systems/files/stock_entry.png"
                     if x.docq == "Delivery Note":
                         docs["Delivery Note"] = "https://erpcloud.systems/files/delivery_note.png"
+
+                    
 
                 Stock["docs"] = docs
                 modules.append(Stock)
@@ -304,22 +254,31 @@ def login(usr, pwd, url):
         mobile_settings = frappe.get_doc("Mobile Settings")
         frappe.response["message"] = {
             "success_key": True,
-            "domain_status": y["message"],
+            "domain_status": "Logged In",
             "message": "Authentication Success",
             "sid": frappe.session.sid,
             "api_key": user.api_key,
             "api_secret": api_generate,
+            "user_id": user.name,
             "email": user.email,
             "modules": modules,
             "user_type": user.role_profile_name,
             "user_role": user_role,
             "mobile_settings": mobile_settings,
-            "user_permissions": doc_perm,
+            "user_permissions": user_permissions,
             "default_tax_template": taxes,
             "company_defaults": company,
         }
+    except frappe.exceptions.AuthenticationError:
+        frappe.clear_messages()
+        frappe.local.response["message"] = {
+            "success_key": False,
+            "message": "اسم المستخدم او كلمة المرور غير صحيحة !",
+        }
 
-        return
+    
+
+    return
 
 
 def generate_keys(user):
@@ -964,4 +923,5 @@ def cancel(doctype, name):
         return message
     else:
         return "حدث خطأ ولم نتمكن من الغاء المعاملة . برجاء المحاولة مرة اخري!"
+
 

@@ -10,6 +10,9 @@ app_email = "info@erpcloud.systems"
 app_license = "MIT"
 
 doc_events = {
+"Notification Log": {
+	"after_insert": "ecs_mobile.event_triggers.notification_log_after_insert"
+}, 
 "Quotation": {
 	"before_insert": "ecs_mobile.event_triggers.quot_before_insert",
 	"after_insert": "ecs_mobile.event_triggers.quot_after_insert",
@@ -345,4 +348,5 @@ user_data_fields = [
 # auth_hooks = [
 # 	"ecs_mobile.auth.validate"
 # ]
+
 

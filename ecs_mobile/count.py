@@ -3784,3 +3784,33 @@ def general_service(
             return len(query)
         else:
             return "لا يوجد !"
+
+
+    if doctype == "Notification Log" and con_doc == "%%":
+        conditions = {"for_user": frappe.session.user}
+        if filter1 != "%%":
+            conditions["read"] = filter1
+
+        query = frappe.db.get_list(
+            "Notification Log",
+            filters=conditions,
+            fields=[
+                "name",
+                "for_user",
+                "from_user",
+                "document_name",
+                "document_type",
+                "read",
+                "subject",
+                "email_content",
+                "type",
+            ],
+            start=start,
+            page_length=page_length,
+        )
+
+        if query:    
+            return {"count": len(query), "conditions": conditions}
+        else:
+            return "لا يوجد !"        
+

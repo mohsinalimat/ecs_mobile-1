@@ -5,6 +5,34 @@ import datetime
 import json, ast
 
 
+
+#--------   Notification Log    ------------#
+from .notifications import send_push_notification
+from .helpers import remove_html_tags
+
+
+
+@frappe.whitelist()
+def notification_log_after_insert(doc, method=None):
+    subject = remove_html_tags(doc.subject)
+    message = remove_html_tags(doc.email_content)
+    doctype = doc.document_type
+    document_name = doc.document_name
+
+    #-----Get Device Tokens-----#
+    device_tokens = []
+    query = frappe.get_list("Push Notification Details",
+        filters = {"user_id": doc.for_user},
+        fields = ["device_token"]
+    )
+    for row in query:
+
+        device_tokens.append(row["device_token"])
+    #----- End Get Device Token ----#
+    
+    send_push_notification(tokens=device_tokens, message=message, subject=subject, doctype=doctype, document_name=document_name)
+
+
 ################ Quotation
 
 @frappe.whitelist()
@@ -53,7 +81,7 @@ def so_before_insert(doc, method=None):
     pass
 @frappe.whitelist()
 def so_after_insert(doc, method=None):
-    pass
+	pass
 @frappe.whitelist()
 def so_before_validate(doc, method=None):
     pass
@@ -501,3 +529,4 @@ def blank_before_cancel(doc, method=None):
 @frappe.whitelist()
 def blank_on_update(doc, method=None):
     pass
+

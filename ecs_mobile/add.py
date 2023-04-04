@@ -8,7 +8,72 @@ from frappe import _
 import requests
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
+def bom(**kwargs):
+    bom = frappe.get_doc(kwargs["data"])
+    bom.insert()
+    bom_name = bom.name
+    frappe.db.commit()
+    if bom:
+        message = frappe.response["message"] = {
+            "success_key": True,
+            "message": "تم اضافة المعاملة بنجاح!",
+            "bom": bom_name,
+        }
+        return message
+    else:
+        return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
+
+
+@frappe.whitelist()
+def project(**kwargs):
+    project = frappe.get_doc(kwargs["data"])
+    project.insert()
+    project_name = project.name
+    frappe.db.commit()
+    if project:
+        message = frappe.response["message"] = {
+            "success_key": True,
+            "message": "تم اضافة المعاملة بنجاح!",
+            "project": project_name,
+        }
+        return message
+    else:
+        return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
+
+@frappe.whitelist()
+def task(**kwargs):
+    task = frappe.get_doc(kwargs["data"])
+    task.insert()
+    task_name = task.name
+    frappe.db.commit()
+    if task_name:
+        message = frappe.response["message"] = {
+            "success_key": True,
+            "message": "تم اضافة المعاملة بنجاح!",
+            "task": task_name,
+        }
+        return message
+    else:
+        return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
+
+@frappe.whitelist()
+def timesheet(**kwargs):
+    timesheet = frappe.get_doc(kwargs["data"])
+    timesheet.insert()
+    timesheet_name = timesheet.name
+    frappe.db.commit()
+    if timesheet_name:
+        message = frappe.response["message"] = {
+            "success_key": True,
+            "message": "تم اضافة المعاملة بنجاح!",
+            "timesheet": timesheet_name,
+        }
+        return message
+    else:
+        return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
+
+@frappe.whitelist()
 def lead(**kwargs):
     lead = frappe.get_doc(kwargs["data"])
     lead.insert()
@@ -25,7 +90,7 @@ def lead(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def opportunity(**kwargs):
     opportunity = frappe.get_doc(kwargs["data"])
 
@@ -43,7 +108,7 @@ def opportunity(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def quotation(**kwargs):
     quotation = frappe.get_doc(kwargs["data"])
     quotation.insert()
@@ -60,7 +125,7 @@ def quotation(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def customer(**kwargs):
     customer = frappe.new_doc("Customer")
     customer.customer_name = kwargs["data"].get("customer_name", None)
@@ -79,32 +144,7 @@ def customer(**kwargs):
     customer.append("credit_limits", kwargs["data"].get("credit_limits")[0])
     customer.insert()
     customer_name = customer.name
-    # credit_limit = [
-    #     {
-    #         "doctype": "Customer Credit Limit",
-    #         "credit_limit": kwargs["data"]["credit_limits"]["credit_limit"],
-    #         "bypass_credit_limit_check": kwargs["data"]["credit_limits"][
-    #             "bypass_credit_limit_check"
-    #         ],
-    #     }
-    # ]
 
-    # customer.credit_limits = credit_limit
-
-    # contact = frappe.new_doc("Contact")
-    # contact_link = [
-    #     {
-    #         "link_doctype": "Customer",
-    #         "link_name": customer_name,
-    #         "link_title": customer_name,
-    #     }
-    # ]
-    # contact.first_name = kwargs["data"].get("customer_name", None)
-    # contact.email_id = kwargs["data"].get("email_id", None)
-    # contact.mobile_no = kwargs["data"].get("mobile_no", None)
-    # contact.is_primary_contact = 1
-    # contact.is_billing_contact = 1
-    # contact.links = contact_link
     links = [
         {
             "link_doctype": "Customer",
@@ -157,7 +197,6 @@ def customer(**kwargs):
     address.address_type = "Billing"
     address.is_primary_address_type = 1
     address.is_shipping_address_type = 1
-    # address.links = address_link
 
     if (
         kwargs["data"].get("customer_name")
@@ -168,9 +207,7 @@ def customer(**kwargs):
         address.insert()
         customer.customer_primary_address = address.name
     customer.save()
-    # customer =frappe.get_doc(kwargs['data'])
-
-    # customer.insert()
+    
 
     frappe.db.commit()
     if customer_name:
@@ -184,7 +221,7 @@ def customer(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def sales_order(**kwargs):
 
     sales_order = frappe.get_doc(kwargs["data"])
@@ -203,7 +240,7 @@ def sales_order(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def sales_invoice(**kwargs):
     sales_invoice = frappe.get_doc(kwargs["data"])
 
@@ -221,7 +258,7 @@ def sales_invoice(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def payment_entry(**kwargs):
     payment_entry = frappe.get_doc(kwargs["data"])
 
@@ -239,7 +276,7 @@ def payment_entry(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def loan_application(**kwargs):
     loan_application_data = frappe.get_doc(kwargs["data"])
     loan_application_data.insert()
@@ -256,7 +293,7 @@ def loan_application(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def journal_entry(**kwargs):
     journal_entry_data = frappe.get_doc(kwargs["data"])
     journal_entry_data.insert()
@@ -273,7 +310,7 @@ def journal_entry(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def item(**kwargs):
     item = frappe.get_doc(kwargs["data"])
 
@@ -291,7 +328,7 @@ def item(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة الصنف . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def stock_entry(**kwargs):
     stock_entry = frappe.get_doc(kwargs["data"])
     stock_entry.insert()
@@ -309,7 +346,7 @@ def stock_entry(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def delivery_note(**kwargs):
     delivery_note = frappe.get_doc(kwargs["data"])
     delivery_note.insert()
@@ -326,7 +363,7 @@ def delivery_note(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def purchase_receipt(**kwargs):
     purchase_receipt = frappe.get_doc(kwargs["data"])
     purchase_receipt.insert()
@@ -343,7 +380,7 @@ def purchase_receipt(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def comment(**kwargs):
     comment = frappe.get_doc(kwargs["data"])
 
@@ -361,139 +398,10 @@ def comment(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة التعليق . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
-def add_item_list(**kwargs):
-    start = 0
-    page_length = 20
-    try:
-        if kwargs["search_text"]:
-            items = frappe.db.sql(
-                """ select tabItem.name as name ,
-                                                     tabItem.item_code as item_code, 
-                                                     tabItem.item_name as item_name, 
-                                                     tabItem.item_group as item_group, 
-                                                     tabItem.stock_uom as stock_uom, 
-                                                     tabItem.image as image,
-                                                     tabItem.sales_uom as sales_uom,
-                                                     ifnull((select max(price_list_rate)  from `tabItem Price` where item_code = tabItem.name and price_list = '{price_list}'),0) as price_list_rate,
-                                                     ifnull((select distinct `tabItem Tax Template Detail`.tax_rate from `tabItem Tax Template Detail` join `tabItem Tax` 
-                                                     where `tabItem Tax Template Detail`.parent = `tabItem Tax`.item_tax_template and `tabItem Tax`.parent = `tabItem`.name),0) as tax_percent
-                                                     from tabItem  where tabItem.disabled = 0 and tabItem.name like '%{item}%' or tabItem.item_name like '%{item}%' LIMIT {start},{page_length}""".format(
-                    start=kwargs["start"],
-                    page_length=kwargs["page_length"],
-                    price_list=kwargs["price_list"],
-                    item=kwargs["search_text"],
-                ),
-                as_dict=1,
-            )
-            result = []
-            for item_dict in items:
-                if item_dict.tax_percent > 0 and item_dict.price_list_rate > 0:
-                    net_rate = item_dict.price_list_rate * (
-                        1 + (item_dict.tax_percent / 100)
-                    )
-                    vat_value = net_rate - item_dict.price_list_rate
-                    data = {
-                        "name": item_dict.name,
-                        "item_code": item_dict.item_code,
-                        "item_name": item_dict.item_name,
-                        "item_group": item_dict.item_group,
-                        "uom": item_dict.stock_uom,
-                        "stock_uom": item_dict.stock_uom,
-                        "image": item_dict.image,
-                        "sales_uom": item_dict.sales_uom,
-                        "price_list_rate": item_dict.price_list_rate,
-                        "tax_percent": item_dict.tax_percent,
-                        "net_rate": net_rate,
-                        "vat_value": vat_value,
-                    }
-                    result.append(data)
-                else:
-                    data = {
-                        "name": item_dict.name,
-                        "item_code": item_dict.item_code,
-                        "item_name": item_dict.item_name,
-                        "item_group": item_dict.item_group,
-                        "uom": item_dict.stock_uom,
-                        "stock_uom": item_dict.stock_uom,
-                        "image": item_dict.image,
-                        "sales_uom": item_dict.sales_uom,
-                        "price_list_rate": item_dict.price_list_rate,
-                        "tax_percent": item_dict.tax_percent,
-                        "net_rate": item_dict.price_list_rate,
-                    }
-                    result.append(data)
-
-            if items:
-                return result
-            else:
-                return "لا يوجد منتجات !"
-
-    except:
-        items = frappe.db.sql(
-            """ select tabItem.name as name,
-                                         tabItem.item_code as item_code,
-                                         tabItem.item_name as item_name, 
-                                         tabItem.item_group as item_group, 
-                                         tabItem.stock_uom as stock_uom, 
-                                         tabItem.image as image,
-                                         tabItem.sales_uom as sales_uom,
-                                         ifnull((select max(price_list_rate) from `tabItem Price` where item_code = tabItem.name and price_list = '{price_list}'),0) as price_list_rate,
-                                         ifnull((select distinct `tabItem Tax Template Detail`.tax_rate from `tabItem Tax Template Detail` join `tabItem Tax` 
-                                         where `tabItem Tax Template Detail`.parent = `tabItem Tax`.item_tax_template and `tabItem Tax`.parent = `tabItem`.name),0) as tax_percent
-                                         from tabItem where tabItem.disabled = 0 LIMIT {start},{page_length} """.format(
-                start=kwargs["start"],
-                page_length=kwargs["page_length"],
-                price_list=kwargs["price_list"],
-            ),
-            as_dict=1,
-        )
-
-        result = []
-        for item_dict in items:
-            if item_dict.tax_percent > 0 and item_dict.price_list_rate > 0:
-                net_rate = item_dict.price_list_rate * (
-                    1 + (item_dict.tax_percent / 100)
-                )
-                vat_value = net_rate - item_dict.price_list_rate
-                data = {
-                    "name": item_dict.name,
-                    "item_code": item_dict.item_code,
-                    "item_name": item_dict.item_name,
-                    "item_group": item_dict.item_group,
-                    "uom": item_dict.stock_uom,
-                    "stock_uom": item_dict.stock_uom,
-                    "image": item_dict.image,
-                    "sales_uom": item_dict.sales_uom,
-                    "price_list_rate": item_dict.price_list_rate,
-                    "tax_percent": item_dict.tax_percent,
-                    "net_rate": net_rate,
-                    "vat_value": vat_value,
-                }
-                result.append(data)
-            else:
-                data = {
-                    "name": item_dict.name,
-                    "item_code": item_dict.item_code,
-                    "item_name": item_dict.item_name,
-                    "item_group": item_dict.item_group,
-                    "uom": item_dict.stock_uom,
-                    "stock_uom": item_dict.stock_uom,
-                    "image": item_dict.image,
-                    "sales_uom": item_dict.sales_uom,
-                    "price_list_rate": item_dict.price_list_rate,
-                    "tax_percent": item_dict.tax_percent,
-                    "net_rate": item_dict.price_list_rate,
-                }
-                result.append(data)
-
-        if items:
-            return result
-        else:
-            return "لا يوجد منتجات !"
 
 
-@frappe.whitelist(allow_guest=True)
+
+@frappe.whitelist()
 def supplier_test(**kwargs):
     supplier = frappe.new_doc("Supplier")
     supplier.supplier_name = kwargs["data"]["supplier_name"]
@@ -569,7 +477,7 @@ def supplier_test(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def supplier_quotation(**kwargs):
     s_quotation = frappe.get_doc(kwargs["data"])
 
@@ -587,7 +495,7 @@ def supplier_quotation(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def purchase_order(**kwargs):
     p_order = frappe.get_doc(kwargs["data"])
     p_order.insert()
@@ -604,7 +512,7 @@ def purchase_order(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def purchase_invoice(**kwargs):
     purchase_invoice = frappe.get_doc(kwargs["data"])
 
@@ -622,7 +530,7 @@ def purchase_invoice(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def purchsae_receipt(**kwargs):
     purchsae_receipt_data = frappe.get_doc(kwargs["data"])
 
@@ -640,7 +548,7 @@ def purchsae_receipt(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def material_request(**kwargs):
     material_request_data = frappe.get_doc(kwargs["data"])
     material_request_data.insert()
@@ -657,7 +565,7 @@ def material_request(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def leave_application(**kwargs):
     leave_application_data = frappe.get_doc(kwargs["data"])
 
@@ -675,7 +583,7 @@ def leave_application(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def supplier(**kwargs):
     supplier = frappe.new_doc("Supplier")
     supplier.supplier_name = kwargs["data"]["supplier_name"]
@@ -767,7 +675,7 @@ def supplier(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def employee_checkin(**kwargs):
     employee_checkin_data = frappe.get_doc(kwargs["data"])
 
@@ -785,7 +693,7 @@ def employee_checkin(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def employee(**kwargs):
     employee_data = frappe.new_doc("Employee")
     employee_data.first_name = kwargs["data"].get("first_name", None)
@@ -829,7 +737,7 @@ def employee(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def attendance_request(**kwargs):
     attendance_request_data = frappe.get_doc(kwargs["data"])
 
@@ -847,7 +755,7 @@ def attendance_request(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def employee_advance(**kwargs):
     employee_advance_data = frappe.get_doc(kwargs["data"])
 
@@ -865,7 +773,7 @@ def employee_advance(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def expense_claim(**kwargs):
     expense_claim_data = frappe.get_doc(kwargs["data"])
     expense_claim_data.insert()
@@ -882,7 +790,7 @@ def expense_claim(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def customer_visit(**kwargs):
     customer_visit_data = frappe.get_doc(kwargs["data"])
     customer_visit_data.insert()
@@ -967,7 +875,7 @@ def address(**kwargs):
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def make_primary_address(**kwargs):
     if kwargs["data"].get("is_primary_address", 0):
         addresses = frappe.db.get_list(
@@ -1029,3 +937,15 @@ def contact(**kwargs):
     else:
         return "حدث خطأ ولم نتمكن من اضافة المعاملة . برجاء المحاولة مرة اخري!"
 
+
+@frappe.whitelist(methods=["POST"])
+def workflow(**kwargs):
+    if "data" not in kwargs:
+        frappe.throw("data key must be in the body.", frappe.exceptions.ValidationError)
+
+    data = kwargs["data"]
+    workflow = frappe.get_doc(data)
+    workflow.insert()
+
+    response = {"succss_key": True, "workflow": workflow.name}
+    return response

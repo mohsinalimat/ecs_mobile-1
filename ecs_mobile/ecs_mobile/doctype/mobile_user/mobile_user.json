@@ -10,7 +10,8 @@
   "username",
   "mobile_no",
   "mobile_user_modules",
-  "mobile_user_documents"
+  "mobile_user_documents",
+  "mobile_reports"
  ],
  "fields": [
   {
@@ -46,11 +47,17 @@
    "fieldtype": "Data",
    "label": "Mobile No",
    "read_only": 1
+  },
+  {
+   "fieldname": "mobile_reports",
+   "fieldtype": "Table",
+   "label": "Mobile Reports",
+   "options": "Mobile Reports Table"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-02-01 10:57:18.022700",
+ "modified": "2023-03-05 16:28:11.810185",
  "modified_by": "Administrator",
  "module": "Ecs Mobile",
  "name": "Mobile User",
@@ -71,6 +78,7 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "user",
  "track_changes": 1
 }
