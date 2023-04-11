@@ -114,6 +114,7 @@ def project(name):
         filters={"name": name},
         fields=[
             "name",
+            "docstatus",
             "project_name",
             "expected_start_date",
             "expected_end_date",
@@ -132,6 +133,7 @@ def project(name):
 
     for x in doc_data:
         project["name"] = x.name
+        project["docstatus"] = x.docstatus
         project["status"] = x.status
         project["project_name"] = x.project_name
         project["expected_start_date"] = x.expected_start_date
@@ -143,7 +145,7 @@ def project(name):
         project["percent_complete_method"] = x.percent_complete_method
         project["percent_complete"] = x.percent_complete
         project["customer"] = x.customer
-        project["notes"] = x.notes
+        project["notes"] = remove_html_tags(str(x.notes))
         project["actual_time"] = x.actual_time
     
     child_data = frappe.db.get_all("Project User",
@@ -2323,6 +2325,87 @@ def journal_entry(name):
         return response
     else:
         return "لا يوجد مدفوعات ومقبوضات بهذا الاسم"
+
+
+
+@frappe.whitelist()
+def issue(name):
+
+    issue = {}
+    doc_data = frappe.db.get_all(
+        "Issue",
+        filters={"name": name},
+        fields=[
+            "name",
+            "docstatus",
+            "subject",
+            "status",
+            "priority",
+            "issue_type",
+            "description"
+        ]
+    )
+    for x in doc_data:
+        issue["name"] = x.name
+        issue["docstatus"] = x.docstatus
+        issue["status"] = x.status
+        issue["subject"] = x.subject
+        issue["project"] = x.project
+        issue["issue"] = x.issue
+        issue["issue_type"] = x.issue_type
+        issue["priority"] = x.priority
+        issue["description"] = remove_html_tags(x.description)
+    
+    
+    attachments = frappe.db.sql(
+        f""" Select 
+                file_name,
+                file_url,
+                Date_Format(creation,'%d/%m/%Y') as date_added
+                from `tabFile`
+                where `tabFile`.attached_to_doctype = "Issue"
+                and `tabFile`.attached_to_name = "{name}"
+                order by `tabFile`.creation
+                """, as_dict=True)
+
+    issue["attachments"] = attachments
+
+    comments = frappe.db.sql(
+        f""" Select 
+                creation,
+                (Select 
+                    `tabUser`.full_name
+                    from `tabUser`
+                    where `tabUser`.name = `tabComment`.owner) as owner, content
+                from `tabComment`  where `tabComment`.reference_doctype = "Issue"
+                and `tabComment`.reference_name = "{name}"
+                and `tabComment`.comment_type = "Comment"
+                order by `tabComment`.creation
+                """, as_dict=True)
+
+    issue["comments"] = comments
+
+    print_formats = frappe.db.sql(
+        """ Select name
+            from `tabPrint Format`
+            where doc_type = "Issue"
+            and disabled = 0
+        """, as_dict=True)
+    issue["print_formats"] = print_formats
+    
+    pf_standard = {}
+    pf_standard["name"] = "Standard"
+    print_formats.append(pf_standard)
+    
+    connections = []
+    
+
+
+    issue["conn"] = connections
+    if doc_data:
+        return issue
+    else:
+        return "There is no task with that name."
 
 
 @frappe.whitelist()

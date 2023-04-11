@@ -64,6 +64,23 @@ def general_service(
         else:
             return "لا يوجد !"
     
+
+    if doctype == "Issue Type" and con_doc:
+        query = frappe.db.get_all(
+            "Issue Type",
+            fields=["name"],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+        
+
+
+
     if doctype == "Party Type" and con_doc == "%%":
         query = frappe.db.get_list(
             "Party Type",
@@ -296,6 +313,11 @@ def general_service(
         if filter2 != "%%":
             conditions["priority"] = filter2
       
+        if filter3 != "%%":
+                conditions["issue_type"] = filter3
+                
+        if filter6 != "%%":
+                conditions["customer"] = filter6
 
         if filter4 != "%%" and filter5 == "%%":
             conditions["creation"] = [">=", filter4]
@@ -315,7 +337,9 @@ def general_service(
                 "customer",
                 "priority",
                 "issue_type",
-                "description"
+                "description",
+                "opening_date",
+                "opening_time"
             ],
             order_by=order_by(sort_field, sort_type),
             start=start,
@@ -505,14 +529,6 @@ def general_service(
 
         if filter2 != "%%":
             conditions["customer"] = filter2
-
-        if filter3 != "%%":
-            conditions["status"] = filter3
-
-        if filter4 != "%%" and filter5 == "%%":
-            conditions["start_date"] = [">=", filter4]
-        if filter5 != "%%" and filter4 == "%%":
-            conditions["end_date"] = ["<=", filter5]
 
         query = frappe.db.get_list(
             "Timesheet",
@@ -1429,23 +1445,6 @@ def general_service(
     ############################################ PROJECT ############################################
 
     ########################### Project Segment Full List & Search ############################
-    if doctype == "Project" and con_doc == "%%":
-        query = frappe.db.get_list(
-            "Project",
-            filters=[{"is_active": ["=", "Yes"]}],
-            or_filters=[
-                {"name": ["like", search_text]},
-                {"project_name": ["like", search_text]},
-            ],
-            fields=["name", "project_name", "status"],
-            order_by="name asc",
-            start=start,
-            page_length=page_length,
-        )
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
 
     ############################################ PAYMENT TERMS TEMPLATE ############################################
 

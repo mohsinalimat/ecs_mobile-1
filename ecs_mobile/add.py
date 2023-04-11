@@ -311,6 +311,24 @@ def journal_entry(**kwargs):
 
 
 @frappe.whitelist()
+def issue(**kwargs):
+    issue = frappe.get_doc(kwargs["data"])
+
+    issue.insert()
+    issue_name = issue.name
+    frappe.db.commit()
+    if issue_name:
+        message = frappe.response["message"] = {
+            "success_key": True,
+            "message": "تم اضافة الصنف بنجاح!",
+            "issue": issue_name,
+        }
+        return message
+    else:
+        return "حدث خطأ ولم نتمكن من اضافة الصنف . برجاء المحاولة مرة اخري!"
+
+
+@frappe.whitelist()
 def item(**kwargs):
     item = frappe.get_doc(kwargs["data"])
 

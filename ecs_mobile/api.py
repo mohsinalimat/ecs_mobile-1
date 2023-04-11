@@ -36,7 +36,7 @@ def login(usr, pwd):
             if module.modq == "Projects":
                 Projects = {}
 
-                Projects["Projects"] = "https://erpcloud.systems/files/accounts.png"
+                Projects["Projects"] = "https://nextapp.mobi/files/projects.png"
                 allowed_documents = frappe.db.sql(
                     """ select
                             `tabMobile User Documents`.document_name as docq 
@@ -54,13 +54,16 @@ def login(usr, pwd):
                 docs = {}
                 for x in allowed_documents:
                     if x.docq == "Task":
-                        docs["Task"] = "https://erpcloud.systems/files/payment_entry.png"
+                        docs["Task"] = "https://nextapp.mobi/files/task.png"
 
                     if x.docq == "Timesheet":
-                        docs["Timesheet"] = "https://erpcloud.systems/files/journal_entry.png"
+                        docs["Timesheet"] = "https://nextapp.mobi/files/timesheet.png"
 
                     if x.docq == "Project":
-                        docs["Project"] = "https://erpcloud.systems/files/sales_invoice.png"
+                        docs["Project"] = "https://nextapp.mobi/files/projects.png"
+                    
+                    if x.docq == "Project":
+                        docs["Issue"] = "https://nextapp.mobi/files/issue.png"
                     
                 Projects["docs"] = docs
                 modules.append(Projects)
@@ -68,7 +71,7 @@ def login(usr, pwd):
             if module.modq == "Accounts":
                 Accounts = {}
 
-                Accounts["Accounts"] = "https://erpcloud.systems/files/accounts.png"
+                Accounts["Accounts"] = "https://nextapp.mobi/files/accounts.png"
                 allowed_documents = frappe.db.sql(
                     """ select `tabMobile User Documents`.document_name as docq 
                                             from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
@@ -80,20 +83,20 @@ def login(usr, pwd):
                 docs = {}
                 for x in allowed_documents:
                     if x.docq == "Payment Entry":
-                        docs["Payment Entry"] = "https://erpcloud.systems/files/payment_entry.png"
+                        docs["Payment Entry"] = "https://nextapp.mobi/files/payment_entry.png"
                     if x.docq == "Journal Entry":
-                        docs["Journal Entry"] = "https://erpcloud.systems/files/journal_entry.png"
+                        docs["Journal Entry"] = "https://nextapp.mobi/files/journal_entry.png"
                     if x.docq == "Sales Invoice":
-                        docs["Sales Invoice"] = "https://erpcloud.systems/files/sales_invoice.png"
+                        docs["Sales Invoice"] = "https://nextapp.mobi/files/sales_invoice.png"
                     if x.docq == "Purchase Invoice":
-                        docs["Purchase Invoice"] = "https://erpcloud.systems/files/purchase_invoice.png"
+                        docs["Purchase Invoice"] = "https://nextapp.mobi/files/purchase_invoice.png"
 
                 Accounts["docs"] = docs
                 modules.append(Accounts)
 
             if module.modq == "Selling":
                 Selling = {}
-                Selling["Selling"] = "https://erpcloud.systems/files/selling.png"
+                Selling["Selling"] = "https://nextapp.mobi/files/selling.png"
                 allowed_documents = frappe.db.sql(
                     """ select `tabMobile User Documents`.document_name as docq 
                                             from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
@@ -105,32 +108,32 @@ def login(usr, pwd):
                 docs = {}
                 for x in allowed_documents:
                     if x.docq == "Lead":
-                        docs["Lead"] = "https://erpcloud.systems/files/lead.png"
+                        docs["Lead"] = "https://nextapp.mobi/files/lead.png"
                     if x.docq == "Opportunity":
-                        docs["Opportunity"] = "https://erpcloud.systems/files/opportunity.png"
+                        docs["Opportunity"] = "https://nextapp.mobi/files/opportunity.png"
                     if x.docq == "Customer":
-                        docs["Customer"] = "https://erpcloud.systems/files/customer.png"
+                        docs["Customer"] = "https://nextapp.mobi/files/customer.png"
                     if x.docq == "Customer Visit":
-                        docs["Customer Visit"] = "https://erpcloud.systems/files/customer_visit.png"
+                        docs["Customer Visit"] = "https://nextapp.mobi/files/customer_visit.png"
                     if x.docq == "Address":
-                        docs["Address"] = "https://erpcloud.systems/files/address.png"
+                        docs["Address"] = "https://nextapp.mobi/files/address.png"
                     if x.docq == "Contact":
-                        docs["Contact"] = "https://erpcloud.systems/files/contact.png"
+                        docs["Contact"] = "https://nextapp.mobi/files/contact.png"
                     if x.docq == "Quotation":
-                        docs["Quotation"] = "https://erpcloud.systems/files/quotation.png"
+                        docs["Quotation"] = "https://nextapp.mobi/files/quotation.png"
                     if x.docq == "Sales Order":
-                        docs["Sales Order"] = "https://erpcloud.systems/files/sales_order.png"
+                        docs["Sales Order"] = "https://nextapp.mobi/files/sales_order.png"
                     if x.docq == "Sales Invoice":
-                        docs["Sales Invoice"] = "https://erpcloud.systems/files/sales_invoice.png"
+                        docs["Sales Invoice"] = "https://nextapp.mobi/files/sales_invoice.png"
                     if x.docq == "Payment Entry":
-                        docs["Payment Entry"] = "https://erpcloud.systems/files/payment_entry.png"
+                        docs["Payment Entry"] = "https://nextapp.mobi/files/payment_entry.png"
 
                 Selling["docs"] = docs
                 modules.append(Selling)
 
             if module.modq == "Buying":
                 Buying = {}
-                Buying["Buying"] = "https://erpcloud.systems/files/buying.png"
+                Buying["Buying"] = "https://nextapp.mobi/files/buying.png"
                 allowed_documents = frappe.db.sql(
                     """ select `tabMobile User Documents`.document_name as docq 
                                             from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
@@ -142,22 +145,22 @@ def login(usr, pwd):
                 docs = {}
                 for x in allowed_documents:
                     if x.docq == "Supplier":
-                        docs["Supplier"] = "https://erpcloud.systems/files/supplier.png"
+                        docs["Supplier"] = "https://nextapp.mobi/files/supplier.png"
                     if x.docq == "Supplier Quotation":
-                        docs["Supplier Quotation"] = "https://erpcloud.systems/files/supplier_quotation.png"
+                        docs["Supplier Quotation"] = "https://nextapp.mobi/files/supplier_quotation.png"
                     if x.docq == "Purchase Order":
-                        docs["Purchase Order"] = "https://erpcloud.systems/files/purchase_order.png"
+                        docs["Purchase Order"] = "https://nextapp.mobi/files/purchase_order.png"
                     if x.docq == "Purchase Invoice":
-                        docs["Purchase Invoice"] = "https://erpcloud.systems/files/purchase_invoice.png"
+                        docs["Purchase Invoice"] = "https://nextapp.mobi/files/purchase_invoice.png"
                     if x.docq == "Payment Entry":
-                        docs["Payment Entry"] = "https://erpcloud.systems/files/payment_entry.png"
+                        docs["Payment Entry"] = "https://nextapp.mobi/files/payment_entry.png"
 
                 Buying["docs"] = docs
                 modules.append(Buying)
 
             if module.modq == "Stock":
                 Stock = {}
-                Stock["Stock"] = "https://erpcloud.systems/files/stock.png"
+                Stock["Stock"] = "https://nextapp.mobi/files/stock.png"
                 allowed_documents = frappe.db.sql(
                     """ select `tabMobile User Documents`.document_name as docq 
                                             from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
@@ -167,18 +170,18 @@ def login(usr, pwd):
                     as_dict=1,
                 )
                 docs = {}
-                docs["Stock Reports"] = "https://erpcloud.systems/files/delivery_note.png"
+                docs["Stock Reports"] = "https://nextapp.mobi/files/delivery_note.png"
                 for x in allowed_documents:
                     if x.docq == "Item":
-                        docs["Item"] = "https://erpcloud.systems/files/item.png"
+                        docs["Item"] = "https://nextapp.mobi/files/item.png"
                     if x.docq == "Material Request":
-                        docs["Material Request"] = "https://erpcloud.systems/files/material_request.png"
+                        docs["Material Request"] = "https://nextapp.mobi/files/material_request.png"
                     if x.docq == "Purchase Order":
-                        docs["Purchase Receipt"] = "https://erpcloud.systems/files/purchase_receipt.png"
+                        docs["Purchase Receipt"] = "https://nextapp.mobi/files/purchase_receipt.png"
                     if x.docq == "Stock Entry":
-                        docs["Stock Entry"] = "https://erpcloud.systems/files/stock_entry.png"
+                        docs["Stock Entry"] = "https://nextapp.mobi/files/stock_entry.png"
                     if x.docq == "Delivery Note":
-                        docs["Delivery Note"] = "https://erpcloud.systems/files/delivery_note.png"
+                        docs["Delivery Note"] = "https://nextapp.mobi/files/delivery_note.png"
 
                     
 
@@ -187,7 +190,7 @@ def login(usr, pwd):
 
             if module.modq == "HR":
                 HR = {}
-                HR["HR"] = "https://erpcloud.systems/files/hr.png"
+                HR["HR"] = "https://nextapp.mobi/files/hr.png"
                 allowed_documents = frappe.db.sql(
                     """ select `tabMobile User Documents`.document_name as docq 
                                             from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
@@ -199,19 +202,19 @@ def login(usr, pwd):
                 docs = {}
                 for x in allowed_documents:
                     if x.docq == "Employee":
-                        docs["Employee"] = "https://erpcloud.systems/files/hr.png"
+                        docs["Employee"] = "https://nextapp.mobi/files/hr.png"
                     if x.docq == "Leave Application":
-                        docs["Leave Application"] = "https://erpcloud.systems/files/leave_application.png"
+                        docs["Leave Application"] = "https://nextapp.mobi/files/leave_application.png"
                     if x.docq == "Employee Checkin":
-                        docs["Employee Checkin"] = "https://erpcloud.systems/files/employee_checkin.png"
+                        docs["Employee Checkin"] = "https://nextapp.mobi/files/employee_checkin.png"
                     if x.docq == "Attendance Request":
-                        docs["Attendance Request"] = "https://erpcloud.systems/files/attendance_request.png"
+                        docs["Attendance Request"] = "https://nextapp.mobi/files/attendance_request.png"
                     if x.docq == "Employee Advance":
-                        docs["Employee Advance"] = "https://erpcloud.systems/files/employee_advance.png"
+                        docs["Employee Advance"] = "https://nextapp.mobi/files/employee_advance.png"
                     if x.docq == "Expense Claim":
-                        docs["Expense Claim"] = "https://erpcloud.systems/files/expense_claim.png"
+                        docs["Expense Claim"] = "https://nextapp.mobi/files/expense_claim.png"
                     if x.docq == "Loan Application":
-                        docs["Loan Application"] = "https://erpcloud.systems/files/loan_application.png"
+                        docs["Loan Application"] = "https://nextapp.mobi/files/loan_application.png"
 
                 HR["docs"] = docs
                 modules.append(HR)
