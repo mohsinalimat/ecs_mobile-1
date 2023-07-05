@@ -6,7 +6,7 @@ import random
 import datetime
 import json, ast
 from erpnext.accounts.utils import get_balance_on
-
+from frappe.desk.form.meta import get_meta
 from frappe.utils import (
     flt,
     getdate,
@@ -22,33 +22,59 @@ from frappe.utils import add_to_date, now, nowdate
 from frappe.utils import cstr
 from frappe.utils.make_random import get_random
 import time
+from decimal import Decimal
 
 # Exception Imports
 from frappe.exceptions import DoesNotExistError
 
 # local imports
 from .doc_connections import project_connections
-from .helpers import order_by
+from .helpers import order_by, remove_html_tags
+
+
 @frappe.whitelist()
 def general_service(
-    doctype,
-    filter1="%%",
-    filter2="%%",
-    filter3="%%",
-    filter4="%%",
-    filter5="%%",
-    filter6="%%",
-    filter7="%%",
-    filter8="%%",
-    search_text="%%",
-    cur_nam="%%",
-    con_doc="%%",
-    start=0,
-    page_length=20,
-    sort_field=None,
-    sort_type=None
+        doctype,
+        filter1="%%",
+        filter2="%%",
+        filter3="%%",
+        filter4="%%",
+        filter5="%%",
+        filter6="%%",
+        filter7="%%",
+        filter8="%%",
+        search_text="%%",
+        cur_nam="%%",
+        con_doc="%%",
+        start=0,
+        page_length=20,
+        sort_field=None,
+        sort_type=None,
 ):
     from .helpers import remove_html_tags
+
+    # Logs Endpoints
+    if doctype == "Error Log":
+        query = frappe.db.get_all(
+            "Error Log",
+            fields=["reference_doctype", "reference_name", "method", "error"],
+        )
+        if query:
+            return query
+        frappe.throw("Nothing Found", frappe.exceptions.DoesNotExistError)
+
+    if doctype == "Project Template" and con_doc == "%%":
+        query = frappe.db.get_all("Project Template", fields=["name", "project_type"])
+        if query:
+            for row in query:
+                project_temp_tasks = frappe.db.get_all(
+                    "Project Template Task",
+                    fields=["task", "subject"],
+                    filters={"parent": row.name},
+                )
+                row["tasks"] = project_temp_tasks
+            return query
+        frappe.throw("No project templates found.", frappe.exceptions.DoesNotExistError)
 
     if doctype == "DocType" and con_doc == "%%":
         query = frappe.db.get_list(
@@ -63,7 +89,6 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
-    
 
     if doctype == "Issue Type" and con_doc:
         query = frappe.db.get_all(
@@ -77,9 +102,6 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
-        
-
-
 
     if doctype == "Party Type" and con_doc == "%%":
         query = frappe.db.get_list(
@@ -94,7 +116,6 @@ def general_service(
         else:
             return "لا يوجد !"
 
-    
     if doctype == "Workflow State" and con_doc == "%%":
         query = frappe.db.get_list(
             "Workflow State",
@@ -107,7 +128,7 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
-    
+
     if doctype == "Workflow Action Master" and con_doc == "%%":
         query = frappe.db.get_list(
             "Workflow Action Master",
@@ -122,9 +143,15 @@ def general_service(
             return "لا يوجد !"
 
     if doctype == "Workflow" and con_doc == "%%":
+        conditions = {}
+
+        if filter1 != "%%":
+            conditions["document_type"] = filter1
+
         query = frappe.db.get_list(
             "Workflow",
-            fields=["name"],
+            filters=conditions,
+            fields=["name", "is_active", "document_type"],
             order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
@@ -158,7 +185,7 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
-        
+
     if doctype == "Email Template" and con_doc == "%%":
         conditions = {}
 
@@ -170,10 +197,7 @@ def general_service(
         query = frappe.db.get_list(
             "Email Template",
             filters=conditions,
-            fields=[
-                "name",
-                "subject"
-            ],
+            fields=["name", "subject"],
             order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
@@ -182,14 +206,14 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
-        
+
     if doctype == "Role" and con_doc == "%%":
         conditions = {}
         if filter1 != "%%":
             conditions["module"] = filter1
         if filter2 != "%%":
             conditions["report_name"] = filter2
-            
+
         query = frappe.db.get_list(
             "Role",
             filters=conditions,
@@ -204,19 +228,18 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
-        
-    
 
     # ----------------- Activity Type List View ------------------#
     if doctype == "Activity Type" and con_doc == "%%":
-        activity_type = frappe.db.get_all("Activity Type", 
+        activity_type = frappe.db.get_all(
+            "Activity Type",
             fields=[
                 "name",
                 "activity_type",
                 "costing_rate",
                 "billing_rate",
-                "disabled"
-            ]
+                "disabled",
+            ],
         )
         if activity_type:
             return activity_type
@@ -226,12 +249,8 @@ def general_service(
 
     # ----------------- Project Type List View ------------------#
     if doctype == "Project Type" and con_doc == "%%":
-        project_type = frappe.db.get_all("Project Type", 
-            fields=[
-                "name",
-                "project_type",
-                "description"
-            ]
+        project_type = frappe.db.get_all(
+            "Project Type", fields=["name", "project_type", "description"]
         )
         if project_type:
             return project_type
@@ -239,7 +258,7 @@ def general_service(
             return "لا يوجد !"
     # ---------------- END Project Type List View -------------------#
 
-     # ----------------- Department List View ------------------#
+    # ----------------- Department List View ------------------#
     if doctype == "Department" and con_doc == "%%":
         conditions = {}
         conditions1 = {}
@@ -251,7 +270,6 @@ def general_service(
             conditions["company"] = filter1
         if filter2 != "%%":
             conditions["parent_department"] = filter2
-      
 
         if filter4 != "%%" and filter5 == "%%":
             conditions["creation"] = [">=", filter4]
@@ -270,35 +288,27 @@ def general_service(
                 "company",
                 "parent_department",
                 "is_group",
-                "disabled"
+                "disabled",
             ],
             order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
         if query:
-            
             return query
         else:
             return "لا يوجد !"
 
     # ----------------- END Department List View ------------------#
 
-
     # ----------------- Task Type List View ------------------#
     if doctype == "Task Type" and con_doc == "%%":
-        task_types = frappe.db.get_all("Task Type", 
-            fields=[
-                "name",
-                "description"
-            ]
-        )
+        task_types = frappe.db.get_all("Task Type", fields=["name", "description"])
         if task_types:
             return task_types
         else:
             return "لا يوجد !"
     # ---------------- Task Type List View -------------------#
-
 
     # ----------------- Issue List View ------------------#
     if doctype == "Issue" and con_doc == "%%":
@@ -312,12 +322,12 @@ def general_service(
             conditions["status"] = filter1
         if filter2 != "%%":
             conditions["priority"] = filter2
-      
+
         if filter3 != "%%":
-                conditions["issue_type"] = filter3
-                
+            conditions["issue_type"] = filter3
+
         if filter6 != "%%":
-                conditions["customer"] = filter6
+            conditions["customer"] = filter6
 
         if filter4 != "%%" and filter5 == "%%":
             conditions["creation"] = [">=", filter4]
@@ -333,13 +343,14 @@ def general_service(
             fields=[
                 "name",
                 "subject",
+                "project",
                 "status",
                 "customer",
                 "priority",
                 "issue_type",
                 "description",
                 "opening_date",
-                "opening_time"
+                "opening_time",
             ],
             order_by=order_by(sort_field, sort_type),
             start=start,
@@ -402,8 +413,7 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
-# ------------------ End BOM list view ---------------- #
-
+    # ------------------ End BOM list view ---------------- #
 
     # ----------------------------------------- Project List ---------------------------------------- #
     if doctype == "Project" and con_doc == "%%":
@@ -459,8 +469,6 @@ def general_service(
             return "لا يوجد !"
     # ---------------------------------------- End Project List --------------------------------------#
 
-
-
     # ----------------------------------------- Task List ----------------------------------------#
     if doctype == "Task" and con_doc == "%%":
         conditions = {}
@@ -501,7 +509,6 @@ def general_service(
             page_length=page_length,
         )
         if query:
-
             for task in query:
                 task["description"] = remove_html_tags(str(task["description"]))
                 depends_on = frappe.db.get_all(
@@ -514,8 +521,6 @@ def general_service(
         else:
             return "لا يوجد !"
     # ---------------------------------------- End Task List --------------------------------------#
-
-
 
     # ----------------------------------------- Timesheet List ----------------------------------------#
     if doctype == "Timesheet" and con_doc == "%%":
@@ -565,7 +570,6 @@ def general_service(
             page_length=page_length,
         )
         if query:
-
             for timesheet in query:
                 timesheet["note"] = remove_html_tags(str(timesheet["note"]))
                 time_logs = frappe.db.get_all(
@@ -584,7 +588,6 @@ def general_service(
         else:
             return "لا يوجد !"
     # ---------------------------------------- End Timesheet List --------------------------------------#
-
 
     ############################################ LEAD ############################################
 
@@ -611,7 +614,7 @@ def general_service(
             conditions["creation"] = ["<=", filter5]
         if filter4 != "%%" and filter5 != "%%":
             conditions["creation"] = ["between", [filter4, filter5]]
-        
+
         query = frappe.db.get_list(
             "Lead",
             or_filters=conditions1,
@@ -633,7 +636,7 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
-   
+
     ########################### Quotations Connected With Lead & Search ############################
     if doctype == "Quotation" and con_doc == "Lead":
         connections = frappe.db.sql(
@@ -698,7 +701,7 @@ def general_service(
             conditions["transaction_date"] = ["<=", filter6]
         if filter5 != "%%" and filter6 != "%%":
             conditions["transaction_date"] = ["between", [filter5, filter6]]
-        
+
         query = frappe.db.get_list(
             "Opportunity",
             or_filters=conditions1,
@@ -720,7 +723,6 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
-
 
     ########################### Quotations Connected With Opportunity & Search ############################
     if doctype == "Quotation" and con_doc == "Opportunity":
@@ -810,8 +812,6 @@ def general_service(
         else:
             return "لا يوجد !"
 
-
-
     ########################### Sales Orders Connected With Quotation & Search ############################
     if doctype == "Sales Order" and con_doc == "Quotation":
         connections = frappe.db.sql(
@@ -887,7 +887,6 @@ def general_service(
         else:
             return "لا يوجد !"
 
- 
     ########################### Quotations Connected With Customer & Search ############################
     if doctype == "Quotation" and con_doc == "Customer":
         connections = frappe.db.sql(
@@ -1228,7 +1227,6 @@ def general_service(
         if filter3 != "%%" and filter4 != "%%":
             conditions["posting_date"] = ["between", [filter3, filter4]]
 
-        
         query = frappe.db.get_list(
             "Sales Invoice",
             or_filters=conditions1,
@@ -1241,16 +1239,34 @@ def general_service(
                 "grand_total",
                 "status",
                 "currency",
+                "creation",
             ],
             order_by=order_by(sort_field, sort_type),
             start=start,
             page_length=page_length,
         )
         if query:
+            if filter6 != "%%" and filter2 != "%%":
+                filters = [
+                    ["Sales Invoice", "customer", "=", filter2],
+                    ["Sales Invoice Item", "item_code", "=", filter6],
+                ]
+                query = frappe.db.get_all(
+                    "Sales Invoice",
+                    filters=filters,
+                    fields=[
+                        "name",
+                        "customer_name",
+                        "customer_address",
+                        "posting_date",
+                        "grand_total",
+                        "status",
+                        "currency",
+                    ],
+                )
             return query
         else:
             return "لا يوجد !"
-
 
     ########################### Sales Orders Connected With Sales Invoice & Search ############################
     if doctype == "Sales Order" and con_doc == "Sales Invoice":
@@ -1379,8 +1395,6 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
-
-  
 
     ########################### Journal Entry Full List & Search ############################
     if doctype == "Journal Entry" and con_doc == "%%":
@@ -1540,8 +1554,6 @@ def general_service(
             ],
             fields=["name"],
             order_by="name asc",
-            start=start,
-            page_length=page_length,
         )
         if query:
             return query
@@ -1943,7 +1955,6 @@ def general_service(
         else:
             return "لا يوجد !"
 
-  
     ############################################ MATERIAL REQUEST ############################################
 
     ########################### Material Request Full List & Search ############################
@@ -2118,7 +2129,6 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
-
 
     ############################################ PURCHASE RECEIPT ############################################
 
@@ -2822,7 +2832,6 @@ def general_service(
 
     ########################### Payment Request Connected With Purchase Invoice & Search ############################
     if doctype == "Payment Request" and con_doc == "Purchase Invoice":
-
         connections = frappe.db.sql(
             """ select distinct `tabPayment Request`.name as name,`tabPayment Request`.payment_request_type as payment_request_type, `tabPayment Request`.mode_of_payment as mode_of_payment,
                       `tabPayment Request`.transaction_date as transaction_date,`tabPayment Request`.party_type as party_type,`tabPayment Request`.party as party,`tabPayment Request`.status as status,
@@ -2962,9 +2971,9 @@ def general_service(
             # return query[0].from_date
             for row in range(len(query)):
                 if (
-                    time.strptime(str(query[row].from_date), "%Y-%m-%d")
-                    <= time.strptime(filter3.split("T")[0], "%Y-%m-%d")
-                    <= time.strptime(str(query[row].to_date), "%Y-%m-%d")
+                        time.strptime(str(query[row].from_date), "%Y-%m-%d")
+                        <= time.strptime(filter3.split("T")[0], "%Y-%m-%d")
+                        <= time.strptime(str(query[row].to_date), "%Y-%m-%d")
                 ):
                     response.append(query[row])
 
@@ -3068,7 +3077,6 @@ def general_service(
             page_length=page_length,
         )
         for x in range(len(query)):
-
             currency = frappe.db.get_value(
                 "Company", {"name": query[x].company}, "default_currency"
             )
@@ -3092,7 +3100,6 @@ def general_service(
             return "لا يوجد !"
 
     if doctype == "Attendance Request" and con_doc == "Employee":
-
         connections = frappe.db.sql(
             """ select distinct `tabAttendance Request`.name as name,`tabAttendance Request`.employee_name as employee_name, `tabAttendance Request`.employee as employee,
                       `tabAttendance Request`.department as department,`tabAttendance Request`.from_date as from_date,`tabAttendance Request`.to_date as to_date,`tabAttendance Request`.reason as reason,`tabAttendance Request`.docstatus as docstatus
@@ -3115,7 +3122,6 @@ def general_service(
             ###########################
 
     if doctype == "Leave Application" and con_doc == "Employee":
-
         connections = frappe.db.sql(
             """ select distinct `tabLeave Application`.name as name,`tabLeave Application`.employee_name as employee_name, `tabLeave Application`.employee as employee,
                       `tabLeave Application`.department as department,`tabLeave Application`.from_date as from_date,`tabLeave Application`.to_date as to_date,`tabLeave Application`.description as description,`tabLeave Application`.docstatus as docstatus
@@ -3138,7 +3144,6 @@ def general_service(
     ########################################
 
     if doctype == "Employee Advance" and con_doc == "Employee":
-
         connections = frappe.db.sql(
             """ select distinct `tabEmployee Advance`.name as name,`tabEmployee Advance`.employee_name as employee_name, `tabEmployee Advance`.employee as employee,
                       `tabEmployee Advance`.department as department,`tabEmployee Advance`.posting_date as posting_date,`tabEmployee Advance`.purpose as purpose,`tabEmployee Advance`.advance_amount as advance_amount,`tabEmployee Advance`.status as status
@@ -3161,7 +3166,6 @@ def general_service(
     ########################################
 
     if doctype == "Expense Claim" and con_doc == "Employee":
-
         connections = frappe.db.sql(
             """ select distinct `tabExpense Claim`.name as name,`tabExpense Claim`.employee_name as employee_name, `tabExpense Claim`.employee as employee,
                       `tabExpense Claim`.department as department,`tabExpense Claim`.posting_date as posting_date,`tabExpense Claim`.grand_total as grand_total,`tabExpense Claim`.status as status
@@ -3182,7 +3186,6 @@ def general_service(
             return "لا يوجد روابط !"
 
     if doctype == "Employee Grievance" and con_doc == "Employee":
-
         connections = frappe.db.sql(
             """ select distinct `tabEmployee Grievance`.name as name, `tabEmployee Grievance`.raised_by as raised_by,
                       `tabEmployee Grievance`.designation as designation,`tabEmployee Grievance`.date as date,`tabEmployee Grievance`.grievance_against_party as grievance_against_party,`tabEmployee Grievance`.grievance_against as grievance_against,
@@ -3280,7 +3283,6 @@ def general_service(
         if search_text != "%%":
             or_conditions["name"] = ["like", search_text]
             or_conditions["full_name"] = ["like", search_text]
-
 
         query = frappe.db.get_list(
             "Driver",
@@ -3525,7 +3527,6 @@ def general_service(
             page_length=page_length,
         )
         for x in range(len(query)):
-
             company = frappe.db.get_value(
                 "Employee", {"name": query[x].employee}, "company"
             )
@@ -3542,7 +3543,6 @@ def general_service(
             return "لا يوجد !"
 
     if doctype == "Payment Entry" and con_doc == "Employee Advance":
-
         connections = frappe.db.sql(
             """ select distinct `tabPayment Entry`.name as name, `tabPayment Entry`.party_name as party_name,
                       `tabPayment Entry`.payment_type as payment_type,`tabPayment Entry`.mode_of_payment as mode_of_payment,`tabPayment Entry`.posting_date as posting_date,`tabPayment Entry`.base_paid_amount as base_paid_amount,
@@ -3564,7 +3564,6 @@ def general_service(
             return "لا يوجد روابط !"
 
     if doctype == "Expense Claim" and con_doc == "Employee Advance":
-
         connections = frappe.db.sql(
             """ select distinct `tabExpense Claim`.name as name, `tabExpense Claim`.employee_name as employee_name,
                       `tabExpense Claim`.employee as employee,`tabExpense Claim`.department as department,`tabExpense Claim`.posting_date as posting_date,`tabExpense Claim`.grand_total as grand_total,
@@ -3586,20 +3585,6 @@ def general_service(
             return "لا يوجد روابط !"
 
     ########################### Branch List & Search ############################
-    if doctype == "Task" and con_doc == "%%":
-        query = frappe.db.get_list(
-            "Task",
-            fields=[
-                "name",
-            ],
-            order_by=order_by(sort_field, sort_type),
-            start=start,
-            page_length=page_length,
-        )
-        if query:
-            return query
-        else:
-            return "لا يوجد !"
 
     ########################### Expense Claim Type List & Search ############################
     if doctype == "Expense Claim Type" and con_doc == "%%":
@@ -3660,7 +3645,6 @@ def general_service(
             return "لا يوجد !"
 
     if doctype == "Payment Entry" and con_doc == "Expense Claim":
-
         connections = frappe.db.sql(
             """ select distinct `tabPayment Entry`.name as name, `tabPayment Entry`.party_name as party_name,
                       `tabPayment Entry`.payment_type as payment_type,`tabPayment Entry`.mode_of_payment as mode_of_payment,`tabPayment Entry`.posting_date as posting_date,`tabPayment Entry`.base_paid_amount as base_paid_amount,
@@ -3682,7 +3666,6 @@ def general_service(
             return "لا يوجد روابط !"
 
     if doctype == "Employee Advance" and con_doc == "Expense Claim":
-
         connections = frappe.db.sql(
             """ select distinct `tabEmployee Advance`.name as name, `tabEmployee Advance`.employee_name as employee_name,
                       `tabEmployee Advance`.employee as employee,`tabEmployee Advance`.department as department,`tabEmployee Advance`.posting_date as posting_date,`tabEmployee Advance`.purpose as purpose,
@@ -3786,7 +3769,7 @@ def general_service(
         or_conditions = {}
         conditions = {}
         if search_text != "%%":
-            or_conditions["employee_name"] = ["like", search_text]
+            or_conditions["customer"] = ["like", search_text]
             or_conditions["name"] = ["like", search_text]
         if filter1 != "%%":
             conditions["customer"] = filter1
@@ -3807,6 +3790,7 @@ def general_service(
             filters=conditions,
             fields=[
                 "name",
+                "docstatus",
                 "customer",
                 "customer_address",
                 "posting_date",
@@ -3850,7 +3834,6 @@ def general_service(
                 .where(dynamic_link.link_name == filter3)
             ).run(as_dict=True)
             for x in range(len(q)):
-
                 link_doctype = frappe.db.get_value(
                     "Dynamic Link",
                     {
@@ -3886,7 +3869,6 @@ def general_service(
                 .where(dynamic_link.link_doctype == filter2)
             ).run(as_dict=True)
             for x in range(len(q)):
-
                 link_doctype = frappe.db.get_value(
                     "Dynamic Link",
                     {
@@ -3973,7 +3955,6 @@ def general_service(
                 .where(dynamic_link.link_name == filter3)
             ).run(as_dict=True)
             for x in range(len(q)):
-
                 link_doctype = frappe.db.get_value(
                     "Dynamic Link",
                     {
@@ -4009,7 +3990,6 @@ def general_service(
                 .where(dynamic_link.link_doctype == filter2)
             ).run(as_dict=True)
             for x in range(len(q)):
-
                 link_doctype = frappe.db.get_value(
                     "Dynamic Link",
                     {
@@ -4152,7 +4132,6 @@ def general_service(
     # ------------------------------ Project Connections ------------------------------#
 
     if doctype == "Task" and con_doc == "Project" and cur_nam != "%%":
-
         response = project_connections.task(
             cur_nam,
             search_text,
@@ -4164,38 +4143,23 @@ def general_service(
             filter6,
             filter7,
             start,
-            page_length
+            page_length,
         )
         return response
 
-    if doctype=="Timesheet" and con_doc=="Project" and cur_nam != "%%":
+    if doctype == "Timesheet" and con_doc == "Project" and cur_nam != "%%":
         response = project_connections.timesheet(
-            cur_nam,
-            search_text,
-            filter2,
-            filter3,
-            filter4,
-            filter5,
-            start,
-            page_length
+            cur_nam, search_text, filter2, filter3, filter4, filter5, start, page_length
         )
         return response
 
-    if doctype=="Sales Invoice" and con_doc=="Project" and cur_nam != "%%":
+    if doctype == "Sales Invoice" and con_doc == "Project" and cur_nam != "%%":
         response = project_connections.sales_invoice(
-            cur_nam,
-            search_text,
-            filter2,
-            filter3,
-            filter4,
-            filter5,
-            start,
-            page_length
+            cur_nam, search_text, filter2, filter3, filter4, filter5, start, page_length
         )
         return response
 
-
-    if doctype=="Purchase Invoice" and con_doc=="Project" and cur_nam != "%%":
+    if doctype == "Purchase Invoice" and con_doc == "Project" and cur_nam != "%%":
         response = project_connections.purchase_invoice(
             cur_nam,
             search_text,
@@ -4205,11 +4169,11 @@ def general_service(
             filter4,
             filter5,
             start,
-            page_length
+            page_length,
         )
         return response
 
-    if doctype=="Stock Entry" and con_doc=="Project" and cur_nam != "%%":
+    if doctype == "Stock Entry" and con_doc == "Project" and cur_nam != "%%":
         response = project_connections.stock_entry(
             cur_nam,
             search_text,
@@ -4220,7 +4184,7 @@ def general_service(
             filter5,
             filter6,
             start,
-            page_length
+            page_length,
         )
         return response
 
@@ -4234,7 +4198,7 @@ def general_service(
             filter4,
             filter5,
             start,
-            page_length
+            page_length,
         )
         return response
 
@@ -4247,11 +4211,10 @@ def general_service(
             filter3,
             filter4,
             filter5,
-            filter6.
-            filter7,
+            filter6.filter7,
             filter8,
             start,
-            page_length
+            page_length,
         )
         return response
 
@@ -4264,24 +4227,16 @@ def general_service(
             filter3,
             filter4,
             filter5,
-            filter6.
-            filter7,
+            filter6.filter7,
             filter8,
             start,
-            page_length
+            page_length,
         )
         return response
 
     if doctype == "Issue" and con_doc == "Project" and cur_nam != "%%":
         response = project_connections.issue(
-            cur_nam,
-            search_text,
-            filter1,
-            filter2,
-            filter3,
-            filter4,
-            start,
-            page_length
+            cur_nam, search_text, filter1, filter2, filter3, filter4, start, page_length
         )
         return response
 
@@ -4295,20 +4250,16 @@ def general_service(
             filter4,
             filter5,
             start,
-            page_length
+            page_length,
         )
         return response
 
     if doctype == "BOM" and con_doc == "Project" and cur_nam != "%%":
-        response = project_connections.bom(
-            cur_nam,
-            start,
-            page_length
-        )
+        response = project_connections.bom(cur_nam, start, page_length)
         return response
 
-    
     # ------------------------ End Project Connections ------------------------- #
+
 
 @frappe.whitelist(methods=["GET"])
 def get_actual_qty(item_code=None, warehouse=None):
@@ -4372,7 +4323,14 @@ def get_item_uoms(item_code):
 
 
 @frappe.whitelist(methods=["GET"])
-def get_item_list(allow_sales=None, allow_purchase=None, search_text="%%", price_list="%%", start=0, page_length=5):
+def get_item_list(
+        allow_sales=None,
+        allow_purchase=None,
+        search_text="%%",
+        price_list="%%",
+        start=0,
+        page_length=5,
+):
     conditions = ""
     if allow_purchase is not None:
         conditions += f" and tabItem.is_purchase_item = {allow_purchase} "
@@ -4399,12 +4357,14 @@ def get_item_list(allow_sales=None, allow_purchase=None, search_text="%%", price
                                                     or tabItem.item_name like '%{search_text}%'
                                                     {conditions}
                                                     and tabItem.disabled = 0
-                                                    LIMIT {start}, {page_length}""",as_dict=True)
+                                                    LIMIT {start}, {page_length}""",
+            as_dict=True,
+        )
         result = []
         for item_dict in items:
             if item_dict.tax_percent > 0 and item_dict.price_list_rate > 0:
                 net_rate = item_dict.price_list_rate * (
-                    1 + (item_dict.tax_percent / 100)
+                        1 + (item_dict.tax_percent / 100)
                 )
                 vat_value = net_rate - item_dict.price_list_rate
                 data = {
@@ -4463,13 +4423,15 @@ def get_item_list(allow_sales=None, allow_purchase=None, search_text="%%", price
                                         from tabItem
                                         where tabItem.disabled = 0
                                         {conditions}
-                                        LIMIT {start},{page_length} """,as_dict=True)
+                                        LIMIT {start},{page_length} """,
+            as_dict=True,
+        )
 
         result = []
         for item_dict in items:
             if item_dict.tax_percent > 0 and item_dict.price_list_rate > 0:
                 net_rate = item_dict.price_list_rate * (
-                    1 + (item_dict.tax_percent / 100)
+                        1 + (item_dict.tax_percent / 100)
                 )
                 vat_value = net_rate - item_dict.price_list_rate
                 data = {
@@ -4513,21 +4475,457 @@ def get_item_list(allow_sales=None, allow_purchase=None, search_text="%%", price
             return "لا يوجد منتجات !"
 
 
-
 @frappe.whitelist(methods=["GET"])
 def get_reports(module):
-    mobile_user = frappe.db.get_all("Mobile User", filters={"user": frappe.session.user})
+    mobile_user = frappe.db.get_all(
+        "Mobile User", filters={"user": frappe.session.user}
+    )
     if not mobile_user:
-        frappe.throw("The logged in user is not a mobile user.", frappe.exceptions.ValidationError)
-    
+        frappe.throw(
+            "The logged in user is not a mobile user.",
+            frappe.exceptions.ValidationError,
+        )
+
     mobile_user_id = mobile_user[0]["name"]
     mobile_reports = frappe.db.get_all(
         "Mobile Reports Table",
         filters={"parent": mobile_user_id, "module": module},
-        fields=["report_name"]
+        fields=["report_name"],
     )
 
     if mobile_reports:
         return mobile_reports
-        
+
     frappe.throw("There is no reports to show", frappe.exceptions.DoesNotExistError)
+
+
+@frappe.whitelist(methods=["GET"])
+def get_custom_fields(doctype: str) -> list:
+    custom_fields = frappe.db.get_all(
+        "Custom Field",
+        filters={"dt": doctype},
+        fields=[
+            "name",
+            "dt",
+            "label",
+            "fieldtype",
+            "fieldname",
+            "read_only",
+            "reqd",
+            "default",
+            "non_negative",
+            "options",
+            "fetch_from",
+        ],
+    )
+    if custom_fields:
+        return custom_fields
+    frappe.throw("No custom fields found!", frappe.exceptions.DoesNotExistError)
+
+
+@frappe.whitelist(methods=["GET"])
+def get_about_us():
+    terms_of_service = frappe.get_doc("Terms and Conditions", "About Us")
+    if terms_of_service:
+        terms_of_service.terms = remove_html_tags(str(terms_of_service.terms))
+        return terms_of_service.terms
+    return "Please add about us data."
+
+
+@frappe.whitelist(methods=["GET"])
+def get_faqs(tag=None):
+    filters = dict(frappe.local.request.args) or {}
+    faqs = frappe.get_all("FAQ", fields=["question", "answer", "tag"], filters=filters)
+
+    if not faqs:
+        frappe.response['http_status_code'] = 404
+
+    for faq in faqs:
+        faq["answer_without_html"] = remove_html_tags(str(faq["answer"]))
+    return faqs
+
+
+@frappe.whitelist()
+def get_activity_log():
+    filters = frappe.local.request.args or {}
+    filters = frappe.parse_json(filters)
+
+    mandatory_filters = ['doctypes', 'from_date', 'to_date', 'length']
+    for filter in mandatory_filters:
+        if filter not in filters:
+            frappe.response['http_status_code'] = 400
+            return f"`{filter}` filter is mandatory"
+
+    filters['doctypes'] = ", ".join([f"'{doctype}'" for doctype in filters['doctypes'].split(',')])
+
+    results = frappe.db.sql(f"""
+        SELECT 
+            reference_doctype as doctype,
+            reference_name as id,
+            communication_date as `date`
+        FROM 
+            `tabActivity Log`
+        WHERE 
+            reference_doctype in ({filters["doctypes"]})
+            AND communication_date Between '{filters["from_date"]}' and '{filters["to_date"]}'
+        ORDER BY 
+            communication_date DESC
+        LIMIT {filters['length']}
+    """, as_dict=True)
+
+    frappe.response['data'] = results
+
+
+@frappe.whitelist(methods=['GET'], allow_guest=True)
+def sales_invoices():
+    """
+    response in case failed
+    {
+        is_success: false,
+        message: "dummy message"
+    }
+
+    response in case successful
+    {
+
+        is_success: true,
+        data: {
+            count: 342,
+            stock_entries: [{}, {}]
+        }
+    }
+
+    """
+
+    filters = dict(frappe.local.request.args)
+    conditions = []
+    if filters.get('from'):
+        conditions.append(f"posting_date >= '{filters.get('from')}'")
+
+    if filters.get('to'):
+        conditions.append(f"posting_date <= '{filters.get('to')}'")
+
+    if filters.get('is_return'):
+        conditions.append(f"is_return = {filters.get('is_return')}")
+
+    if filters.get('status'):
+        # statuses = "(" + ", ".join([f"{status}" for status in filters.get("status").split(',')]) + ")"
+        statuses = f"({filters.get('status')})"
+        conditions.append(f"docstatus IN {statuses}")
+
+    conditions = " AND ".join(conditions)
+
+    query = f"""
+        SELECT name, grand_total
+        FROM `tabSales Invoice`
+        WHERE {conditions}
+    """
+
+    sales_invoices = frappe.db.sql(query, as_dict=True)
+
+    frappe.response["data"] = {
+        "sales_invoices": sales_invoices,
+        "count": len(sales_invoices),
+        "total": sum(map(lambda x: Decimal(str(x['grand_total'])), sales_invoices))
+    }
+    frappe.response['is_success'] = True
+
+
+@frappe.whitelist(methods=['GET'], allow_guest=True)
+def customer_visits():
+    """
+    response in case failed must bve like this
+    {
+        is_success: false,
+        message: "dummy message"
+    }
+
+    response in case successful
+    {
+
+        is_success: true,
+        data: {
+            count: 342,
+            total: 423,
+            customer_visits: [{}, {}]
+        }
+    }
+
+    """
+
+    filters = dict(frappe.local.request.args)
+    conditions = []
+    if filters.get('from'):
+        conditions.append(f"posting_date >= '{filters.get('from')}'")
+
+    if filters.get('to'):
+        conditions.append(f"posting_date <= '{filters.get('to')}'")
+
+    if filters.get('status'):
+        statuses = f"({filters.get('status')})"
+        conditions.append(f"docstatus IN {statuses}")
+
+    conditions = " AND ".join(conditions)
+
+    customer_visits = frappe.db.sql(f"""
+        SELECT name
+        FROM `tabCustomer Visit`
+        WHERE {conditions}
+    """, as_dict=True)
+
+    frappe.response["data"] = {
+        "customer_visits": customer_visits,
+        "count": len(customer_visits)
+    }
+    frappe.response['is_success'] = True
+
+
+@frappe.whitelist(methods=['GET'], allow_guest=True)
+def payment_entries():
+    """
+    response in case failed must bve like this
+    {
+        is_success: false,
+        message: "dummy message"
+    }
+
+    response in case successful
+    {
+
+        is_success: true,
+        data: {
+            count: 342,
+            total: 423,
+            payment_entries: [{}, {}]
+        }
+    }
+
+    """
+
+    filters = dict(frappe.local.request.args)
+    conditions = []
+    if filters.get('from'):
+        conditions.append(f"posting_date >= '{filters.get('from')}'")
+
+    if filters.get('to'):
+        conditions.append(f"posting_date <= '{filters.get('to')}'")
+
+    if filters.get('status'):
+        statuses = f"({filters.get('status')})"
+        conditions.append(f"docstatus IN {statuses}")
+
+    conditions = " AND ".join(conditions)
+    payment_entries = frappe.db.sql(f"""
+        SELECT name, paid_amount
+        FROM `tabPayment Entry`
+        WHERE {conditions}
+    """, as_dict=True)
+
+    frappe.response["data"] = {
+        "payment_entries": payment_entries,
+        "count": len(payment_entries),
+        "total": sum(map(lambda x: Decimal(str(x['paid_amount'])), payment_entries)),
+    }
+    frappe.response['is_success'] = True
+
+
+@frappe.whitelist(methods=['GET'], allow_guest=True)
+def quotations():
+    """
+    response in case failed must bve like this
+    {
+        is_success: false,
+        message: "dummy message"
+    }
+
+    response in case successful
+    {
+
+        is_success: true,
+        data: {
+            count: 342,
+            total: 423,
+            quotations: [{}, {}]
+        }
+    }
+
+    """
+
+    filters = dict(frappe.local.request.args)
+    conditions = []
+    if filters.get('from'):
+        conditions.append(f"transaction_date >= '{filters.get('from')}'")
+
+    if filters.get('to'):
+        conditions.append(f"transaction_date <= '{filters.get('to')}'")
+
+    if filters.get('status'):
+        statuses = f"({filters.get('status')})"
+        conditions.append(f"docstatus IN {statuses}")
+
+    conditions = " AND ".join(conditions)
+
+    quotations = frappe.db.sql(f"""
+        SELECT name, grand_total
+        FROM `tabQuotation`
+        WHERE {conditions}
+    """, as_dict=True)
+
+    frappe.response["data"] = {
+        "quotations": quotations,
+        "count": len(quotations),
+        "total": sum(map(lambda x: Decimal(str(x['grand_total'])), quotations)),
+    }
+    frappe.response['is_success'] = True
+
+
+@frappe.whitelist(methods=['GET'], allow_guest=True)
+def sales_orders():
+    """
+    response in case failed must bve like this
+    {
+        is_success: false,
+        message: "dummy message"
+    }
+
+    response in case successful
+    {
+
+        is_success: true,
+        data: {
+            count: 342,
+            total: 423,
+            sales_orders: [{}, {}]
+        }
+    }
+
+    """
+
+    filters = dict(frappe.local.request.args)
+    conditions = []
+    if filters.get('from'):
+        conditions.append(f"transaction_date >= '{filters.get('from')}'")
+
+    if filters.get('to'):
+        conditions.append(f"transaction_date <= '{filters.get('to')}'")
+
+    if filters.get('status'):
+        statuses = f"({filters.get('status')})"
+        conditions.append(f"docstatus IN {statuses}")
+
+    conditions = " AND ".join(conditions)
+
+    sales_orders = frappe.db.sql(f"""
+        SELECT name, grand_total
+        FROM `tabSales Order`
+        WHERE {conditions}
+    """, as_dict=True)
+
+    frappe.response["data"] = {
+        "sales_orders": sales_orders,
+        "count": len(sales_orders),
+        "total": sum(map(lambda x: Decimal(str(x['grand_total'])), sales_orders)),
+    }
+    frappe.response['is_success'] = True
+
+
+@frappe.whitelist(methods=['GET'], allow_guest=True)
+def delivery_notes():
+    """
+        response in case failed must bve like this
+        {
+            is_success: false,
+            message: "dummy message"
+        }
+
+        response in case successful
+        {
+
+            is_success: true,
+            data: {
+                count: 342,
+                total: 423,
+                delivery_notes: [{}, {}]
+            }
+        }
+
+        """
+
+    filters = dict(frappe.local.request.args)
+    conditions = []
+    if filters.get('from'):
+        conditions.append(f"posting_date >= '{filters.get('from')}'")
+
+    if filters.get('to'):
+        conditions.append(f"posting_date <= '{filters.get('to')}'")
+
+    if filters.get('status'):
+        statuses = f"({filters.get('status')})"
+        conditions.append(f"docstatus IN {statuses}")
+
+    conditions = " AND ".join(conditions)
+
+    delivery_notes = frappe.db.sql(f"""
+            SELECT name, grand_total
+            FROM `tabDelivery Note`
+            WHERE {conditions}
+        """, as_dict=True)
+
+    frappe.response["data"] = {
+        "delivery_notes": delivery_notes,
+        "count": len(delivery_notes),
+        "total": sum(map(lambda x: Decimal(str(x['grand_total'])), delivery_notes)),
+    }
+    frappe.response['is_success'] = True
+
+
+@frappe.whitelist(methods=['GET'], allow_guest=True)
+def stock_entries():
+    """
+        response in case failed must bve like this
+        {
+            is_success: false,
+            message: "dummy message"
+        }
+
+        response in case successful
+        {
+
+            is_success: true,
+            data: {
+                count: 342,
+                total: 423,
+                stock_entries: [{}, {}]
+            }
+        }
+    """
+
+    filters = dict(frappe.local.request.args)
+    conditions = []
+    if filters.get('from'):
+        conditions.append(f"posting_date >= '{filters.get('from')}'")
+
+    if filters.get('to'):
+        conditions.append(f"posting_date <= '{filters.get('to')}'")
+
+    if filters.get('is_return'):
+        conditions.append(f"is_return = {filters.get('is_return')}")
+
+    if filters.get('status'):
+        statuses = f"({filters.get('status')})"
+        conditions.append(f"docstatus IN {statuses}")
+
+    conditions = " AND ".join(conditions)
+    stock_entries = frappe.db.sql(f"""
+            SELECT name, total_amount
+            FROM `tabStock Entry`
+            WHERE {conditions}
+        """, as_dict=True)
+
+    frappe.response["data"] = {
+        "stock_entries": stock_entries,
+        "count": len(stock_entries),
+        "total": sum(map(lambda x: Decimal(str(x['total_amount'])), stock_entries)),
+    }
+    frappe.response['is_success'] = True
+

@@ -13,7 +13,6 @@ current_user = frappe.session.user
 
 @frappe.whitelist(allow_guest=True)
 def login(usr, pwd):
-
     try:
         login_manager = frappe.auth.LoginManager()
         login_manager.authenticate(user=usr, pwd=pwd)
@@ -36,6 +35,33 @@ def login(usr, pwd):
             if module.modq == "Projects":
                 Projects = {}
 
+                Projects["Workflow"] = "https://nextapp.mobi/files/projects.png"
+                allowed_documents = frappe.db.sql(
+                    """ select
+                            `tabMobile User Documents`.document_name as docq 
+                            from `tabMobile User Documents`
+                            join `tabMobile User`
+                                on `tabMobile User Documents`.parent = `tabMobile User`.name 
+                            where `tabMobile User`.user = '{user}'
+                                or `tabMobile User`.username = '{user}'
+                                or `tabMobile User`.mobile_no = '{user}'
+                                and `tabMobile User Documents`.modules ='workflow'
+                                order by `tabMobile User Documents`.idx  """.format(
+                        user=usr
+                    ),
+                    as_dict=True,
+                )
+
+                docs = {}
+                for x in allowed_documents:
+                    if x.docq == "Workflow":
+                        docs["Workflow"] = "https://nextapp.mobi/files/task.png"
+
+                Projects["docs"] = docs
+                modules.append(Projects)
+            if module.modq == "Projects":
+                Projects = {}
+
                 Projects["Projects"] = "https://nextapp.mobi/files/projects.png"
                 allowed_documents = frappe.db.sql(
                     """ select
@@ -47,8 +73,10 @@ def login(usr, pwd):
                                 or `tabMobile User`.username = '{user}'
                                 or `tabMobile User`.mobile_no = '{user}'
                                 and `tabMobile User Documents`.modules ='projects'
-                                order by `tabMobile User Documents`.idx  """
-                                .format(user=usr), as_dict=True
+                                order by `tabMobile User Documents`.idx  """.format(
+                        user=usr
+                    ),
+                    as_dict=True,
                 )
 
                 docs = {}
@@ -61,10 +89,10 @@ def login(usr, pwd):
 
                     if x.docq == "Project":
                         docs["Project"] = "https://nextapp.mobi/files/projects.png"
-                    
+
                     if x.docq == "Project":
                         docs["Issue"] = "https://nextapp.mobi/files/issue.png"
-                    
+
                 Projects["docs"] = docs
                 modules.append(Projects)
 
@@ -170,7 +198,6 @@ def login(usr, pwd):
                     as_dict=1,
                 )
                 docs = {}
-                docs["Stock Reports"] = "https://nextapp.mobi/files/delivery_note.png"
                 for x in allowed_documents:
                     if x.docq == "Item":
                         docs["Item"] = "https://nextapp.mobi/files/item.png"
@@ -182,8 +209,6 @@ def login(usr, pwd):
                         docs["Stock Entry"] = "https://nextapp.mobi/files/stock_entry.png"
                     if x.docq == "Delivery Note":
                         docs["Delivery Note"] = "https://nextapp.mobi/files/delivery_note.png"
-
-                    
 
                 Stock["docs"] = docs
                 modules.append(Stock)
@@ -219,7 +244,6 @@ def login(usr, pwd):
                 HR["docs"] = docs
                 modules.append(HR)
 
-                
         default_tax = frappe.db.get_all(
             "Sales Taxes and Charges Template",
             filters={
@@ -278,8 +302,6 @@ def login(usr, pwd):
             "success_key": False,
             "message": "اسم المستخدم او كلمة المرور غير صحيحة !",
         }
-
-    
 
     return
 
@@ -828,9 +850,7 @@ def party_search(doctype=0, search_text=0, party=0):
         return "Check Data"
     else:
         if doctype == "Address":
-            addresses = frappe.db.get_list(
-                "Dynamic Link", filters={"link_name": party}, fields=["parent"]
-            )
+            addresses = frappe.db.get_list("Dynamic Link", filters={"link_name": party}, fields=["parent"])
             result = []
             for d in addresses:
                 query = frappe.db.sql(
@@ -862,9 +882,7 @@ def party_search(doctype=0, search_text=0, party=0):
                 return "no result"
 
         if doctype == "Contact":
-            contacts = frappe.db.get_list(
-                "Dynamic Link", filters={"link_name": party}, fields=["parent"]
-            )
+            contacts = frappe.db.get_list("Dynamic Link", filters={"link_name": party}, fields=["parent"])
             result = []
             for d in contacts:
                 query = frappe.db.sql(
@@ -926,5 +944,3 @@ def cancel(doctype, name):
         return message
     else:
         return "حدث خطأ ولم نتمكن من الغاء المعاملة . برجاء المحاولة مرة اخري!"
-
-

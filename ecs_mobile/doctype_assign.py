@@ -44,3 +44,28 @@ def cancel(**kwargs)-> None:
         todo_doc.save()
         return {"todo": query[0].name}
     return {"error": "There is no todo found."}
+
+
+@frappe.whitelist(methods=["GET"])
+def assigned_list(doctype, document_name):
+    users = frappe.db.get_all("ToDo", filters={
+        "reference_type": doctype,
+        "reference_name": document_name,
+        },
+        fields=["allocated_to"]
+    )
+    assigned_users_list = []
+    for user in users:
+        assigned_users_list.append(user["allocated_to"])
+    return assigned_users_list
+    
+
+
+
+
+
+
+
+
+
+
