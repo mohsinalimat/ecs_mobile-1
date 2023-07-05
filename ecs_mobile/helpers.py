@@ -1,6 +1,6 @@
 import frappe
 from datetime import datetime
-import humanize
+#import humanize
 import base64
 import requests
 
@@ -27,10 +27,10 @@ def upload_image(filename, image_content):
     return file_doc.file_url
 
 
-def humanize_datetime(datetime_str):
-    dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S.%f")
-    humanized_str = humanize.naturaltime(dt)
-    return humanized_str
+# def humanize_datetime(datetime_str):
+#     dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S.%f")
+#     humanized_str = humanize.naturaltime(dt)
+#     return humanized_str
 
 
 def remove_html_tags(text):
