@@ -212,77 +212,77 @@ def project(name):
     if expense_claim_count > 0:
         expense_claim_connections["name"] = "Expens Claim"
         expense_claim_connections["count"] = expense_claim_count
-        expense_claim_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        expense_claim_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(expense_claim_connections)
 
     material_request_count = len(frappe.get_list("Material Request", filters={"project": name}))
     if material_request_count > 0:
         material_request_connections["name"] = "Material Request"
         material_request_connections["count"] = material_request_count
-        material_request_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        material_request_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(material_request_connections)
 
     purchase_invoice_count = frappe.db.count("Purchase Invoice", filters={"project": name})
     if purchase_invoice_count > 0:
         purchase_invoice_connections["name"] = "Purchase Invoice"
         purchase_invoice_connections["count"] = purchase_invoice_count
-        purchase_invoice_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        purchase_invoice_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(purchase_invoice_connections)
 
     bom_count = len(frappe.get_list("BOM", filters={"project": name}))
     if bom_count > 0:
         bom_connections["name"] = "BOM"
         bom_connections["count"] = bom_count
-        bom_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        bom_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(bom_connections)
 
     task_count = frappe.db.count("Task", filters={"project": name})
     if task_count > 0:
         task_connections["name"] = "Task"
         task_connections["count"] = task_count
-        task_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        task_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(task_connections)
 
     timesheet_count = frappe.db.count("Timesheet", filters={"parent_project": name})
     if timesheet_count > 0:
         timesheet_connections["name"] = "Timesheet"
         timesheet_connections["count"] = timesheet_count
-        timesheet_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        timesheet_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(timesheet_connections)
 
     stock_entry_count = frappe.db.count("Stock Entry", filters={"project": name})
     if stock_entry_count > 0:
         stock_entry_connections["name"] = "Stock Entry"
         stock_entry_connections["count"] = stock_entry_count
-        stock_entry_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        stock_entry_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(stock_entry_connections)
 
     sales_order_count = frappe.db.count("Sales Order", filters={"project": name})
     if sales_order_count > 0:
         sales_order_connections["name"] = "Sales Order"
         sales_order_connections["count"] = sales_order_count
-        sales_order_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        sales_order_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(sales_order_connections)
 
     sales_invoice_count = frappe.db.count("Sales Invoice", filters={"project": name})
     if sales_invoice_count > 0:
         sales_invoice_connections["name"] = "Sales Invoice"
         sales_invoice_connections["count"] = sales_invoice_count
-        sales_invoice_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        sales_invoice_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(sales_invoice_connections)
 
     delivery_note_count = frappe.db.count("Delivery Note", filters={"project": name})
     if delivery_note_count > 0:
         delivery_note_connections["name"] = "Delivery Note"
         delivery_note_connections["count"] = delivery_note_count
-        delivery_note_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        delivery_note_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(delivery_note_connections)
 
     issue_count = frappe.db.count("Issue", filters={"project": name})
     if issue_count > 0:
         issue_connections["name"] = "Issue"
         issue_connections["count"] = issue_count
-        issue_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        issue_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(issue_connections)
 
     project["conn"] = connections
@@ -316,6 +316,7 @@ def task(name):
             "exp_end_date",
             "expected_time",
             "progress",
+            "expected_time",
             "description"
         ]
     )
@@ -335,6 +336,8 @@ def task(name):
         task["exp_start_date"] = x.exp_start_date
         task["exp_end_date"] = x.exp_end_date
         task["progress"] = x.progress
+        task["priority"] = x.priority
+        task["expected_time"] = x.expected_time
         task["description"] = remove_html_tags(str(x.description))
 
     child_data = frappe.db.get_all("Task Depends On",
@@ -391,14 +394,14 @@ def task(name):
     if expense_claim_count > 0:
         expense_claim_connections["name"] = "Expens Claim"
         expense_claim_connections["count"] = expense_claim_count
-        expense_claim_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        expense_claim_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(expense_claim_connections)
 
     timesheet_count = get_timesheet_task_count(name)
     if timesheet_count > 0:
         timesheet_connections["name"] = "Timesheet"
         timesheet_connections["count"] = expense_claim_count
-        timesheet_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        timesheet_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(timesheet_connections)
 
     task["conn"] = connections
@@ -573,6 +576,10 @@ def lead(name):
             "docstatus",
         ],
     )
+
+    if not doc_data:
+        return "لا يوجد عميل محتمل بهذا الاسم"
+
     for x in doc_data:
         led["name"] = x.name
         led["status"] = x.status
@@ -596,6 +603,12 @@ def lead(name):
         led["contact_date"] = x.contact_date
 
         led["docstatus"] = x.docstatus
+
+    # led['notes'] = frappe.db.sql(f"""
+    #     SELECT notes_html
+    #     FROM `tabLead`
+    #     WHERE name = '{doc_data[0].name}'
+    # """)[0]
 
     attachments = frappe.db.sql(
         """ Select file_name, file_url,
@@ -646,21 +659,19 @@ def lead(name):
     if quotation_count > 0 and doc_data:
         qtn_connections["name"] = "Quotation"
         qtn_connections["count"] = quotation_count
-        qtn_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        qtn_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(qtn_connections)
 
     if opportunity_count > 0 and doc_data:
         opp_connections["name"] = "Opportunity"
         opp_connections["count"] = opportunity_count
-        opp_connections["icon"] = "https://erpcloud.systems/files/opportunity.png"
+        opp_connections["icon"] = "https://nextapp.mobi/files/opportunity.png"
         connections.append(opp_connections)
 
     led["conn"] = connections
 
     if doc_data:
         return led
-    else:
-        return "لا يوجد عميل محتمل بهذا الاسم"
 
 
 @frappe.whitelist()
@@ -792,7 +803,7 @@ def opportunity(name):
     if quotation_count > 0 and doc_data:
         qtn_connections["name"] = "Quotation"
         qtn_connections["count"] = quotation_count
-        qtn_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        qtn_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(qtn_connections)
 
     if sup_quotation_count > 0 and doc_data:
@@ -800,7 +811,7 @@ def opportunity(name):
         sup_qtn_connections["count"] = sup_quotation_count
         sup_qtn_connections[
             "icon"
-        ] = "https://erpcloud.systems/files/supplier_quotation.png"
+        ] = "https://nextapp.mobi/files/supplier_quotation.png"
         connections.append(sup_qtn_connections)
 
     opp["conn"] = connections
@@ -1081,7 +1092,7 @@ def quotation(name):
     if sales_order_count > 0 and doc_data:
         so_connections["name"] = "Sales Order"
         so_connections["count"] = sales_order_count
-        so_connections["icon"] = "https://erpcloud.systems/files/sales_order.png"
+        so_connections["icon"] = "https://nextapp.mobi/files/sales_order.png"
         connections.append(so_connections)
 
     qtn["conn"] = connections
@@ -1282,37 +1293,37 @@ def customer(name):
     if quotation_count > 0 and doc_data:
         qtn_connections["name"] = "Quotation"
         qtn_connections["count"] = quotation_count
-        qtn_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        qtn_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(qtn_connections)
 
     if opportunity_count > 0 and doc_data:
         opp_connections["name"] = "Opportunity"
         opp_connections["count"] = opportunity_count
-        opp_connections["icon"] = "https://erpcloud.systems/files/opportunity.png"
+        opp_connections["icon"] = "https://nextapp.mobi/files/opportunity.png"
         connections.append(opp_connections)
 
     if sales_order_count > 0 and doc_data:
         so_connections["name"] = "Sales Order"
         so_connections["count"] = sales_order_count
-        so_connections["icon"] = "https://erpcloud.systems/files/sales_order.png"
+        so_connections["icon"] = "https://nextapp.mobi/files/sales_order.png"
         connections.append(so_connections)
 
     if delivery_note_count > 0 and doc_data:
         dn_connections["name"] = "Delivery Note"
         dn_connections["count"] = delivery_note_count
-        dn_connections["icon"] = "https://erpcloud.systems/files/delivery_note.png"
+        dn_connections["icon"] = "https://nextapp.mobi/files/delivery_note.png"
         connections.append(dn_connections)
 
     if sales_invoice_count > 0 and doc_data:
         sinv_connections["name"] = "Sales Invoice"
         sinv_connections["count"] = sales_invoice_count
-        sinv_connections["icon"] = "https://erpcloud.systems/files/sales_invoice.png"
+        sinv_connections["icon"] = "https://nextapp.mobi/files/sales_invoice.png"
         connections.append(sinv_connections)
 
     if payment_entry_count > 0 and doc_data:
         pe_connections["name"] = "Payment Entry"
         pe_connections["count"] = payment_entry_count
-        pe_connections["icon"] = "https://erpcloud.systems/files/payment_entry.png"
+        pe_connections["icon"] = "https://nextapp.mobi/files/payment_entry.png"
         connections.append(pe_connections)
 
     cust["conn"] = connections
@@ -1770,38 +1781,38 @@ def sales_order(name):
     if sales_invoice_count > 0 and doc_data:
         sinv_connections["name"] = "Sales Invoice"
         sinv_connections["count"] = sales_invoice_count
-        sinv_connections["icon"] = "https://erpcloud.systems/files/sales_invoice.png"
+        sinv_connections["icon"] = "https://nextapp.mobi/files/sales_invoice.png"
         connections.append(sinv_connections)
 
     if delivery_note_count > 0 and doc_data:
         dn_connections["name"] = "Delivery Note"
         dn_connections["count"] = delivery_note_count
-        dn_connections["icon"] = "https://erpcloud.systems/files/delivery_note.png"
+        dn_connections["icon"] = "https://nextapp.mobi/files/delivery_note.png"
         connections.append(dn_connections)
 
     if material_request_count > 0 and doc_data:
         mr_connections["name"] = "Material Request"
         mr_connections["count"] = material_request_count
-        mr_connections["icon"] = "https://erpcloud.systems/files/material_request.png"
+        mr_connections["icon"] = "https://nextapp.mobi/files/material_request.png"
         connections.append(mr_connections)
 
     if purchase_order_count > 0 and doc_data:
         po_connections["name"] = "Purchase Order"
         po_connections["count"] = purchase_order_count
-        po_connections["icon"] = "https://erpcloud.systems/files/purchase_order.png"
+        po_connections["icon"] = "https://nextapp.mobi/files/purchase_order.png"
         connections.append(po_connections)
 
     if quotation_count > 0 and doc_data:
         qtn_connections["name"] = "Quotation"
         qtn_connections["count"] = quotation_count
         qtn_connections["qtn_no"] = quotation
-        qtn_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        qtn_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(qtn_connections)
 
     if payment_entry_count > 0 and doc_data:
         pe_connections["name"] = "Payment Entry"
         pe_connections["count"] = payment_entry_count
-        pe_connections["icon"] = "https://erpcloud.systems/files/payment_entry.png"
+        pe_connections["icon"] = "https://nextapp.mobi/files/payment_entry.png"
         connections.append(pe_connections)
 
     so["conn"] = connections
@@ -2182,19 +2193,19 @@ def sales_invoice(name):
     if sales_order_count > 0 and doc_data:
         so_connections["name"] = "Sales Order"
         so_connections["count"] = sales_order_count
-        so_connections["icon"] = "https://erpcloud.systems/files/sales_order.png"
+        so_connections["icon"] = "https://nextapp.mobi/files/sales_order.png"
         connections.append(so_connections)
 
     if delivery_note_count > 0 and doc_data:
         dn_connections["name"] = "Delivery Note"
         dn_connections["count"] = delivery_note_count
-        dn_connections["icon"] = "https://erpcloud.systems/files/delivery_note.png"
+        dn_connections["icon"] = "https://nextapp.mobi/files/delivery_note.png"
         connections.append(dn_connections)
 
     if payment_entry_count > 0 and doc_data:
         pe_connections["name"] = "Payment Entry"
         pe_connections["count"] = payment_entry_count
-        pe_connections["icon"] = "https://erpcloud.systems/files/payment_entry.png"
+        pe_connections["icon"] = "https://nextapp.mobi/files/payment_entry.png"
         connections.append(pe_connections)
 
     sinv["conn"] = connections
@@ -2457,7 +2468,8 @@ def issue(name):
             "status",
             "priority",
             "issue_type",
-            "description"
+            "description",
+            "project",
         ]
     )
     for x in doc_data:
@@ -2466,7 +2478,6 @@ def issue(name):
         issue["status"] = x.status
         issue["subject"] = x.subject
         issue["project"] = x.project
-        issue["issue"] = x.issue
         issue["issue_type"] = x.issue_type
         issue["priority"] = x.priority
         issue["description"] = remove_html_tags(x.description)
@@ -2757,31 +2768,31 @@ def item(name):
     if quotation_count > 0 and doc_data:
         qtn_connections["name"] = "Quotation"
         qtn_connections["count"] = quotation_count
-        qtn_connections["icon"] = "https://erpcloud.systems/files/quotation.png"
+        qtn_connections["icon"] = "https://nextapp.mobi/files/quotation.png"
         connections.append(qtn_connections)
 
     if sales_order_count > 0 and doc_data:
         so_connections["name"] = "Sales Order"
         so_connections["count"] = sales_order_count
-        so_connections["icon"] = "https://erpcloud.systems/files/sales_order.png"
+        so_connections["icon"] = "https://nextapp.mobi/files/sales_order.png"
         connections.append(so_connections)
 
     if delivery_note_count > 0 and doc_data:
         dn_connections["name"] = "Delivery Note"
         dn_connections["count"] = delivery_note_count
-        dn_connections["icon"] = "https://erpcloud.systems/files/delivery_note.png"
+        dn_connections["icon"] = "https://nextapp.mobi/files/delivery_note.png"
         connections.append(dn_connections)
 
     if sales_invoice_count > 0 and doc_data:
         sinv_connections["name"] = "Sales Invoice"
         sinv_connections["count"] = sales_invoice_count
-        sinv_connections["icon"] = "https://erpcloud.systems/files/sales_invoice.png"
+        sinv_connections["icon"] = "https://nextapp.mobi/files/sales_invoice.png"
         connections.append(sinv_connections)
 
     if material_request_count > 0 and doc_data:
         mr_connections["name"] = "Material Request"
         mr_connections["count"] = material_request_count
-        mr_connections["icon"] = "https://erpcloud.systems/files/material_request.png"
+        mr_connections["icon"] = "https://nextapp.mobi/files/material_request.png"
         connections.append(mr_connections)
 
     if supplier_quotation_count > 0 and doc_data:
@@ -2789,31 +2800,31 @@ def item(name):
         sup_qtn_connections["count"] = supplier_quotation_count
         sup_qtn_connections[
             "icon"
-        ] = "https://erpcloud.systems/files/supplier_quotation.png"
+        ] = "https://nextapp.mobi/files/supplier_quotation.png"
         connections.append(sup_qtn_connections)
 
     if purchase_order_count > 0 and doc_data:
         po_connections["name"] = "Purchase Order"
         po_connections["count"] = purchase_order_count
-        po_connections["icon"] = "https://erpcloud.systems/files/purchase_order.png"
+        po_connections["icon"] = "https://nextapp.mobi/files/purchase_order.png"
         connections.append(po_connections)
 
     if purchase_receipt_count > 0 and doc_data:
         pr_connections["name"] = "Purchase Receipt"
         pr_connections["count"] = purchase_receipt_count
-        pr_connections["icon"] = "https://erpcloud.systems/files/purchase_receipt.png"
+        pr_connections["icon"] = "https://nextapp.mobi/files/purchase_receipt.png"
         connections.append(pr_connections)
 
     if purchase_invoice_count > 0 and doc_data:
         pinv_connections["name"] = "Purchase Invoice"
         pinv_connections["count"] = purchase_invoice_count
-        pinv_connections["icon"] = "https://erpcloud.systems/files/purchase_invoice.png"
+        pinv_connections["icon"] = "https://nextapp.mobi/files/purchase_invoice.png"
         connections.append(pinv_connections)
 
     if stock_entry_count > 0 and doc_data:
         se_connections["name"] = "Stock Entry"
         se_connections["count"] = stock_entry_count
-        se_connections["icon"] = "https://erpcloud.systems/files/stock_entry.png"
+        se_connections["icon"] = "https://nextapp.mobi/files/stock_entry.png"
         connections.append(se_connections)
 
     item_["conn"] = connections
@@ -3459,7 +3470,7 @@ def purchase_receipt(name):
     if count_purchase_order > 0 and doc_data:
         purchase_orders["name"] = "Purchase Order"
         purchase_orders["count"] = count_purchase_order
-        purchase_orders["icon"] = "https://erpcloud.systems/files/purchase_order.png"
+        purchase_orders["icon"] = "https://nextapp.mobi/files/purchase_order.png"
         connections.append(purchase_orders)
 
     if count_purchase_invoice > 0 and doc_data:
@@ -3467,7 +3478,7 @@ def purchase_receipt(name):
         purchase_invoices["count"] = count_purchase_invoice
         purchase_invoices[
             "icon"
-        ] = "https://erpcloud.systems/files/purchase_invoice.png"
+        ] = "https://nextapp.mobi/files/purchase_invoice.png"
         connections.append(purchase_invoices)
 
     if count_purchase_receipt > 0 and doc_data:
@@ -3475,7 +3486,7 @@ def purchase_receipt(name):
         purchase_receipts["count"] = count_purchase_receipt
         purchase_receipts[
             "icon"
-        ] = "https://erpcloud.systems/files/purchase_receipt.png"
+        ] = "https://nextapp.mobi/files/purchase_receipt.png"
         connections.append(purchase_receipts)
     response["conn"] = connections
 
@@ -3734,57 +3745,57 @@ def supplier(name):
     # if count_party_specific_item and doc_data:
     #     party_specific_item["name"] = "Party Specific Item"
     #     party_specific_item["count"] = count_party_specific_item
-    #     party_specific_item["icon"] = "https://erpcloud.systems/files/party_specific_item.png"
+    #     party_specific_item["icon"] = "https://nextapp.mobi/files/party_specific_item.png"
     #     connections.append(party_specific_item)
     #
     # if count_conn_pricing_rule and doc_data:
     #     pricing_rule["name"] = "Pricing Rule"
     #     pricing_rule["count"] = count_conn_pricing_rule
-    #     pricing_rule["icon"] = "https://erpcloud.systems/files/pricing_rule.png"
+    #     pricing_rule["icon"] = "https://nextapp.mobi/files/pricing_rule.png"
     #     connections.append(pricing_rule)
     #
     # if count_bank_acocunt and doc_data:
     #     bank_account["name"] = "Bank Acount"
     #     bank_account["count"] = count_bank_acocunt
-    #     bank_account["icon"] = "https://erpcloud.systems/files/bank_account.png"
+    #     bank_account["icon"] = "https://nextapp.mobi/files/bank_account.png"
     #     connections.append(bank_account)
     #
     #
     # if count_request_for_quotations and doc_data:
     #     request_for_quotation["name"] = "Request For Quotation"
     #     request_for_quotation["count"] = count_request_for_quotations
-    #     request_for_quotation["icon"] = "https://erpcloud.systems/files/request_for_quotation.png"
+    #     request_for_quotation["icon"] = "https://nextapp.mobi/files/request_for_quotation.png"
     # connections.append(request_for_quotation)
     if supplier_quotation_count > 0 and doc_data:
         supp_qtn_connections["name"] = "Supplier Quotation"
         supp_qtn_connections["count"] = supplier_quotation_count
         supp_qtn_connections[
             "icon"
-        ] = "https://erpcloud.systems/files/supplier_quotation.png"
+        ] = "https://nextapp.mobi/files/supplier_quotation.png"
         connections.append(supp_qtn_connections)
 
     if purchase_order_count > 0 and doc_data:
         po_connections["name"] = "Purchase Order"
         po_connections["count"] = purchase_order_count
-        po_connections["icon"] = "https://erpcloud.systems/files/purchase_order.png"
+        po_connections["icon"] = "https://nextapp.mobi/files/purchase_order.png"
         connections.append(po_connections)
 
     if purchase_receipt_count > 0 and doc_data:
         pr_connections["name"] = "Purchase Receipt"
         pr_connections["count"] = purchase_receipt_count
-        pr_connections["icon"] = "https://erpcloud.systems/files/purchase_receipt.png"
+        pr_connections["icon"] = "https://nextapp.mobi/files/purchase_receipt.png"
         connections.append(pr_connections)
 
     if purchase_invoice_count > 0 and doc_data:
         pinv_connections["name"] = "Purchase Invoice"
         pinv_connections["count"] = purchase_invoice_count
-        pinv_connections["icon"] = "https://erpcloud.systems/files/purchase_invoice.png"
+        pinv_connections["icon"] = "https://nextapp.mobi/files/purchase_invoice.png"
         connections.append(pinv_connections)
 
     if payment_entry_count > 0 and doc_data:
         pe_connections["name"] = "Payment Entry"
         pe_connections["count"] = payment_entry_count
-        pe_connections["icon"] = "https://erpcloud.systems/files/payment_entry.png"
+        pe_connections["icon"] = "https://nextapp.mobi/files/payment_entry.png"
         connections.append(pe_connections)
 
     supp["conn"] = connections
@@ -4044,7 +4055,7 @@ def supplier_quotation(name):
         quotation_count_connections["count"] = quotation_count
         quotation_count_connections[
             "icon"
-        ] = "https://erpcloud.systems/files/quotation.png"
+        ] = "https://nextapp.mobi/files/quotation.png"
         connections.append(quotation_count_connections)
 
     if purchase_order_count > 0 and doc_data:
@@ -4052,7 +4063,7 @@ def supplier_quotation(name):
         purchase_order_count_connections["count"] = purchase_order_count
         purchase_order_count_connections[
             "icon"
-        ] = "https://erpcloud.systems/files/purchase_order.png"
+        ] = "https://nextapp.mobi/files/purchase_order.png"
         connections.append(purchase_order_count_connections)
 
     if material_request_count > 0 and doc_data:
@@ -4060,7 +4071,7 @@ def supplier_quotation(name):
         material_request_count_connections["count"] = material_request_count
         material_request_count_connections[
             "icon"
-        ] = "https://erpcloud.systems/files/material_request.png"
+        ] = "https://nextapp.mobi/files/material_request.png"
         connections.append(material_request_count_connections)
 
     response["conn"] = connections
@@ -4508,7 +4519,7 @@ def purchase_order(name):
         purchase_receipts["count"] = count_purchase_receipt
         purchase_receipts[
             "icon"
-        ] = "https://erpcloud.systems/files/purchase_receipt.png"
+        ] = "https://nextapp.mobi/files/purchase_receipt.png"
         connections.append(purchase_receipts)
 
     if count_purchase_invoice > 0 and doc_data:
@@ -4516,19 +4527,19 @@ def purchase_order(name):
         purchase_invoices["count"] = count_purchase_invoice
         purchase_invoices[
             "icon"
-        ] = "https://erpcloud.systems/files/purchase_invoice.png"
+        ] = "https://nextapp.mobi/files/purchase_invoice.png"
         connections.append(purchase_invoices)
     if count_payment_entries > 0 and doc_data:
         payment_entries["name"] = "Payment Entry"
         payment_entries["count"] = count_payment_entries
-        payment_entries["icon"] = "https://erpcloud.systems/files/payment_entry.png"
+        payment_entries["icon"] = "https://nextapp.mobi/files/payment_entry.png"
         connections.append(payment_entries)
     if count_current_purchase_order_items > 0 and doc_data:
         material_requests["name"] = "Material Request"
         material_requests["count"] = count_current_purchase_order_items
         material_requests[
             "icon"
-        ] = "https://erpcloud.systems/files/material_request.png"
+        ] = "https://nextapp.mobi/files/material_request.png"
         connections.append(material_requests)
 
     if count_get_supplier_quotations > 0 and doc_data:
@@ -4536,7 +4547,7 @@ def purchase_order(name):
         supplier_quotation["count"] = count_get_supplier_quotations
         supplier_quotation[
             "icon"
-        ] = "https://erpcloud.systems/files/supplier_quotation.png"
+        ] = "https://nextapp.mobi/files/supplier_quotation.png"
         connections.append(supplier_quotation)
     response["conn"] = connections
 
@@ -5029,30 +5040,30 @@ def purchase_invoice(name):
     if count_purchase_order > 0 and doc_data:
         purchase_orders["name"] = "Purchase Order"
         purchase_orders["count"] = count_purchase_order
-        purchase_orders["icon"] = "https://erpcloud.systems/files/purchase_order.png"
+        purchase_orders["icon"] = "https://nextapp.mobi/files/purchase_order.png"
         connections.append(purchase_orders)
 
     if count_purchase_invoice > 0 and doc_data:
         purchase_invoices["name"] = "Purchase Invoice"
         purchase_invoices["count"] = count_purchase_invoice
-        purchase_invoices["icon"] = "https://erpcloud.systems/files/purcase_invoice.png"
+        purchase_invoices["icon"] = "https://nextapp.mobi/files/purcase_invoice.png"
         connections.append(purchase_invoices)
     if count_payment_entries > 0 and doc_data:
         payment_entries["name"] = "Payment Entry"
         payment_entries["count"] = count_payment_entries
-        payment_entries["icon"] = "https://erpcloud.systems/files/payment_entry.png"
+        payment_entries["icon"] = "https://nextapp.mobi/files/payment_entry.png"
         connections.append(payment_entries)
     # if count_payment_requests > 0 and doc_data:
     #     payment_requests["name"] = "Payment Request"
     #     payment_requests["count"] = count_payment_requests
-    #     payment_requests["icon"] = "https://erpcloud.systems/files/payment_request.png"
+    #     payment_requests["icon"] = "https://nextapp.mobi/files/payment_request.png"
     #     connections.append(payment_requests)
     # if count_current_purchase_order_items > 0 and doc_data:
     #     material_requests["name"] = "Material Request"
     #     material_requests["count"] = count_current_purchase_order_items
     #     material_requests[
     #         "icon"
-    #     ] = "https://erpcloud.systems/files/material_request.png"
+    #     ] = "https://nextapp.mobi/files/material_request.png"
     #     connections.append(material_requests)
 
     # if count_get_supplier_quotations > 0 and doc_data:
@@ -5060,7 +5071,7 @@ def purchase_invoice(name):
     #     supplier_quotation["count"] = count_get_supplier_quotations
     #     supplier_quotation[
     #         "icon"
-    #     ] = "https://erpcloud.systems/files/supplier_quotation.png"
+    #     ] = "https://nextapp.mobi/files/supplier_quotation.png"
     #     connections.append(supplier_quotation)
     response["conn"] = connections
 
@@ -5237,24 +5248,24 @@ def material_request(name):
         supplier_quotation["count"] = count_material_request
         supplier_quotation[
             "icon"
-        ] = "https://erpcloud.systems/files/supplier_quotation.png"
+        ] = "https://nextapp.mobi/files/supplier_quotation.png"
         connections.append(supplier_quotation)
 
     if count_purchase_order > 0 and doc_data:
         purchase_order["name"] = "Purchase Order"
         purchase_order["count"] = count_purchase_order
-        purchase_order["icon"] = "https://erpcloud.systems/files/purchase_order.png"
+        purchase_order["icon"] = "https://nextapp.mobi/files/purchase_order.png"
         connections.append(purchase_order)
 
     if count_purchase_receipt > 0 and doc_data:
         purchase_receipt["name"] = "Purchase Receipt"
         purchase_receipt["count"] = count_purchase_receipt
-        purchase_receipt["icon"] = "https://erpcloud.systems/files/purchase_receipt.png"
+        purchase_receipt["icon"] = "https://nextapp.mobi/files/purchase_receipt.png"
         connections.append(purchase_receipt)
     if count_stock_entry > 0 and doc_data:
         stock_entry["name"] = "Stock Entry"
         stock_entry["count"] = count_stock_entry
-        stock_entry["icon"] = "https://erpcloud.systems/files/stock_entry.png"
+        stock_entry["icon"] = "https://nextapp.mobi/files/stock_entry.png"
         connections.append(stock_entry)
     response["conn"] = connections
 
@@ -5563,7 +5574,7 @@ def employee(name):
         attendance_request["count"] = count_con_attendance
         attendance_request[
             "icon"
-        ] = "https://erpcloud.systems/files/attendance_request.png"
+        ] = "https://nextapp.mobi/files/attendance_request.png"
         connections.append(attendance_request)
 
     con_leave_application = frappe.db.get_all(
@@ -5578,7 +5589,7 @@ def employee(name):
         leave_application["count"] = count_con_leave_application
         leave_application[
             "icon"
-        ] = "https://erpcloud.systems/files/leave_application.png"
+        ] = "https://nextapp.mobi/files/leave_application.png"
         connections.append(leave_application)
 
     con_employee_advance = frappe.db.get_all(
@@ -5591,7 +5602,7 @@ def employee(name):
     if count_con_employee_advance > 0 and doc_data:
         employee_advance["name"] = "Employee Advance"
         employee_advance["count"] = count_con_employee_advance
-        employee_advance["icon"] = "https://erpcloud.systems/files/employee_advance.png"
+        employee_advance["icon"] = "https://nextapp.mobi/files/employee_advance.png"
         connections.append(employee_advance)
 
     con_expense_claim = frappe.db.get_all("Expense Claim", filters={"employee": name})
@@ -5601,7 +5612,7 @@ def employee(name):
     if count_con_expense_claim > 0 and doc_data:
         expense_claim["name"] = "Expense Claim"
         expense_claim["count"] = count_con_expense_claim
-        expense_claim["icon"] = "https://erpcloud.systems/files/expense_claim.png"
+        expense_claim["icon"] = "https://nextapp.mobi/files/expense_claim.png"
         connections.append(expense_claim)
 
     con_employee_grievance = frappe.db.get_all(
@@ -5615,7 +5626,7 @@ def employee(name):
         employee_grievance["count"] = count_con_employee_grievance
         employee_grievance[
             "icon"
-        ] = "https://erpcloud.systems/files/employee_grievance.png"
+        ] = "https://nextapp.mobi/files/employee_grievance.png"
         connections.append(employee_grievance)
 
     response["conn"] = connections
@@ -5822,7 +5833,7 @@ def employee_advance(name):
     if count_payment_entry_reference > 0 and doc_data:
         entry_reference["name"] = "Payment Entry"
         entry_reference["count"] = count_payment_entry_reference
-        entry_reference["icon"] = "https://erpcloud.systems/files/payment_entry.png"
+        entry_reference["icon"] = "https://nextapp.mobi/files/payment_entry.png"
         connections.append(entry_reference)
 
     con_expense_claim = frappe.db.get_all(
@@ -5834,7 +5845,7 @@ def employee_advance(name):
     if count_con_expense_claim > 0 and doc_data:
         expense_claim["name"] = "Expense Claim"
         expense_claim["count"] = count_con_expense_claim
-        expense_claim["icon"] = "https://erpcloud.systems/files/expense_claim.png"
+        expense_claim["icon"] = "https://nextapp.mobi/files/expense_claim.png"
         connections.append(expense_claim)
 
     response["conn"] = connections
@@ -6040,7 +6051,7 @@ def expense_claim(name):
     if count_payment_entry_reference > 0 and doc_data:
         entry_reference["name"] = "Payment Entry"
         entry_reference["count"] = count_payment_entry_reference
-        entry_reference["icon"] = "https://erpcloud.systems/files/payment_entry.png"
+        entry_reference["icon"] = "https://nextapp.mobi/files/payment_entry.png"
         connections.append(entry_reference)
 
     con_employee_advance = frappe.db.get_all(
@@ -6053,7 +6064,7 @@ def expense_claim(name):
     if count_con_employee_advance > 0 and doc_data:
         employee_advance["name"] = "Employee Advance"
         employee_advance["count"] = count_con_employee_advance
-        employee_advance["icon"] = "https://erpcloud.systems/files/employee_advance.png"
+        employee_advance["icon"] = "https://nextapp.mobi/files/employee_advance.png"
         connections.append(employee_advance)
 
     response["conn"] = connections

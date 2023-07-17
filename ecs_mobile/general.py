@@ -358,7 +358,7 @@ def general_service(
         )
         if query:
             for issue in query:
-                issue["description"] = remove_html_tags(issue["description"])
+                issue["description"] = remove_html_tags(str(issue["description"]))
             return query
         else:
             return "لا يوجد !"
@@ -607,7 +607,6 @@ def general_service(
             conditions["lead_owner"] = filter2
         if filter3 != "%%":
             conditions["organization_lead"] = filter3
-
         if filter4 != "%%" and filter5 == "%%":
             conditions["creation"] = [">=", filter4]
         if filter5 != "%%" and filter4 == "%%":
@@ -624,6 +623,8 @@ def general_service(
                 "lead_name",
                 "company_name",
                 "territory",
+                "email_id",
+                "mobile_no",
                 "source",
                 "market_segment",
                 "status",
@@ -2330,6 +2331,7 @@ def general_service(
                 "country",
                 "mobile_no",
                 "default_currency",
+                "default_price_list",
             ],
             order_by=order_by(sort_field, sort_type),
             start=start,
@@ -3071,6 +3073,7 @@ def general_service(
                 "branch",
                 "company",
                 "status",
+                "expense_approver",
             ],
             order_by=order_by(sort_field, sort_type),
             start=start,

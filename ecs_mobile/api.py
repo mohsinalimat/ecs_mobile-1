@@ -275,6 +275,16 @@ def login(usr, pwd):
                 "default_buying_terms",
             ],
         )
+        default_selling_price_list = frappe.db.get_single_value("Selling Settings", "selling_price_list")
+
+        for company_entry in company:
+            company_entry["default_selling_price_list"] = default_selling_price_list
+
+        default_buting_price_list = frappe.db.get_single_value("Buying Settings", "buying_price_list")
+
+        for company_entry in company:
+            company_entry["default_buying_price_list"] = default_buting_price_list
+
         doc_perm = frappe.db.get_all("Custom DocPerm")
         user_role = frappe.get_roles(frappe.session.user)
         user_permissions = frappe.defaults.get_user_permissions(str(frappe.session.user))
