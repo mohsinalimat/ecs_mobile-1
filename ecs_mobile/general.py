@@ -1,3 +1,4 @@
+from re import search
 from frappe.query_builder.functions import Convert
 import frappe
 import erpnext
@@ -324,7 +325,7 @@ def general_service(
             conditions["priority"] = filter2
 
         if filter3 != "%%":
-            conditions["issue_type"] = filter3
+            conditions["project"] = filter3
 
         if filter6 != "%%":
             conditions["customer"] = filter6
@@ -364,6 +365,7 @@ def general_service(
             return "لا يوجد !"
 
     # ----------------- END Issue List View ------------------#
+
     # ------------------ BOM list view ---------------- #
     if doctype == "BOM" and con_doc == "%%":
         conditions = {}
@@ -402,6 +404,7 @@ def general_service(
                 "is_default",
                 "currency",
                 "rm_cost_as_per",
+                "operating_cost",
                 "with_operations",
                 "inspection_required",
             ],
@@ -415,6 +418,281 @@ def general_service(
             return "لا يوجد !"
     # ------------------ End BOM list view ---------------- #
 
+    # ------------------ Job Card list view ---------------- #
+    if doctype == "Job Card" and con_doc == "%%":
+        conditions = {}
+        conditions1 = {}
+
+        if search_text != "%%":
+            conditions1["name"] = ["like", search_text]
+        if filter1 != "%%":
+            conditions["is_active"] = filter1
+        if filter2 != "%%":
+            conditions["operation"] = filter2
+        if filter3 != "%%":
+            conditions["work_order"] = filter3
+        
+
+        if filter4 != "%%" and filter5 == "%%":
+            conditions["creation"] = [">=", filter4]
+        if filter5 != "%%" and filter4 == "%%":
+            conditions["creation"] = ["<=", filter5]
+        if filter4 != "%%" and filter5 != "%%":
+            conditions["creation"] = ["between", [filter4, filter5]]
+
+        query = frappe.db.get_list(
+            "Job Card",
+            or_filters=conditions1,
+            filters=conditions,
+            fields=[
+                "name",
+                "item_name",
+                "for_quantity",
+                "project",
+                "operation",
+                "work_order"
+            ],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+        
+    # ------------------ End Job Card list view ---------------- #
+
+
+    # ------------------ Work Order list view ---------------- #
+    if doctype == "Work Order" and con_doc == "%%":
+        conditions = {}
+        conditions1 = {}
+
+        if search_text != "%%":
+            conditions1["name"] = ["like", search_text]
+            conditions1["item_name"] = ["like", search_text]
+
+        if filter1 != "%%":
+            conditions["status"] = filter1
+        if filter2 != "%%":
+            conditions["priority"] = filter2
+        if filter3 != "%%":
+            conditions["product"] = filter3
+
+        if filter4 != "%%" and filter5 == "%%":
+            conditions["planned_start_date"] = [">=", filter4]
+        if filter5 != "%%" and filter4 == "%%":
+            conditions["planned_end_date"] = ["<=", filter5]
+        if filter4 != "%%" and filter5 != "%%":
+            conditions["planned_start_date"] = ["between", [filter4, filter5]]
+
+        query = frappe.db.get_list(
+            "Work Order",
+            or_filters=conditions1,
+            filters=conditions,
+            fields=[
+                "name",
+                "item_name",
+                "stock_uom",
+                "qty",
+                "status",
+                "planned_start_date",
+                "planned_end_date",
+                "production_item",
+                "bom_no",
+                #"operations",
+                
+                
+            ],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+    # ------------------ End Work Order list view ---------------- #
+
+
+    # ------------------ Work Station list view ---------------- #
+    
+    if doctype == "Workstation" and con_doc == "%%":
+        conditions = {}
+        conditions1 = {}
+
+        if search_text != "%%":
+            conditions1["workstation_name"] = ["like", search_text]
+            conditions1["description"] = ["like", search_text]
+
+        if filter1 != "%%":
+            conditions["status"] = filter1
+        if filter2 != "%%":
+            conditions["priority"] = filter2
+        if filter3 != "%%":
+            conditions["product"] = filter3
+
+        if filter4 != "%%" and filter5 == "%%":
+            conditions["planned_start_date"] = [">=", filter4]
+        if filter5 != "%%" and filter4 == "%%":
+            conditions["planned_end_date"] = ["<=", filter5]
+        if filter4 != "%%" and filter5 != "%%":
+            conditions["planned_start_date"] = ["between", [filter4, filter5]]
+
+        query = frappe.db.get_list(
+            "Workstation",
+            or_filters=conditions1,
+            filters=conditions,
+            fields=[
+                "workstation_name",
+                "description",
+            ],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+        
+
+    # ------------------ End Work Station list view ---------------- #
+
+    # ------------------ Operation list view ---------------- #
+  
+    if doctype == "Operation" and con_doc == "%%":
+        conditions = {}
+        conditions1 = {}
+
+        if search_text != "%%":
+            conditions1["operation_name"] = ["like", search_text]
+        
+        if filter1 != "%%":
+            conditions["status"] = filter1
+        if filter2 != "%%":
+            conditions["priority"] = filter2
+        if filter3 != "%%":
+            conditions["product"] = filter3
+
+        if filter4 != "%%" and filter5 == "%%":
+            conditions["planned_start_date"] = [">=", filter4]
+        if filter5 != "%%" and filter4 == "%%":
+            conditions["    planned_end_date"] = ["<=", filter5]
+        if filter4 != "%%" and filter5 != "%%":
+            conditions["planned_start_date"] = ["between", [filter4, filter5]]
+        
+         
+        query = frappe.db.get_list(
+            "Operation",
+            or_filters=conditions1,
+            filters=conditions,
+            fields=[
+                "name",
+            ],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+
+    # ------------------ End Operation list view ---------------- #
+    
+    # ------------------ Quality inspection template list view ---------------- #
+
+    if doctype == "Quality Inspection Template" and con_doc == "%%":
+        conditions = {}
+        conditions1 = {}
+
+        if search_text != "%%":
+            conditions1["quality_inspection_template_name"] = ["like", search_text]
+
+        if filter1 != "%%":
+            conditions["status"] = filter1
+        if filter2 != "%%":
+            conditions["priority"] = filter2
+        if filter3 != "%%":
+            conditions["item_code"] = filter3
+
+        if filter4 != "%%" and filter5 == "%%":
+            conditions["report_date"] = [">=", filter4]
+        if filter5 != "%%" and filter4 == "%%":
+            conditions["report_date"] = ["<=", filter5]
+        if filter4 != "%%" and filter5 != "%%":
+            conditions["report_date"] = ["between", [filter4, filter5]]
+
+        query = frappe.db.get_list(
+            "Quality Inspection Template",
+            or_filters=conditions1,
+            filters=conditions,
+            fields=[
+                "quality_inspection_template_name",
+            ],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+
+    # ------------------ End quality inspection template list view ---------------- #
+    
+
+    # ------------------ Batch Number list view ---------------- #
+
+    if doctype == "Batch" and con_doc == "%%":
+        conditions = {}
+        conditions1 = {}
+
+        if search_text != "%%":
+            conditions1["batch_id"] = ["like", search_text]
+
+        if filter1 != "%%":
+            conditions["status"] = filter1
+        if filter2 != "%%":
+            conditions["priority"] = filter2
+        if filter3 != "%%":
+            conditions["item_code"] = filter3
+
+        if filter4 != "%%" and filter5 == "%%":
+            conditions["report_date"] = [">=", filter4]
+        if filter5 != "%%" and filter4 == "%%":
+            conditions["report_date"] = ["<=", filter5]
+        if filter4 != "%%" and filter5 != "%%":
+            conditions["report_date"] = ["between", [filter4, filter5]]
+
+        query = frappe.db.get_list(
+            "Batch",
+            or_filters=conditions1,
+            filters=conditions,
+            fields=[
+                "batch_id",
+            ],
+            order_by=order_by(sort_field, sort_type),
+            start=start,
+            page_length=page_length,
+        )
+
+        if query:
+            return query
+        else:
+            return "لا يوجد !"
+
+    # ------------------ End Batch Number list view ---------------- #
+
+
+       
     # ----------------------------------------- Project List ---------------------------------------- #
     if doctype == "Project" and con_doc == "%%":
         conditions = {}
@@ -517,9 +795,16 @@ def general_service(
                     fields=["task", "project", "subject"],
                 )
                 task["depends_on"] = depends_on
+
+                # Fetch project_name for the task
+                if task.get("project"):
+                    project = frappe.get_value("Project", task["project"], "project_name")
+                    task["project"] = project
+
             return query
         else:
             return "لا يوجد !"
+
     # ---------------------------------------- End Task List --------------------------------------#
 
     # ----------------------------------------- Timesheet List ----------------------------------------#
@@ -534,6 +819,9 @@ def general_service(
 
         if filter2 != "%%":
             conditions["customer"] = filter2
+
+        if filter3 != "%%":
+            conditions["employee"] = filter3
 
         query = frappe.db.get_list(
             "Timesheet",
@@ -1609,7 +1897,7 @@ def general_service(
                 {"name": ["like", search_text]},
                 {"item_group_name": ["like", search_text]},
             ],
-            fields=["name"],
+            fields=["name","parent_item_group","is_group"],
             order_by="name asc",
             start=start,
             page_length=page_length,
@@ -1618,7 +1906,6 @@ def general_service(
             return query
         else:
             return "لا يوجد !"
-
     ############################################ BRAND ############################################
 
     ########################### Brand Full List & Search ############################
@@ -1945,6 +2232,7 @@ def general_service(
                 "item_group",
                 "stock_uom as uom",
                 "image",
+                "standard_rate"
             ],
             order_by=order_by(sort_field, sort_type),
             start=start,
@@ -4324,6 +4612,7 @@ def get_item_uoms(item_code):
         }
         return response
 
+from frappe import _
 
 @frappe.whitelist(methods=["GET"])
 def get_item_list(
@@ -4332,9 +4621,11 @@ def get_item_list(
         search_text="%%",
         price_list="%%",
         start=0,
-        page_length=5,
+        page_length=20,
+        item_group="%%",
 ):
     conditions = ""
+
     if allow_purchase is not None:
         conditions += f" and tabItem.is_purchase_item = {allow_purchase} "
 
@@ -4342,140 +4633,131 @@ def get_item_list(
         conditions += f" and tabItem.is_sales_item = {allow_sales}"
 
     if search_text != "%%":
-        items = frappe.db.sql(
-            f""" select tabItem.name as name ,
-                                                    tabItem.item_code as item_code,
-                                                    tabItem.is_sales_item,
-                                                    tabItem.is_purchase_item,
-                                                    tabItem.item_name as item_name,
-                                                    tabItem.item_group as item_group,
-                                                    tabItem.stock_uom as stock_uom,
-                                                    tabItem.image as image,
-                                                    tabItem.sales_uom as sales_uom,
-                                                    ifnull((select max(price_list_rate)  from `tabItem Price` where item_code = tabItem.name and price_list = '{price_list}'),0) as price_list_rate,
-                                                    ifnull((select distinct `tabItem Tax Template Detail`.tax_rate from `tabItem Tax Template Detail` join `tabItem Tax`
-                                                    where `tabItem Tax Template Detail`.parent = `tabItem Tax`.item_tax_template and `tabItem Tax`.parent = `tabItem`.name),0) as tax_percent
-                                                    from tabItem
-                                                    where tabItem.name like '%{search_text}%'
-                                                    or tabItem.item_name like '%{search_text}%'
-                                                    {conditions}
-                                                    and tabItem.disabled = 0
-                                                    LIMIT {start}, {page_length}""",
-            as_dict=True,
-        )
-        result = []
-        for item_dict in items:
-            if item_dict.tax_percent > 0 and item_dict.price_list_rate > 0:
-                net_rate = item_dict.price_list_rate * (
-                        1 + (item_dict.tax_percent / 100)
-                )
-                vat_value = net_rate - item_dict.price_list_rate
-                data = {
-                    "name": item_dict.name,
-                    "item_code": item_dict.item_code,
-                    "item_name": item_dict.item_name,
-                    "item_group": item_dict.item_group,
-                    "allow_sales": item_dict.is_sales_item,
-                    "allow_purchase": item_dict.is_purchase_item,
-                    "uom": item_dict.stock_uom,
-                    "stock_uom": item_dict.stock_uom,
-                    "image": item_dict.image,
-                    "sales_uom": item_dict.sales_uom,
-                    "price_list_rate": item_dict.price_list_rate,
-                    "tax_percent": item_dict.tax_percent,
-                    "net_rate": net_rate,
-                    "vat_value": vat_value,
-                }
-                result.append(data)
-            else:
-                data = {
-                    "name": item_dict.name,
-                    "item_code": item_dict.item_code,
-                    "item_name": item_dict.item_name,
-                    "item_group": item_dict.item_group,
-                    "allow_sales": item_dict.is_sales_item,
-                    "allow_purchase": item_dict.is_purchase_item,
-                    "uom": item_dict.stock_uom,
-                    "stock_uom": item_dict.stock_uom,
-                    "image": item_dict.image,
-                    "sales_uom": item_dict.sales_uom,
-                    "price_list_rate": item_dict.price_list_rate,
-                    "tax_percent": item_dict.tax_percent,
-                    "net_rate": item_dict.price_list_rate,
-                }
-                result.append(data)
+        conditions += f" and (tabItem.name like '%{search_text}%' or tabItem.item_name like '%{search_text}%')"
 
-        if items:
-            return result
+    if item_group != "%%":
+        conditions += f" and tabItem.item_group = '{item_group}'"
+
+    items = frappe.db.sql(
+        f""" select tabItem.name as name,
+                    tabItem.item_code as item_code,
+                    tabItem.item_name as item_name,
+                    tabItem.is_sales_item,
+                    tabItem.is_purchase_item,
+                    tabItem.item_group as item_group,
+                    tabItem.stock_uom as stock_uom,
+                    tabItem.image as image,
+                    tabItem.sales_uom as sales_uom,
+                    ifnull((select max(price_list_rate) from `tabItem Price` where item_code = tabItem.name and price_list = '{price_list}'), 0) as price_list_rate,
+                    ifnull((select distinct `tabItem Tax Template Detail`.tax_rate from `tabItem Tax Template Detail` join `tabItem Tax`
+                    where `tabItem Tax Template Detail`.parent = `tabItem Tax`.item_tax_template and `tabItem Tax`.parent = `tabItem`.name), 0) as tax_percent
+                    from tabItem
+                    where tabItem.disabled = 0
+                    {conditions}
+                    LIMIT {start}, {page_length}""",
+        as_dict=True,
+    )
+
+    def get_item_uoms(item_code):
+        try:
+            item = frappe.get_doc("Item", item_code)
+            uoms = []
+            for uom in item.uoms:
+                uoms.append(
+                    dict(
+                        name=uom.name,
+                        uom=uom.uom,
+                        conversion_factor=uom.conversion_factor
+                    )
+                )
+            response = {
+                "success": True,
+                "uoms": uoms
+            }
+            return response
+
+        except:
+            response = {
+                "success": False,
+                "error": "Can't find an item with the provided item code",
+            }
+            return response
+
+    def get_item_barcodes(item_code):
+        barcodes = frappe.get_all("Item Barcode", filters={"parent": item_code}, fields=["barcode"])
+        return [barcode.get("barcode") for barcode in barcodes]
+
+    result = []
+    for item_dict in items:
+        item_group = frappe.db.get_value("Item Group", item_dict.item_group, "name")
+        if item_group:
+            item_dict["item_group"] = item_group
+
+        uoms_response = get_item_uoms(item_dict.item_code)
+        if uoms_response.get("success"):
+            uoms_data = uoms_response.get("uoms")
         else:
-            return "لا يوجد منتجات !"
+            uoms_data = []
+
+        item_dict["uom"] = uoms_data
+
+        barcode_list = get_item_barcodes(item_dict.item_code)
+    
+        if barcode_list:
+            barcode = barcode_list[0]
+        else:
+            barcode = None
+    
+        item_dict["barcode"] = barcode
+
+        if item_dict.tax_percent > 0 and item_dict.price_list_rate > 0:
+            net_rate = item_dict.price_list_rate * (1 + (item_dict.tax_percent / 100))
+            vat_value = net_rate - item_dict.price_list_rate
+            data = {
+                "name": item_dict.name,
+                "item_code": item_dict.item_code,
+                "item_name": item_dict.item_name,
+                "barcode":barcode,
+                "allow_sales": item_dict.is_sales_item,
+                "allow_purchase": item_dict.is_purchase_item,
+                "item_group": item_dict.item_group,
+                "uom": item_dict.stock_uom,
+                "uom_list": uoms_data,
+                "stock_uom": item_dict.stock_uom,
+                "image": item_dict.image,
+                "sales_uom": item_dict.sales_uom,
+                "price_list_rate": item_dict.price_list_rate,
+                "tax_percent": item_dict.tax_percent,
+                "net_rate": net_rate,
+                "vat_value": vat_value,
+            }
+            result.append(data)
+        else:
+            data = {
+                "name": item_dict.name,
+                "item_code": item_dict.item_code,
+                "item_name": item_dict.item_name,
+                "barcode":barcode,
+                "allow_sales": item_dict.is_sales_item,
+                "allow_purchase": item_dict.is_purchase_item,
+                "item_group": item_dict.item_group,
+                "uom": item_dict.stock_uom,
+                "uom_list": uoms_data,
+                "stock_uom": item_dict.stock_uom,
+                "image": item_dict.image,
+                "sales_uom": item_dict.sales_uom,
+                "price_list_rate": item_dict.price_list_rate,
+                "tax_percent": item_dict.tax_percent,
+                "net_rate": item_dict.price_list_rate,
+            }
+            result.append(data)
+
+    if items:
+        return result
     else:
-        items = frappe.db.sql(
-            f""" select tabItem.name as name,
-                                        tabItem.item_code as item_code,
-                                        tabItem.item_name as item_name,
-                                        tabItem.is_sales_item,
-                                        tabItem.is_purchase_item,
-                                        tabItem.item_group as item_group,
-                                        tabItem.stock_uom as stock_uom,
-                                        tabItem.image as image,
-                                        tabItem.sales_uom as sales_uom,
-                                        ifnull((select max(price_list_rate) from `tabItem Price` where item_code = tabItem.name and price_list = '{price_list}'),0) as price_list_rate,
-                                        ifnull((select distinct `tabItem Tax Template Detail`.tax_rate from `tabItem Tax Template Detail` join `tabItem Tax`
-                                        where `tabItem Tax Template Detail`.parent = `tabItem Tax`.item_tax_template and `tabItem Tax`.parent = `tabItem`.name),0) as tax_percent
-                                        from tabItem
-                                        where tabItem.disabled = 0
-                                        {conditions}
-                                        LIMIT {start},{page_length} """,
-            as_dict=True,
-        )
+        return _("لا يوجد منتجات!")
 
-        result = []
-        for item_dict in items:
-            if item_dict.tax_percent > 0 and item_dict.price_list_rate > 0:
-                net_rate = item_dict.price_list_rate * (
-                        1 + (item_dict.tax_percent / 100)
-                )
-                vat_value = net_rate - item_dict.price_list_rate
-                data = {
-                    "name": item_dict.name,
-                    "item_code": item_dict.item_code,
-                    "item_name": item_dict.item_name,
-                    "allow_sales": item_dict.is_sales_item,
-                    "allow_purchase": item_dict.is_purchase_item,
-                    "item_group": item_dict.item_group,
-                    "uom": item_dict.stock_uom,
-                    "stock_uom": item_dict.stock_uom,
-                    "image": item_dict.image,
-                    "sales_uom": item_dict.sales_uom,
-                    "price_list_rate": item_dict.price_list_rate,
-                    "tax_percent": item_dict.tax_percent,
-                    "net_rate": net_rate,
-                    "vat_value": vat_value,
-                }
-                result.append(data)
-            else:
-                data = {
-                    "name": item_dict.name,
-                    "item_code": item_dict.item_code,
-                    "item_name": item_dict.item_name,
-                    "allow_sales": item_dict.is_sales_item,
-                    "allow_purchase": item_dict.is_purchase_item,
-                    "item_group": item_dict.item_group,
-                    "uom": item_dict.stock_uom,
-                    "stock_uom": item_dict.stock_uom,
-                    "image": item_dict.image,
-                    "sales_uom": item_dict.sales_uom,
-                    "price_list_rate": item_dict.price_list_rate,
-                    "tax_percent": item_dict.tax_percent,
-                    "net_rate": item_dict.price_list_rate,
-                }
-                result.append(data)
 
-        if items:
-            return result
-        else:
-            return "لا يوجد منتجات !"
 
 
 @frappe.whitelist(methods=["GET"])
@@ -4932,3 +5214,20 @@ def stock_entries():
     }
     frappe.response['is_success'] = True
 
+
+ #-------------------Get Work Order Operation's-----------------------------#
+
+@frappe.whitelist(methods=['GET'])
+def work_order_operations(work_order=None):
+
+    query = frappe.db.sql(f"""
+            SELECT DISTINCT
+                operation 
+            FROM 
+                `tabJob Card`
+            WHERE work_order = '{work_order}'
+        """, as_dict=True)
+
+    return query or "لا يوجد !"
+    
+    #---------------------------END---------------------------------------------#

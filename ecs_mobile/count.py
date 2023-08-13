@@ -38,7 +38,6 @@ def general_service(
     start=0,
     page_length=20,
 ):
-
     ############################################ LEAD ############################################
 
     ########################### Lead Full List & Search ############################
@@ -3340,7 +3339,6 @@ def general_service(
             return {"count": len(query)}
         else:
             return "لا يوجد !"
-
     ########################### Expense Claim Type List & Search ############################
     if doctype == "Expense Claim Type" and con_doc == "%%":
         query = frappe.db.get_list(
@@ -3461,7 +3459,21 @@ def general_service(
             return {"count": len(query)}
         else:
             return "لا يوجد !"
-
+    ########################### BOM List & Search ############################
+    if doctype == "BOM" and con_doc == "%%":
+        query = frappe.db.get_list(
+            "BOM",
+            fields=[
+                "name",
+            ],
+            order_by="modified desc",
+            start=start,
+            page_length=page_length
+        )
+        if query:
+            return {"count": len(query)}
+        else:
+            return "لا يوجد !"
     ########################### Loan Application Full List & Search ############################
     if doctype == "Loan Application" and con_doc == "%%":
         or_conditions = {}

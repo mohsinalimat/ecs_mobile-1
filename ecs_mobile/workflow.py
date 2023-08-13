@@ -105,7 +105,13 @@ def has_workflow(**kwargs) -> bool:
     Returns:
         _bool_: _False_ if the field does not exist, _True_ if the field exists
     """
-    return is_field_exists(doctype=kwargs.get("doctype"), fieldname="workflow_state")
+    #return is_field_exists(doctype=kwargs.get("doctype"), fieldname="workflow_state")
+    check = frappe.db.exists({"doctype": "Workflow", "document_type": kwargs.get("doctype"), "is_active":1})
+    if check:
+        return True
+    else:
+        return False
+
 
 
 @frappe.whitelist(methods=["GET"])

@@ -122,6 +122,31 @@ def login(usr, pwd):
                 Accounts["docs"] = docs
                 modules.append(Accounts)
 
+            #test manu
+            if module.modq == "Manufacturing":
+                Manufacturing = {}
+
+                Manufacturing["Manufacturing"] = "https://nextapp.mobi/files/accounts.png"
+                allowed_documents = frappe.db.sql(
+                    """ select `tabMobile User Documents`.document_name as docq 
+                                            from `tabMobile User Documents` join `tabMobile User` on `tabMobile User Documents`.parent = `tabMobile User`.name 
+                                            where `tabMobile User`.user = '{user}'  or `tabMobile User`.username = '{user}' or `tabMobile User`.mobile_no = '{user}' and `tabMobile User Documents`.modules ='Manufacturing' order by `tabMobile User Documents`.idx  """.format(
+                        user=usr
+                    ),
+                    as_dict=1,
+                )
+                docs = {}
+                for x in allowed_documents:
+                    if x.docq == "BOM":
+                        docs["BOM"] = "https://nextapp.mobi/files/payment_entry.png"
+                    if x.docq == "Journal Entry":
+                        docs["Work Order"] = "https://nextapp.mobi/files/journal_entry.png"
+                    if x.docq == "Sales Invoice":
+                        docs["Job Card"] = "https://nextapp.mobi/files/sales_invoice.png"
+
+                Manufacturing["docs"] = docs
+                modules.append(Manufacturing)
+
             if module.modq == "Selling":
                 Selling = {}
                 Selling["Selling"] = "https://nextapp.mobi/files/selling.png"

@@ -17,14 +17,17 @@ class StatusStat(DocStat):
 
     def get_statistics(self) -> list:
         response = []
-        statuses = get_meta(self.doctype).get_field("status").options.split("\n")
-        for status in statuses:
-            res_dict = {}
-            if status == "":
-                continue
-            res_dict["title"] = status
-            res_dict["count"] = frappe.db.count(self.doctype, {"status": status})
-            response.append(res_dict)
+        field = get_meta(self.doctype).get_field("status")
+        
+        if field and field.options:
+            statuses = field.options.split("\n")
+            for status in statuses:
+                res_dict = {}
+                if status == "":
+                    continue
+                res_dict["title"] = status
+                res_dict["count"] = frappe.db.count(self.doctype, {"status": status})
+                response.append(res_dict)
         return response
 
 
@@ -115,6 +118,9 @@ class DocStatFactory:
             "Expense Claim",
             "Loan Application",
             "Contact",
+            "BOM",
+            "Job Card",
+            "Work Order"
         ]
         self.__disabled_field_doctypes = ["Item"]
         self.__type_doctypes_map = {
